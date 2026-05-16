@@ -48,7 +48,6 @@ export async function GET(req: NextRequest) {
     debtRatio: r[1] != null ? Number(r[1]) : null,
     eps: r[2] != null ? Number(r[2]) : null,
     bps: r[3] != null ? Number(r[3]) : null,
-    dividendPerShare: r[4] != null ? Number(r[4]) : null,
   }));
 
   // 최신 주가
@@ -87,16 +86,16 @@ export async function GET(req: NextRequest) {
     filedAt: String(r[1]),
   }));
 
-  // 배당 연속성 — 최근 20분기에서 dividend_per_share > 0 비율
+  // 배당 연속성 — 과거 5년 동안 배당이 지급된 연도의 수
   const dividendRows = await db.run(sql`
-    SELECT dividend_per_share FROM financials
-    WHERE stock_id = ${stockId} AND dividend_per_share IS NOT NULL
-    ORDER BY period DESC LIMIT 20
+    SELECT strftime('%Y', date) as year, sum(dividend) as total_div
+    FROM prices
+    WHERE stock_id = ${stockId} AND dividend > 0
+    GROUP BY year
+    ORDER BY year DESC
+    LIMIT 5
   `);
-  const dividendCount = dividendRows.rows.filter(
-    (r) => r[0] != null && Number(r[0]) > 0
-  ).length;
-  const totalDividendPeriods = dividendRows.rows.length;
+  const dividendYearsCount = dividendRows.rows.length;
 
   // ── 체크리스트 계산 ─────────────────────────────────────────────────────────
   const latestFin = fins[0] ?? null;
@@ -130,10 +129,8 @@ export async function GET(req: NextRequest) {
 
   const debtRatio = latestFin?.debtRatio ?? null;
 
-  // 5년 연속 배당: 20분기 중 18개 이상 배당 > 0
-  const dividendContinuity = totalDividendPeriods >= 8
-    ? dividendCount / totalDividendPeriods >= 0.8
-    : null; // 데이터 부족
+  // 5년 연속 배당: 과거 5년 중 배당 지급 연도가 4년 이상이면 통과
+  const dividendContinuity = dividendYearsCount >= 4;
 
   const hasInsiderBuy = insiderRows.rows.length > 0;
   const hasRecentDisclosure = recentDisclosures.length > 0;
@@ -164,11 +161,8 @@ export async function GET(req: NextRequest) {
       no: 4,
       name: "배당 연속성",
       pass: dividendContinuity,
-      value:
-        totalDividendPeriods === 0
-          ? "배당 데이터 없음"
-          : `${dividendCount}/${totalDividendPeriods} 분기 배당`,
-      threshold: "80%+ 분기 배당 기록",
+      value: `${dividendYearsCount}년 배당 기록`,
+      threshold: "최근 5년 중 4년 이상 배당",
     },
     {
       no: 5,

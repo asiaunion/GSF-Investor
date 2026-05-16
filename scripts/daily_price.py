@@ -202,12 +202,17 @@ def collect_prices(stocks: list) -> dict:
                 yahoo_sym,
                 period="5d",
                 auto_adjust=True,
+                actions=True,
                 progress=False,
             )
             if hist.empty:
                 print("데이터 없음")
                 results[s["ticker"]] = {"error": "empty"}
                 continue
+
+            import pandas as pd
+            if isinstance(hist.columns, pd.MultiIndex):
+                hist.columns = hist.columns.droplevel(1)
 
             # 가장 최근 행 = 전일 종가
             latest = hist.iloc[-1]
@@ -216,14 +221,18 @@ def collect_prices(stocks: list) -> dict:
             close = float(latest["Close"].item()) if hasattr(latest["Close"], "item") else float(latest["Close"])
             volume_raw = latest["Volume"]
             volume = int(volume_raw.item()) if hasattr(volume_raw, "item") else int(volume_raw)
+            
+            dividend = 0.0
+            if "Dividends" in latest and not pd.isna(latest["Dividends"]):
+                dividend = float(latest["Dividends"].item()) if hasattr(latest["Dividends"], "item") else float(latest["Dividends"])
 
             print(f"✅ {latest_date} close={close:,.0f}")
 
             stmts.append({
-                "q": """INSERT OR IGNORE INTO prices
+                "q": """INSERT OR REPLACE INTO prices
                         (stock_id, date, close_price, volume, dividend, currency)
                         VALUES (?,?,?,?,?,?)""",
-                "params": [s["stock_id"], latest_date, close, volume, 0.0, s["currency"]],
+                "params": [s["stock_id"], latest_date, close, volume, dividend, s["currency"]],
             })
             results[s["ticker"]] = {
                 "date":   latest_date,

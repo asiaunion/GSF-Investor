@@ -157,7 +157,19 @@ def main():
         stock_id = ticker_to_id.get(t["ticker"])
         if not stock_id:
             continue
+            
         print(f"\n📊 {t['ticker']} ({t['name']}) corp_code={t['dart_corp_code']}")
+        
+        # Yahoo Finance에서 shares_outstanding 가져오기 (BPS 계산용)
+        shares_out = None
+        try:
+            import yfinance as yf
+            # TARGETS에 yahoo_ticker가 없으므로 임시로 코스닥/코스피 판별
+            suffix = ".KS" if t["ticker"] == "026960" else ".KQ"
+            yf_ticker = yf.Ticker(t["ticker"] + suffix)
+            shares_out = yf_ticker.info.get("sharesOutstanding")
+        except Exception as e:
+            print(f"    [WARN] yfinance sharesOutstanding 조회 실패: {e}")
 
         for year, period_label, report_code in quarters:
             # 이미 존재 확인
@@ -225,15 +237,18 @@ def main():
             ])
             bps = get_amount(["주당순자산가치", "주당순자산", "주당순자산(BPS)"])
 
+            if not bps and total_equity and shares_out:
+                bps = round(total_equity / shares_out, 2)
+
             turso_one(
                 """INSERT OR REPLACE INTO financials
                     (stock_id, period, revenue, op_income, net_income,
                      total_assets, total_equity, cash_and_equivalents,
-                     debt_ratio, dividend_per_share, eps, bps, source)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                     debt_ratio, dividend_per_share, eps, bps, shares_outstanding, source)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 [stock_id, period_label, revenue, op_income, net_income,
                  total_assets, total_equity, cash_eq, debt_ratio, div_per_sh,
-                 eps, bps, "DART"]
+                 eps, bps, shares_out, "DART"]
             )
             rev_b = f"{revenue/1e8:.0f}억" if revenue else "?"
             op_b  = f"{op_income/1e8:.0f}억" if op_income else "?"

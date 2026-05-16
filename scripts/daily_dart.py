@@ -63,6 +63,19 @@ if not DART_KEY:
     print("[ERROR] DART_API_KEY 환경변수가 없습니다.")
     sys.exit(1)
 
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
+
+def notify_telegram(message: str) -> None:
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}
+    try:
+        requests.post(url, json=payload, timeout=5)
+    except Exception as e:
+        print(f"    [WARN] Telegram 알림 실패: {e}")
+
 # libsql:// → https://
 http_url = TURSO_URL.replace("libsql://", "https://")
 
@@ -309,6 +322,7 @@ def process_disclosures(stock: dict, dart_list: list) -> dict:
                 "params": [stock_id, signal_type, severity, description],
             })
             print(f"    🔴 HIGH 시그널 감지: [{signal_type}] {report_nm}")
+            notify_telegram(f"🚨 <b>HIGH 시그널 감지</b>\n종목: {stock['name']} ({stock['ticker']})\n유형: {signal_type}\n공시: <a href='{raw_url}'>{report_nm}</a>")
 
     disc_inserted = turso_batch(disclosure_stmts)
     sig_inserted = turso_batch(signal_stmts)

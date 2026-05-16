@@ -26,6 +26,7 @@ import json
 import time
 import datetime
 import requests
+import pandas as pd
 from typing import Optional
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -295,20 +296,27 @@ def seed_prices(ticker_to_id: dict) -> None:
     for yahoo_sym, (ticker, stock_id_str, currency) in yahoo_ticker_map.items():
         print(f"  📥 {yahoo_sym} ({ticker}) 다운로드 중...")
         try:
-            hist = yf.download(yahoo_sym, period="2y", auto_adjust=True, progress=False)
+            hist = yf.download(yahoo_sym, period="5y", auto_adjust=True, actions=True, progress=False)
             if hist.empty:
                 print(f"     [WARN] {yahoo_sym}: 데이터 없음")
                 continue
+
+            # MultiIndex columns 처리: (column_name, ticker) -> column_name
+            if isinstance(hist.columns, pd.MultiIndex):
+                hist.columns = hist.columns.droplevel(1)
 
             stmts = []
             for date_idx, row in hist.iterrows():
                 date_str = date_idx.strftime("%Y-%m-%d")
                 close = float(row["Close"].item()) if hasattr(row["Close"], "item") else float(row["Close"])
                 volume = int(row["Volume"].item()) if hasattr(row["Volume"], "item") else int(row["Volume"])
+                
                 dividend = 0.0
+                if "Dividends" in row and not pd.isna(row["Dividends"]):
+                    dividend = float(row["Dividends"].item()) if hasattr(row["Dividends"], "item") else float(row["Dividends"])
 
                 stmts.append({
-                    "q": """INSERT OR IGNORE INTO prices
+                    "q": """INSERT OR REPLACE INTO prices
                             (stock_id, date, close_price, volume, dividend, currency)
                             VALUES (?,?,?,?,?,?)""",
                     "params": [int(stock_id_str), date_str, close, volume, dividend, currency],
@@ -451,6 +459,15 @@ def seed_financials(ticker_to_id: dict) -> None:
         stock_id  = ticker_to_id[s["ticker"]]
         print(f"\n  📊 {s['ticker']} ({s['name']}) corp_code={corp_code}")
 
+        # Yahoo Finance에서 shares_outstanding 가져오기 (BPS 계산용)
+        shares_out = None
+        try:
+            import yfinance as yf
+            t = yf.Ticker(s["yahoo_ticker"])
+            shares_out = t.info.get("sharesOutstanding")
+        except Exception as e:
+            print(f"    [WARN] yfinance sharesOutstanding 조회 실패: {e}")
+
         for year, period_label, report_code in quarters_to_fetch:
             existing = turso_one(
                 "SELECT id FROM financials WHERE stock_id=? AND period=? AND source='DART'",
@@ -487,6 +504,16 @@ def seed_financials(ticker_to_id: dict) -> None:
             total_equity = get_amount(["자본총계"])
             cash_eq      = get_amount(["현금및현금성자산"])
             div_per_sh   = get_amount(["주당배당금"])
+            eps          = get_amount([
+                "기본주당이익", "희석주당이익", "기본주당순이익",
+                "기본주당이익(손실)", "희석주당이익(손실)",
+                "기본주당계속영업이익(손실)", "계속영업기본주당순이익",
+                "기본주당계속영업손익",
+            ])
+            bps          = get_amount(["주당순자산가치", "주당순자산", "주당순자산(BPS)"])
+
+            if not bps and total_equity and shares_out:
+                bps = round(total_equity / shares_out, 2)
 
             # 재무비율 계산
             debt_ratio = None
@@ -498,13 +525,13 @@ def seed_financials(ticker_to_id: dict) -> None:
                 """INSERT OR REPLACE INTO financials
                     (stock_id, period, revenue, op_income, net_income,
                      total_assets, total_equity, cash_and_equivalents,
-                     debt_ratio, dividend_per_share, source)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                     debt_ratio, dividend_per_share, eps, bps, shares_outstanding, source)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 [
                     stock_id, period_label,
                     revenue, op_income, net_income,
                     total_assets, total_equity, cash_eq,
-                    debt_ratio, div_per_sh,
+                    debt_ratio, div_per_sh, eps, bps, shares_out,
                     "DART",
                 ]
             )
