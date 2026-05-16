@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const NAV_LINKS = [
   { href: "/", label: "대시보드" },
   { href: "/stocks", label: "관심종목" },
+  { href: "/disclosures", label: "공시" },
+  { href: "/signals", label: "시그널" },
   { href: "/journal", label: "매매 일지" },
 ];
 
@@ -15,6 +18,22 @@ interface NavbarProps {
 
 export default function Navbar({ email }: NavbarProps) {
   const pathname = usePathname();
+  const [unresolvedCount, setUnresolvedCount] = useState<number>(0);
+
+  // 미확인 HIGH 시그널 배지 카운트 (클라이언트 폴링)
+  useEffect(() => {
+    let mounted = true;
+    const fetchBadge = async () => {
+      try {
+        const res = await fetch("/api/signals/badge");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (mounted) setUnresolvedCount(data.unresolvedCount ?? 0);
+      } catch {}
+    };
+    fetchBadge();
+    return () => { mounted = false; };
+  }, [pathname]); // pathname 변경 시 재조회
 
   return (
     <nav className="border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
@@ -38,28 +57,37 @@ export default function Navbar({ email }: NavbarProps) {
           </div>
           <span className="font-semibold text-white text-sm">GSF Investor</span>
         </div>
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-1 sm:gap-3 overflow-x-auto">
           {NAV_LINKS.map((link) => {
             const isActive =
               link.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(link.href);
+            const isSignals = link.href === "/signals";
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-xs font-medium transition-colors ${
+                className={`relative shrink-0 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
                   isActive
-                    ? "text-emerald-400"
-                    : "text-zinc-400 hover:text-white"
+                    ? "text-emerald-400 bg-emerald-500/10"
+                    : "text-zinc-400 hover:text-white hover:bg-zinc-800"
                 }`}
               >
                 {link.label}
+                {/* 시그널 배지 */}
+                {isSignals && unresolvedCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                    {unresolvedCount > 9 ? "9+" : unresolvedCount}
+                  </span>
+                )}
               </Link>
             );
           })}
           {email && (
-            <span className="text-xs text-zinc-600 hidden sm:block">{email}</span>
+            <span className="text-xs text-zinc-600 hidden sm:block ml-2 shrink-0">
+              {email}
+            </span>
           )}
         </div>
       </div>

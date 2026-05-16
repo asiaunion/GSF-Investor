@@ -30,11 +30,22 @@ interface Summary {
   satelliteKRW: number;
 }
 
-interface Props {
-  data: { holdings: Holding[]; summary: Summary };
+interface RecentSignal {
+  id: number;
+  ticker: string;
+  type: string;
+  severity: string;
+  description: string;
+  detectedAt: string;
+  isResolved: number;
 }
 
-export default function DashboardClient({ data }: Props) {
+interface Props {
+  data: { holdings: Holding[]; summary: Summary };
+  recentSignals: RecentSignal[];
+}
+
+export default function DashboardClient({ data, recentSignals }: Props) {
   const { holdings, summary } = data;
 
   const donutData = [
@@ -213,6 +224,62 @@ export default function DashboardClient({ data }: Props) {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+      </div>
+
+      {/* 최근 시그널 타임라인 */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+            최근 시그널
+            {recentSignals.filter((s) => s.isResolved === 0 && s.severity === "HIGH").length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-red-500 inline-block animate-pulse" />
+            )}
+          </h2>
+          <Link
+            href="/signals"
+            className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1"
+          >
+            전체 보기 →
+          </Link>
+        </div>
+        {recentSignals.length === 0 ? (
+          <div className="px-5 py-10 text-center text-zinc-600 text-sm">
+            수집된 시그널이 없습니다 — DART/SEC 크론잡 확인
+          </div>
+        ) : (
+          <div className="divide-y divide-zinc-800/50">
+            {recentSignals.map((s) => {
+              const sevMap: Record<string, { dot: string; text: string }> = {
+                HIGH: { dot: "bg-red-500", text: "text-red-400" },
+                MEDIUM: { dot: "bg-amber-400", text: "text-amber-400" },
+                LOW: { dot: "bg-emerald-500", text: "text-emerald-400" },
+              };
+              const sev = sevMap[s.severity] ?? sevMap.LOW;
+              return (
+                <div
+                  key={s.id}
+                  className={`px-5 py-3.5 flex items-start gap-3 hover:bg-zinc-800/30 transition-colors ${
+                    s.isResolved ? "opacity-50" : ""
+                  }`}
+                >
+                  <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${sev.dot} ${s.isResolved === 0 && s.severity === "HIGH" ? "animate-pulse" : ""}`} />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`text-xs font-semibold ${sev.text}`}>{s.severity}</span>
+                      <span className="text-xs text-zinc-500">{s.ticker}</span>
+                      <span className="text-xs text-zinc-700">·</span>
+                      <span className="text-xs text-zinc-600">{s.detectedAt?.slice(0, 10)}</span>
+                    </div>
+                    <p className="text-xs text-zinc-300 line-clamp-1">{s.description}</p>
+                  </div>
+                  {s.isResolved === 1 && (
+                    <span className="text-xs text-zinc-600 shrink-0">✓</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

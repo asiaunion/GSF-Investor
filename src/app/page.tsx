@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { Suspense } from "react";
 import DashboardClient from "./DashboardClient";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -111,12 +112,55 @@ async function fetchDashboardData() {
   };
 }
 
+// ── 최근 시그널 (최신 5건, HIGH 우선) ─────────────────────────────────────────
+async function fetchRecentSignals() {
+  const rows = await db.run(sql`
+    SELECT
+      sg.id,
+      s.ticker,
+      sg.type,
+      sg.severity,
+      sg.description,
+      sg.detected_at,
+      sg.is_resolved
+    FROM signals sg
+    JOIN stocks s ON s.id = sg.stock_id
+    ORDER BY
+      sg.is_resolved ASC,
+      CASE sg.severity WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END ASC,
+      sg.detected_at DESC
+    LIMIT 5
+  `);
+
+  return rows.rows.map((r) => ({
+    id: Number(r[0]),
+    ticker: String(r[1]),
+    type: String(r[2]),
+    severity: String(r[3]),
+    description: String(r[4]),
+    detectedAt: String(r[5]),
+    isResolved: Number(r[6]),
+  }));
+}
+
+async function fetchUnresolvedCount() {
+  const rows = await db.run(sql`
+    SELECT COUNT(*) AS cnt FROM signals
+    WHERE is_resolved = 0 AND severity = 'HIGH'
+  `);
+  return Number(rows.rows[0]?.[0] ?? 0);
+}
+
 // ── 서버 컴포넌트 메인 ─────────────────────────────────────────────────────────
 export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const data = await fetchDashboardData();
+  const [data, recentSignals, unresolvedCount] = await Promise.all([
+    fetchDashboardData(),
+    fetchRecentSignals(),
+    fetchUnresolvedCount(),
+  ]);
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -124,15 +168,28 @@ export default async function HomePage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">포트폴리오 대시보드</h1>
-          <p className="text-zinc-500 text-sm mt-1">
-            기준일: {data.summary.fxDate ?? "—"} &nbsp;·&nbsp; USD/KRW {data.summary.usdkrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
-          </p>
+        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+              포트폴리오 대시보드
+              {unresolvedCount > 0 && (
+                <Link
+                  href="/signals"
+                  className="inline-flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-500/25 transition-colors animate-pulse"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                  미확인 시그널 {unresolvedCount}건
+                </Link>
+              )}
+            </h1>
+            <p className="text-zinc-500 text-sm mt-1">
+              기준일: {data.summary.fxDate ?? "—"} &nbsp;·&nbsp; USD/KRW {data.summary.usdkrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
+            </p>
+          </div>
         </div>
 
         <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardClient data={data} />
+          <DashboardClient data={data} recentSignals={recentSignals} />
         </Suspense>
       </main>
     </div>

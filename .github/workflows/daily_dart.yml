@@ -1,0 +1,63 @@
+name: Daily DART & SEC Collection
+
+# KST 07:30 = UTC 22:30 (전날)
+# daily_price.py (22:00) 이후 30분 후 실행
+on:
+  schedule:
+    - cron: "30 22 * * 1-5"   # UTC 22:30, 월~금 (한국 평일 기준)
+  workflow_dispatch:            # 수동 실행 (테스트용)
+
+jobs:
+  # ── Job 1: DART 공시 수집 (HIGH 시그널 즉시 감지) ───────────────────────────
+  collect-dart:
+    name: Collect DART Disclosures & Detect Signals
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run daily_dart.py
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN:   ${{ secrets.TURSO_AUTH_TOKEN }}
+          DART_API_KEY:       ${{ secrets.DART_API_KEY }}
+        run: python3 scripts/daily_dart.py
+
+  # ── Job 2: SEC EDGAR 수집 (10-Q/10-K) ────────────────────────────────────
+  collect-sec:
+    name: Collect SEC EDGAR 10-Q/10-K
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: collect-dart    # DART 완료 후 순차 실행 (DB 쓰기 충돌 방지)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run daily_sec.py
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN:   ${{ secrets.TURSO_AUTH_TOKEN }}
+        run: python3 scripts/daily_sec.py
