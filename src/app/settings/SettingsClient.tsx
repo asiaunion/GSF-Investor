@@ -13,62 +13,57 @@ const marketBadge: Record<string, string> = {
   US: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
 };
 
-type EditingField = {
-  id: number;
-  field: string;
-  value: string;
-} | null;
-
 export default function SettingsClient({ stocks: initialStocks }: Props) {
   const [stocks, setStocks] = useState(initialStocks);
-  const [editing, setEditing] = useState<EditingField>(null);
-  const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<Partial<StockSetting> | null>(null);
+  const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const startEdit = (id: number, field: string, current: string) => {
-    setEditing({ id, field, value: current });
-    setSaveError(null);
+  const handleExpand = (stock: StockSetting) => {
+    if (expandedId === stock.id) {
+      setExpandedId(null);
+      setEditForm(null);
+      setSaveError(null);
+    } else {
+      setExpandedId(stock.id);
+      setEditForm(stock);
+      setSaveError(null);
+    }
   };
 
-  const cancelEdit = () => setEditing(null);
-
-  const commitEdit = async () => {
-    if (!editing) return;
+  const handleSaveForm = async () => {
+    if (!editForm || !expandedId) return;
     setSaving(true);
     setSaveError(null);
 
-    // field name to DB column mapping
-    const fieldMap: Record<string, string> = {
-      broker: "broker",
-      thesis: "thesis",
-      category: "category",
-      yahooTicker: "yahoo_ticker",
-      dartCorpCode: "dart_corp_code",
-      secCik: "sec_cik",
-    };
-    const dbField = fieldMap[editing.field];
-    if (!dbField) { setEditing(null); setSaving(false); return; }
-
     try {
+      const updates = {
+        broker: editForm.broker,
+        thesis: editForm.thesis,
+        category: editForm.category,
+        yahoo_ticker: editForm.yahooTicker,
+        dart_corp_code: editForm.dartCorpCode,
+        sec_cik: editForm.secCik,
+      };
+
       const res = await fetch("/api/settings/stocks", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editing.id, field: dbField, value: editing.value }),
+        body: JSON.stringify({ id: expandedId, updates }),
       });
       if (!res.ok) {
         const err = await res.json();
         setSaveError(err.error ?? "저장 실패");
         return;
       }
-      // 로컬 상태 업데이트
+      // Update local state
       setStocks((prev) =>
-        prev.map((s) =>
-          s.id === editing.id ? { ...s, [editing.field]: editing.value } : s
-        )
+        prev.map((s) => (s.id === expandedId ? { ...s, ...editForm } : s))
       );
-      setEditing(null);
+      setExpandedId(null);
+      setEditForm(null);
     } catch (e) {
       setSaveError(String(e));
     } finally {
@@ -128,7 +123,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
       )}
 
       {/* ── 종목 목록 ────────────────────────────────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b border-zinc-800">
           <h2 className="text-base font-semibold text-white">관심종목 관리</h2>
           <p className="text-xs text-zinc-500 mt-0.5">클릭하여 상세 정보 확인 및 편집</p>
@@ -145,7 +140,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
                 {/* 헤더 행 */}
                 <div
                   className="flex items-center gap-4 px-6 py-4 hover:bg-zinc-800/30 transition-colors cursor-pointer"
-                  onClick={() => setExpandedId((prev) => (prev === stock.id ? null : stock.id))}
+                  onClick={() => handleExpand(stock)}
                 >
                   {/* 배지 */}
                   <div className="shrink-0 w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300">
@@ -198,7 +193,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
                 </div>
 
                 {/* 상세 편집 패널 */}
-                {isExpanded && (
+                {isExpanded && editForm && (
                   <div className="px-6 py-5 bg-zinc-950/50 border-t border-zinc-800/50 space-y-4">
                     {/* 식별자 그리드 */}
                     <div>
@@ -206,146 +201,94 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
                         데이터 소스 식별자
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {[
-                          { label: "Yahoo Ticker", field: "yahooTicker", value: stock.yahooTicker, placeholder: "026960.KS" },
-                          { label: "DART Corp Code", field: "dartCorpCode", value: stock.dartCorpCode, placeholder: "00296060 (8자리)" },
-                          { label: "SEC CIK", field: "secCik", value: stock.secCik, placeholder: "0001103982" },
-                        ].map(({ label, field, value, placeholder }) => {
-                          const isEditingThis = editing?.id === stock.id && editing?.field === field;
-                          return (
-                            <div key={field}>
-                              <label className="text-xs text-zinc-500 block mb-1">{label}</label>
-                              {isEditingThis ? (
-                                <div className="flex gap-1.5">
-                                  <input
-                                    autoFocus
-                                    value={editing.value}
-                                    onChange={(e) => setEditing((prev) => prev ? { ...prev, value: e.target.value } : null)}
-                                    onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") cancelEdit(); }}
-                                    className="flex-1 bg-zinc-800 border border-violet-500/50 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
-                                    placeholder={placeholder}
-                                  />
-                                  <button onClick={commitEdit} disabled={saving} className="px-2 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs rounded-lg disabled:opacity-50">
-                                    {saving ? "..." : "✓"}
-                                  </button>
-                                  <button onClick={cancelEdit} className="px-2 py-1.5 bg-zinc-800 text-zinc-400 text-xs rounded-lg">✕</button>
-                                </div>
-                              ) : (
-                                <button
-                                  id={`btn-edit-${field}-${stock.id}`}
-                                  onClick={() => startEdit(stock.id, field, value)}
-                                  className="w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-600 text-xs text-zinc-300 rounded-lg px-2.5 py-1.5 transition-colors truncate"
-                                >
-                                  {value || <span className="text-zinc-600 italic">{placeholder}</span>}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        })}
+                        <div>
+                          <label className="text-xs text-zinc-500 block mb-1">Yahoo Ticker</label>
+                          <input
+                            value={editForm.yahooTicker ?? ""}
+                            onChange={(e) => setEditForm({ ...editForm, yahooTicker: e.target.value })}
+                            className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                            placeholder="026960.KS"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-zinc-500 block mb-1">DART Corp Code</label>
+                          <input
+                            value={editForm.dartCorpCode ?? ""}
+                            onChange={(e) => setEditForm({ ...editForm, dartCorpCode: e.target.value })}
+                            className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                            placeholder="00296060 (8자리)"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-zinc-500 block mb-1">SEC CIK</label>
+                          <input
+                            value={editForm.secCik ?? ""}
+                            onChange={(e) => setEditForm({ ...editForm, secCik: e.target.value })}
+                            className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                            placeholder="0001103982"
+                          />
+                        </div>
                       </div>
                     </div>
 
                     {/* 카테고리 + 브로커 */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* 카테고리 선택 */}
                       <div>
                         <label className="text-xs text-zinc-500 block mb-1">카테고리</label>
                         <select
-                          id={`select-category-${stock.id}`}
-                          value={editing?.id === stock.id && editing?.field === "category" ? editing.value : stock.category}
-                          onChange={async (e) => {
-                            const newVal = e.target.value;
-                            setEditing({ id: stock.id, field: "category", value: newVal });
-                            setSaving(true);
-                            try {
-                              const res = await fetch("/api/settings/stocks", {
-                                method: "PATCH",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ id: stock.id, field: "category", value: newVal }),
-                              });
-                              if (res.ok) {
-                                setStocks((prev) =>
-                                  prev.map((s) => s.id === stock.id ? { ...s, category: newVal } : s)
-                                );
-                              }
-                            } finally {
-                              setSaving(false);
-                              setEditing(null);
-                            }
-                          }}
-                          className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          value={editForm.category ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                          className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
                         >
                           {categoryOptions.map((c) => (
                             <option key={c} value={c}>{c}</option>
                           ))}
                         </select>
                       </div>
-
-                      {/* 브로커 */}
                       <div>
                         <label className="text-xs text-zinc-500 block mb-1">브로커</label>
-                        {editing?.id === stock.id && editing?.field === "broker" ? (
-                          <div className="flex gap-1.5">
-                            <input
-                              autoFocus
-                              value={editing.value}
-                              onChange={(e) => setEditing((prev) => prev ? { ...prev, value: e.target.value } : null)}
-                              onKeyDown={(e) => { if (e.key === "Enter") commitEdit(); if (e.key === "Escape") cancelEdit(); }}
-                              className="flex-1 bg-zinc-800 border border-violet-500/50 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
-                              placeholder="대신증권"
-                            />
-                            <button onClick={commitEdit} disabled={saving} className="px-2 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs rounded-lg disabled:opacity-50">
-                              {saving ? "..." : "✓"}
-                            </button>
-                            <button onClick={cancelEdit} className="px-2 py-1.5 bg-zinc-800 text-zinc-400 text-xs rounded-lg">✕</button>
-                          </div>
-                        ) : (
-                          <button
-                            id={`btn-edit-broker-${stock.id}`}
-                            onClick={() => startEdit(stock.id, "broker", stock.broker)}
-                            className="w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-600 text-xs text-zinc-300 rounded-lg px-2.5 py-1.5 transition-colors"
-                          >
-                            {stock.broker || <span className="text-zinc-600 italic">대신증권</span>}
-                          </button>
-                        )}
+                        <input
+                          value={editForm.broker ?? ""}
+                          onChange={(e) => setEditForm({ ...editForm, broker: e.target.value })}
+                          className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                          placeholder="대신증권"
+                        />
                       </div>
                     </div>
 
                     {/* 투자 테제 */}
                     <div>
                       <label className="text-xs text-zinc-500 block mb-1">투자 테제</label>
-                      {editing?.id === stock.id && editing?.field === "thesis" ? (
-                        <div className="space-y-2">
-                          <textarea
-                            autoFocus
-                            value={editing.value}
-                            onChange={(e) => setEditing((prev) => prev ? { ...prev, value: e.target.value } : null)}
-                            rows={3}
-                            className="w-full bg-zinc-800 border border-violet-500/50 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none"
-                            placeholder="왜 이 종목을 보유하고 있는가?"
-                          />
-                          <div className="flex gap-2">
-                            <button onClick={commitEdit} disabled={saving} className="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs rounded-lg disabled:opacity-50">
-                              {saving ? "저장 중..." : "저장"}
-                            </button>
-                            <button onClick={cancelEdit} className="px-3 py-1.5 bg-zinc-800 text-zinc-400 text-xs rounded-lg">취소</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          id={`btn-edit-thesis-${stock.id}`}
-                          onClick={() => startEdit(stock.id, "thesis", stock.thesis)}
-                          className="w-full text-left bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700/50 hover:border-zinc-600 text-xs text-zinc-300 rounded-xl px-3 py-2.5 transition-colors leading-relaxed min-h-[3rem]"
-                        >
-                          {stock.thesis || <span className="text-zinc-600 italic">클릭하여 투자 테제 입력...</span>}
-                        </button>
-                      )}
+                      <textarea
+                        value={editForm.thesis ?? ""}
+                        onChange={(e) => setEditForm({ ...editForm, thesis: e.target.value })}
+                        rows={3}
+                        className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500 resize-none"
+                        placeholder="왜 이 종목을 보유하고 있는가?"
+                      />
                     </div>
 
-                    {/* 메타 정보 */}
-                    <p className="text-xs text-zinc-700">
-                      추가일: {new Date(stock.addedAt).toLocaleDateString("ko-KR")} · ID: {stock.id}
-                    </p>
+                    {/* 메타 정보 및 액션 버튼 */}
+                    <div className="flex items-center justify-between pt-4 mt-2 border-t border-zinc-800/50">
+                      <p className="text-xs text-zinc-700">
+                        추가일: {new Date(stock.addedAt).toLocaleDateString("ko-KR")} · ID: {stock.id}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleExpand(stock)}
+                          className="px-4 py-2 text-xs font-medium text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 rounded-lg transition-colors"
+                        >
+                          취소
+                        </button>
+                        <button
+                          onClick={handleSaveForm}
+                          disabled={saving}
+                          className="px-6 py-2 text-xs font-medium text-white bg-violet-600 hover:bg-violet-500 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {saving ? "저장 중..." : "저장"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </li>

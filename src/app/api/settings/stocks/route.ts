@@ -56,7 +56,18 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  // 개별 필드 업데이트 (허용 목록)
+  // 다중 필드 업데이트
+  if (body.updates && typeof body.updates === "object") {
+    const allowed = ["broker", "thesis", "category", "yahoo_ticker", "dart_corp_code", "sec_cik"];
+    for (const [key, val] of Object.entries(body.updates)) {
+      if (allowed.includes(key)) {
+        await db.run(sql`UPDATE stocks SET ${sql.raw(key)} = ${val} WHERE id = ${id}`);
+      }
+    }
+    return NextResponse.json({ success: true });
+  }
+
+  // 개별 필드 업데이트 (기존 방식 유지)
   const allowed = ["broker", "thesis", "category", "yahoo_ticker", "dart_corp_code", "sec_cik"];
   const col = field as string;
   if (!allowed.includes(col)) {

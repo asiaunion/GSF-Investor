@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import SettingsClient from "./SettingsClient";
+import Navbar from "@/components/Navbar";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      <Navbar email={session.user?.email} />
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-white">⚙️ 설정</h1>
