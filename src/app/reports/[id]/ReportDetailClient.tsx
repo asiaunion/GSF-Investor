@@ -1,19 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import type { Components } from "react-markdown";
+import dynamic from "next/dynamic";
 import type { ReportDetail } from "./page";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-} from "recharts";
+
+// recharts — SSR 비활성화 (recharts는 window 객체 사용)
+const LineChart   = dynamic(() => import("recharts").then((m) => m.LineChart),         { ssr: false });
+const Line        = dynamic(() => import("recharts").then((m) => m.Line),              { ssr: false });
+const XAxis       = dynamic(() => import("recharts").then((m) => m.XAxis),             { ssr: false });
+const YAxis       = dynamic(() => import("recharts").then((m) => m.YAxis),             { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then((m) => m.CartesianGrid),   { ssr: false });
+const Tooltip     = dynamic(() => import("recharts").then((m) => m.Tooltip),           { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false });
+const BarChart    = dynamic(() => import("recharts").then((m) => m.BarChart),          { ssr: false });
+const Bar         = dynamic(() => import("recharts").then((m) => m.Bar),               { ssr: false });
+const Legend      = dynamic(() => import("recharts").then((m) => m.Legend),            { ssr: false });
+
 
 type ChartsData = {
   prices: { date: string; close: number }[];
@@ -30,106 +35,105 @@ const triggerLabel: Record<string, string> = {
   SIGNAL_AUTO: "시그널 자동",
 };
 
-// ── 간단 마크다운 → React 노드 렌더러 ──────────────────────────────────────────
-function renderInline(text: string): React.ReactNode {
-  // **bold** 처리
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return (
-        <strong key={i} className="text-white font-semibold">
-          {part.slice(2, -2)}
-        </strong>
-      );
-    }
-    return part;
-  });
-}
+// ── react-markdown 커스텀 컴포넌트 맵 ──────────────────────────────────────────
+const mdComponents: Components = {
+  h1: ({ children }) => (
+    <h1 className="text-xl font-bold text-white mt-8 mb-4 leading-tight">{children}</h1>
+  ),
+  h2: ({ children }) => (
+    <h2 className="text-base font-bold text-violet-300 mt-7 mb-3 pb-2 border-b border-zinc-800 flex items-center gap-2">
+      <span className="w-1 h-4 bg-violet-500 rounded-full inline-block shrink-0" />
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3 className="text-sm font-semibold text-zinc-200 mt-5 mb-2">{children}</h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="text-sm font-medium text-zinc-400 mt-3 mb-1">{children}</h4>
+  ),
+  p: ({ children }) => (
+    <p className="text-sm text-zinc-300 leading-7 my-2">{children}</p>
+  ),
+  strong: ({ children }) => (
+    <strong className="text-white font-semibold">{children}</strong>
+  ),
+  em: ({ children }) => (
+    <em className="text-zinc-300 italic">{children}</em>
+  ),
+  ul: ({ children }) => (
+    <ul className="my-3 space-y-1.5 pl-1">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-3 space-y-1.5 list-decimal list-inside pl-1">{children}</ol>
+  ),
+  li: ({ children }) => (
+    <li className="text-sm text-zinc-300 leading-relaxed flex gap-2 items-start">
+      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-violet-500/60 shrink-0" />
+      <span>{children}</span>
+    </li>
+  ),
+  hr: () => <hr className="border-zinc-800 my-6" />,
+  blockquote: ({ children }) => (
+    <blockquote className="my-3 pl-4 border-l-2 border-violet-500/40 text-zinc-400 text-sm italic">
+      {children}
+    </blockquote>
+  ),
+  code: ({ children, className }) => {
+    const isBlock = className?.startsWith("language-");
+    return isBlock ? (
+      <code className="block bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-4 py-3 text-xs text-emerald-300 font-mono whitespace-pre-wrap my-3 overflow-x-auto">
+        {children}
+      </code>
+    ) : (
+      <code className="bg-zinc-800 rounded px-1.5 py-0.5 text-xs text-emerald-300 font-mono">
+        {children}
+      </code>
+    );
+  },
+  pre: ({ children }) => (
+    <pre className="my-3 overflow-x-auto">{children}</pre>
+  ),
+  table: ({ children }) => (
+    <div className="my-4 overflow-x-auto rounded-xl border border-zinc-800">
+      <table className="w-full text-xs">{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-zinc-800/60">{children}</thead>
+  ),
+  th: ({ children }) => (
+    <th className="px-4 py-2.5 text-left text-zinc-400 font-semibold border-b border-zinc-700">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="px-4 py-2.5 text-zinc-300 border-b border-zinc-800/50">{children}</td>
+  ),
+  tr: ({ children }) => (
+    <tr className="hover:bg-zinc-800/20 transition-colors">{children}</tr>
+  ),
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
+    >
+      {children}
+    </a>
+  ),
+};
 
 function MarkdownRenderer({ content }: { content: string }) {
-  const lines = content.split("\n");
-  const nodes: React.ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // H1
-    if (line.startsWith("# ")) {
-      nodes.push(
-        <h1 key={i} className="text-xl font-bold text-white mt-6 mb-3">
-          {renderInline(line.slice(2))}
-        </h1>
-      );
-      i++;
-      continue;
-    }
-
-    // H2
-    if (line.startsWith("## ")) {
-      nodes.push(
-        <h2 key={i} className="text-base font-bold text-violet-300 mt-6 mb-2 pb-1 border-b border-zinc-800">
-          {renderInline(line.slice(3))}
-        </h2>
-      );
-      i++;
-      continue;
-    }
-
-    // H3
-    if (line.startsWith("### ")) {
-      nodes.push(
-        <h3 key={i} className="text-sm font-semibold text-zinc-300 mt-4 mb-1.5">
-          {renderInline(line.slice(4))}
-        </h3>
-      );
-      i++;
-      continue;
-    }
-
-    // HR
-    if (line.trim() === "---" || line.trim() === "***") {
-      nodes.push(<hr key={i} className="border-zinc-800 my-4" />);
-      i++;
-      continue;
-    }
-
-    // 빈 줄
-    if (line.trim() === "") {
-      nodes.push(<div key={i} className="my-1.5" />);
-      i++;
-      continue;
-    }
-
-    // 불릿 리스트 (- 또는 *)
-    if (line.match(/^[-*] /)) {
-      const listItems: React.ReactNode[] = [];
-      while (i < lines.length && lines[i].match(/^[-*] /)) {
-        listItems.push(
-          <li key={i} className="text-sm text-zinc-300 leading-relaxed">
-            {renderInline(lines[i].slice(2))}
-          </li>
-        );
-        i++;
-      }
-      nodes.push(
-        <ul key={`ul-${i}`} className="list-disc list-inside space-y-1 my-2 pl-2">
-          {listItems}
-        </ul>
-      );
-      continue;
-    }
-
-    // 일반 단락
-    nodes.push(
-      <p key={i} className="text-sm text-zinc-300 leading-7">
-        {renderInline(line)}
-      </p>
-    );
-    i++;
-  }
-
-  return <>{nodes}</>;
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={mdComponents}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 }
 
 export default function ReportDetailClient({ report }: { report: ReportDetail }) {
