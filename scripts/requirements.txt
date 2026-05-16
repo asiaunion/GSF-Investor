@@ -1,0 +1,8 @@
+# GSF-Investor Python 스크립트 공통 의존성
+# seed_portfolio.py, daily_price.py 모두 사용
+
+# Yahoo Finance 주가·환율 수집
+yfinance>=0.2.40
+
+# HTTP 요청 (Turso API, DART API)
+requests>=2.31.0

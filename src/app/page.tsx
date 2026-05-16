@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function HomePage() {
@@ -18,8 +19,11 @@ export default async function HomePage() {
             </div>
             <span className="font-semibold text-white">GSF Investor</span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-400">{session.user?.email}</span>
+          <div className="flex items-center gap-4">
+            <Link href="/journal" className="text-sm text-zinc-400 hover:text-emerald-400 transition-colors">
+              매매 일지
+            </Link>
+            <span className="text-xs text-zinc-600 hidden sm:block">{session.user?.email}</span>
           </div>
         </div>
       </div>
@@ -52,8 +56,8 @@ export default async function HomePage() {
           <div className="space-y-3">
             {[
               { day: "Day 1-2", task: "리포 + Next.js + Turso + Drizzle + NextAuth", done: true },
-              { day: "Day 3", task: "seed_portfolio.py — 종목 시딩 + INIT + 2년 주가·8분기 재무", done: false },
-              { day: "Day 4-5", task: "매매 일지 CRUD + 테제 필수 입력", done: false },
+              { day: "Day 3", task: "seed_portfolio.py — 종목 시딩 + INIT + 2년 주가·8분기 재무", done: true },
+              { day: "Day 4-5", task: "매매 일지 CRUD + 테제 필수 입력 + 감정 태그", done: true },
               { day: "Day 6-7", task: "daily_price.py + GitHub Actions 크론", done: false },
               { day: "Day 8-9", task: "포트폴리오 대시보드 v_portfolio View 연동", done: false },
               { day: "Day 10-11", task: "종목 상세 페이지 (Overview + 재무 차트)", done: false },
