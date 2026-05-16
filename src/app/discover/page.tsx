@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import Navbar from "@/components/Navbar";
-import DiscoverClient from "./DiscoverClient";
+import DiscoverTabs from "./DiscoverTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -47,10 +47,10 @@ export default async function DiscoverPage() {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-white">종목 발굴</h1>
           <p className="text-zinc-500 text-sm mt-1">
-            수동 종목 추가 + 6개 체크리스트 자동 검증 · AI 패턴 매칭은 Phase 4
+            관심종목 체크리스트 · AI 스코어보드로 투자 기회를 발굴하세요
           </p>
         </div>
-        <DiscoverClient stocks={stocks} />
+        <DiscoverTabs stocks={stocks} />
       </main>
     </div>
   );
