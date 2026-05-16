@@ -2,6 +2,16 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import {
+  GEMINI_MODEL,
+  GEMINI_MAX_TOKENS,
+  buildAnalysisPrompt,
+  buildChartsJson,
+  type FinancialData,
+  type PriceData,
+  type SignalData,
+  type DisclosureData,
+} from "@/lib/gemini";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // Vercel Hobby: 60s
@@ -55,7 +65,7 @@ export async function POST(req: NextRequest) {
     WHERE stock_id = ${stockId}
     ORDER BY period DESC LIMIT 4
   `);
-  const financials = finRows.rows.map((r) => ({
+  const financials: FinancialData[] = finRows.rows.map((r) => ({
     period: String(r[0] ?? ""),
     revenue: r[1] != null ? Number(r[1]) : null,
     opIncome: r[2] != null ? Number(r[2]) : null,
@@ -75,7 +85,7 @@ export async function POST(req: NextRequest) {
     WHERE stock_id = ${stockId}
     ORDER BY date DESC LIMIT 30
   `);
-  const prices = priceRows.rows.map((r) => ({
+  const prices: PriceData[] = priceRows.rows.map((r) => ({
     date: String(r[0]),
     close: Number(r[1]),
   }));
@@ -87,7 +97,7 @@ export async function POST(req: NextRequest) {
     WHERE stock_id = ${stockId} AND is_resolved = 0
     ORDER BY detected_at DESC LIMIT 5
   `);
-  const signals = sigRows.rows.map((r) => ({
+  const signals: SignalData[] = sigRows.rows.map((r) => ({
     type: String(r[0]),
     severity: String(r[1]),
     description: String(r[2]),
@@ -100,87 +110,31 @@ export async function POST(req: NextRequest) {
     WHERE stock_id = ${stockId}
     ORDER BY filed_at DESC LIMIT 5
   `);
-  const disclosures = discRows.rows.map((r) => ({
+  const disclosures: DisclosureData[] = discRows.rows.map((r) => ({
     title: String(r[0]),
     filedAt: String(r[1]),
     source: String(r[2]),
   }));
 
-  // 현재가 + 최신 환율
-  const latestPrice = prices[0] ?? null;
+  // 최신 환율
   const fxRow = await db.run(sql`
     SELECT rate FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1
   `);
   const usdkrw = fxRow.rows.length ? Number(fxRow.rows[0][0]) : 1300;
 
-  // PER / PBR 계산 (최신 재무 기준)
-  const latestFin = financials[0] ?? null;
-  const currentPrice = latestPrice?.close ?? 0;
-  const per = latestFin?.eps && currentPrice > 0 && latestFin.eps > 0
-    ? (currentPrice / latestFin.eps).toFixed(1) : "N/A";
-  const pbr = latestFin?.bps && currentPrice > 0 && latestFin.bps > 0
-    ? (currentPrice / latestFin.bps).toFixed(2) : "N/A";
+  // 프롬프트 + chartsJson 구성 (공통 유틸 사용)
+  const prompt = buildAnalysisPrompt({
+    stock: { stockId, ticker, name, market, category, thesis },
+    financials,
+    prices,
+    signals,
+    disclosures,
+    usdkrw,
+  });
+  const chartsJson = buildChartsJson(prices, financials);
 
-  // ── Gemini 프롬프트 구성 ──────────────────────────────────────────────────────
-  const prompt = `당신은 전문 투자 분석가입니다. 다음 데이터를 바탕으로 ${name}(${ticker}, ${market} 시장)에 대한 투자 분석 보고서를 한국어로 작성하세요.
-
-## 종목 정보
-- 종목: ${name} (${ticker})
-- 시장: ${market === "KR" ? "한국 (KRX)" : "미국 (NYSE/NASDAQ)"}
-- 투자 카테고리: ${category}
-- 현재 투자 테제: ${thesis}
-
-## 최신 주가
-${latestPrice ? `- 최근 종가: ${currentPrice.toLocaleString()} (${latestPrice.date})` : "- 주가 데이터 없음"}
-- PER: ${per} | PBR: ${pbr}
-${market === "US" ? `- USD/KRW: ${usdkrw.toLocaleString()}` : ""}
-
-## 최근 4분기 재무 데이터
-${financials.length === 0 ? "재무 데이터 없음" : financials.map((f) => `
-- ${f.period} (${f.source})
-  매출: ${f.revenue != null ? f.revenue.toLocaleString() : "N/A"}
-  영업이익: ${f.opIncome != null ? f.opIncome.toLocaleString() : "N/A"}
-  순이익: ${f.netIncome != null ? f.netIncome.toLocaleString() : "N/A"}
-  부채비율: ${f.debtRatio != null ? f.debtRatio.toFixed(1) + "%" : "N/A"}
-  EPS: ${f.eps != null ? f.eps.toLocaleString() : "N/A"}
-  BPS: ${f.bps != null ? f.bps.toLocaleString() : "N/A"}
-  ROE: ${f.roe != null ? f.roe.toFixed(1) + "%" : "N/A"}
-  배당: ${f.dividendPerShare != null ? f.dividendPerShare.toLocaleString() : "N/A"}
-`).join("")}
-
-## 미해결 시그널 (${signals.length}건)
-${signals.length === 0 ? "미해결 시그널 없음" : signals.map((s) => `- [${s.severity}] ${s.type}: ${s.description} (${s.detectedAt})`).join("\n")}
-
-## 최근 공시 (${disclosures.length}건)
-${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- [${d.source}] ${d.filedAt} ${d.title}`).join("\n")}
-
----
-
-다음 구조로 투자 분석 보고서를 마크다운 형식으로 작성하세요:
-
-# ${name}(${ticker}) 투자 분석 보고서
-
-## 1. 요약 (3줄)
-[3줄 이내 핵심 요약]
-
-## 2. 시그널 해석
-[감지된 시그널의 투자 관점 해석]
-
-## 3. 재무 분석
-[매출/영업이익 추세, 부채비율, ROE 등 핵심 지표 분석]
-
-## 4. 시나리오 분석
-### 낙관 시나리오
-### 기본 시나리오  
-### 비관 시나리오
-
-## 5. 투자 판단
-[현재 투자 테제 유효성 검토, 확신도 변화 (★★★★★ 중 선택), 주요 모니터링 포인트]
-
-분석 시 구체적인 수치를 인용하고 근거를 명확히 제시하세요.`;
-
-  // ── Gemini API 호출 (generateContent — 이 키는 스트리밍 미지원) ─────────────
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+  // ── Gemini API 스트리밍 호출 ────────────────────────────────────────────────
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${geminiKey}`;
 
   let geminiResponse: Response;
   try {
@@ -191,7 +145,7 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 2048,
+          maxOutputTokens: GEMINI_MAX_TOKENS,
         },
       }),
     });
@@ -201,58 +155,81 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
 
   if (!geminiResponse.ok) {
     const errText = await geminiResponse.text();
-    return NextResponse.json({ error: `Gemini API error: ${errText.slice(0, 400)}` }, { status: 500 });
+    return NextResponse.json({ error: `Gemini API error: ${errText.slice(0, 200)}` }, { status: 500 });
   }
 
-  const geminiData = await geminiResponse.json();
-  const fullText: string =
-    geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-  if (!fullText) {
-    return NextResponse.json({ error: "Gemini 응답 없음" }, { status: 500 });
-  }
-
-  const chartsJson = JSON.stringify({
-    prices: prices.slice(0, 30).reverse(),
-    financials: financials.map((f) => ({
-      period: f.period,
-      revenue: f.revenue,
-      opIncome: f.opIncome,
-      netIncome: f.netIncome,
-    })).reverse(),
-  });
-
-  // ── SSE 스트림: 텍스트를 청크로 나눠 스트리밍 시뮬레이션 ─────────────────────
+  // ── SSE 스트림 → 클라이언트 전달 + 전체 텍스트 수집 ────────────────────────
   const encoder = new TextEncoder();
-  const chunkSize = 80; // 청크당 글자 수 (타이핑 효과)
+  let fullText = "";
 
   const stream = new ReadableStream({
     async start(controller) {
-      // 텍스트를 청크로 나눠 전송
-      for (let i = 0; i < fullText.length; i += chunkSize) {
-        const chunk = fullText.slice(i, i + chunkSize);
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`)
-        );
-        // 미세한 딜레이 (타이핑 효과)
-        await new Promise((r) => setTimeout(r, 20));
+      const reader = geminiResponse.body?.getReader();
+      if (!reader) {
+        controller.close();
+        return;
       }
 
-      // DB 저장
-      let saved = false;
+      const decoder = new TextDecoder();
+      let buffer = "";
+
       try {
-        await db.run(sql`
-          INSERT INTO reports (stock_id, trigger, content_md, charts_json, generated_at)
-          VALUES (${stockId}, ${trigger}, ${fullText}, ${chartsJson}, datetime('now'))
-        `);
-        saved = true;
-      } catch (dbErr) {
-        console.error("Report DB save error:", dbErr);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const dataStr = line.slice(6).trim();
+              if (dataStr === "[DONE]") continue;
+              try {
+                const parsed = JSON.parse(dataStr);
+                const text =
+                  parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+                if (text) {
+                  fullText += text;
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
+                  );
+                }
+              } catch {
+                // JSON 파싱 실패 시 무시
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
       }
 
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ done: true, saved })}\n\n`)
-      );
+      // 생성 완료 → DB 저장
+      if (fullText) {
+        try {
+          await db.run(sql`
+            INSERT INTO reports (stock_id, trigger, content_md, charts_json, generated_at)
+            VALUES (${stockId}, ${trigger}, ${fullText}, ${chartsJson}, datetime('now'))
+          `);
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ done: true, saved: true })}\n\n`)
+          );
+        } catch (dbErr) {
+          console.error("Report DB save error:", dbErr);
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ done: true, saved: false, error: String(dbErr) })}\n\n`
+            )
+          );
+        }
+      } else {
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ done: true, saved: false })}\n\n`)
+        );
+      }
+
       controller.close();
     },
   });
@@ -264,5 +241,4 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
       Connection: "keep-alive",
     },
   });
-
 }

@@ -221,7 +221,11 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
                       </span>
                     </div>
                     <p className="text-xs text-zinc-500 mt-1">
-                      {new Date(report.generatedAt).toLocaleString("ko-KR")}
+                      {new Date(report.generatedAt + "Z").toLocaleString("ko-KR", {
+                        year: "numeric", month: "2-digit", day: "2-digit",
+                        hour: "2-digit", minute: "2-digit", second: "2-digit",
+                        hour12: false
+                      })}
                     </p>
                     <p className="text-xs text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
                       {report.preview.replace(/#+\s/g, "").slice(0, 150)}...

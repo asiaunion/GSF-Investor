@@ -167,7 +167,11 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
           <h1 className="text-xl font-bold text-white mt-1">{reportTitle}</h1>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
             <span className="text-sm text-zinc-400">
-              {new Date(report.generatedAt).toLocaleString("ko-KR")}
+              {new Date(report.generatedAt + "Z").toLocaleString("ko-KR", {
+                year: "numeric", month: "2-digit", day: "2-digit",
+                hour: "2-digit", minute: "2-digit", second: "2-digit",
+                hour12: false
+              })}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${
               report.trigger === "SIGNAL_AUTO"
