@@ -10,6 +10,8 @@ const NAV_LINKS = [
   { href: "/disclosures", label: "공시" },
   { href: "/signals", label: "시그널" },
   { href: "/journal", label: "매매 일지" },
+  { href: "/reports", label: "AI 보고서" },
+  { href: "/discover", label: "종목 발굴" },
 ];
 
 interface NavbarProps {
