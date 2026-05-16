@@ -3,7 +3,7 @@
  * Gemini API 공통 유틸리티 — 프롬프트 빌더 + 호출 헬퍼
  */
 
-export const GEMINI_MODEL = "gemini-2.5-flash-preview-05-20";
+export const GEMINI_MODEL = "gemini-2.5-flash";
 export const GEMINI_MAX_TOKENS = 8192;
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────

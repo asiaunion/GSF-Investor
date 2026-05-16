@@ -1,8 +1,33 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import type { ReportRow, StockOption } from "./page";
+
+/**
+ * 보고서 마크다운에서 "## 1. 요약" 섹션을 추출하여 줄 배열로 반환.
+ * 실패 시 null.
+ */
+function extractSummaryLines(markdown: string): string[] | null {
+  // ## 1. 요약 (3줄) 또는 ## 1. 요약 등 유연하게 매칭
+  const match = markdown.match(/##\s*1\.\s*요약[^\n]*\n([\s\S]*?)(?=\n##\s*\d|$)/);
+  if (!match) return null;
+
+  const raw = match[1];
+  const lines = raw
+    .split("\n")
+    .map((l) =>
+      l
+        .replace(/^[-*]\s+/, "")          // 리스트 기호 제거
+        .replace(/\*\*([^*]+)\*\*/g, "$1") // **bold** → 텍스트
+        .replace(/\*([^*]+)\*/g, "$1")    // *italic* → 텍스트
+        .replace(/^#+\s*/, "")            // 남은 # 제거
+        .trim()
+    )
+    .filter(Boolean)
+    .slice(0, 4); // 최대 4줄
+
+  return lines.length ? lines : null;
+}
 
 type Props = {
   reports: ReportRow[];
@@ -14,6 +39,121 @@ const triggerLabel: Record<string, string> = {
   SIGNAL_AUTO: "시그널 자동",
 };
 
+/** 보고서 1건 — 아코디언 */
+function ReportAccordion({ report }: { report: ReportRow & { fullContent?: string } }) {
+  const [open, setOpen] = useState(false);
+  const [fullContent, setFullContent] = useState<string | null>(report.fullContent ?? null);
+  const [loading, setLoading] = useState(false);
+
+  // 요약 3줄 파싱
+  const summaryLines = extractSummaryLines(report.preview);
+
+  const handleToggle = async () => {
+    if (!open && fullContent === null) {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/reports/${report.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFullContent(data.content_md ?? "");
+        }
+      } catch {
+        setFullContent("보고서 전문을 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    setOpen((prev) => !prev);
+  };
+
+  return (
+    <li className="border-b border-zinc-800/60 last:border-0">
+      {/* 헤더 행 */}
+      <div className="flex items-start gap-4 px-6 py-4">
+        {/* 종목 배지 */}
+        <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 text-xs font-bold">
+          {report.ticker.slice(0, 4)}
+        </div>
+
+        {/* 내용 */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-white">{report.stockName}</span>
+            <span className="text-xs text-zinc-500">{report.ticker}</span>
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                report.trigger === "SIGNAL_AUTO"
+                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                  : "bg-violet-500/10 text-violet-400 border border-violet-500/20"
+              }`}
+            >
+              {triggerLabel[report.trigger] ?? report.trigger}
+            </span>
+          </div>
+          <p className="text-xs text-zinc-500 mt-1">
+            {new Date(report.generatedAt + "Z").toLocaleString("ko-KR", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            })}
+          </p>
+          {/* 요약 3줄 */}
+          {summaryLines ? (
+            <ul className="mt-2 space-y-0.5">
+              {summaryLines.map((line, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-xs text-zinc-300 leading-relaxed">
+                  <span className="text-violet-500 mt-0.5 shrink-0 text-[10px]">▸</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+              {report.preview.replace(/#+\s*/g, "").replace(/\*\*/g, "").slice(0, 150)}...
+            </p>
+          )}
+        </div>
+
+        {/* 토글 버튼 */}
+        <button
+          onClick={handleToggle}
+          className="shrink-0 mt-1 flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors px-2 py-1 rounded-md hover:bg-violet-500/10 whitespace-nowrap"
+        >
+          {loading ? (
+            <span className="w-3 h-3 border-2 border-violet-400/30 border-t-violet-400 rounded-full animate-spin inline-block" />
+          ) : (
+            <span
+              className="inline-block transition-transform duration-200"
+              style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+            >
+              ▶
+            </span>
+          )}
+          {open ? "접기" : "전문 보기"}
+        </button>
+      </div>
+
+      {/* 전문 패널 */}
+      {open && (
+        <div className="px-6 pb-5 pt-0">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 max-h-[600px] overflow-y-auto">
+            <pre
+              className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed"
+              style={{ fontFamily: "'Noto Sans KR', sans-serif" }}
+            >
+              {fullContent ?? ""}
+            </pre>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+}
+
 export default function ReportsClient({ reports: initialReports, stocks }: Props) {
   const [reports, setReports] = useState(initialReports);
   const [selectedStockId, setSelectedStockId] = useState<number>(stocks[0]?.id ?? 0);
@@ -23,7 +163,6 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
   const [error, setError] = useState<string | null>(null);
   const streamRef = useRef<HTMLDivElement>(null);
 
-  // 스트림 영역 자동 스크롤
   useEffect(() => {
     if (streamRef.current) {
       streamRef.current.scrollTop = streamRef.current.scrollHeight;
@@ -80,7 +219,6 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
               if (parsed.done) {
                 setStreamDone(true);
                 if (parsed.saved) {
-                  // 보고서 목록 갱신
                   const listRes = await fetch("/api/reports");
                   if (listRes.ok) {
                     const data = await listRes.json();
@@ -148,7 +286,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
           <div className="mt-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs text-zinc-400">
-                {selectedStock?.name} ({selectedStock?.ticker}) — Gemini 2.0 Flash
+                {selectedStock?.name} ({selectedStock?.ticker}) — Gemini 2.5 Flash
               </span>
               {streamDone && (
                 <span className="text-xs text-emerald-400 font-medium">✓ 저장 완료</span>
@@ -159,8 +297,8 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
               className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 max-h-[520px] overflow-y-auto"
             >
               <pre
-                className="text-sm text-zinc-200 whitespace-pre-wrap font-mono leading-relaxed"
-                style={{ fontFamily: "'Noto Sans KR', monospace" }}
+                className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed"
+                style={{ fontFamily: "'Noto Sans KR', sans-serif" }}
               >
                 {streamText}
                 {generating && !streamDone && (
@@ -178,12 +316,13 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
         )}
       </div>
 
-      {/* ── 보고서 목록 ──────────────────────────────────────────────────── */}
+      {/* ── 보고서 목록 (아코디언) ─────────────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl">
         <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
           <h2 className="text-base font-semibold text-white">
             저장된 보고서 ({reports.length}건)
           </h2>
+          <span className="text-xs text-zinc-500">▶ 전문 보기 클릭으로 펼치기</span>
         </div>
 
         {reports.length === 0 ? (
@@ -193,51 +332,9 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             <p className="mt-1 text-xs">위에서 종목을 선택하고 AI 분석을 시작하세요.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-800/60">
+          <ul>
             {reports.map((report) => (
-              <li key={report.id}>
-                <Link
-                  href={`/reports/${report.id}`}
-                  className="flex items-start gap-4 px-6 py-4 hover:bg-zinc-800/40 transition-colors group"
-                >
-                  {/* 종목 배지 */}
-                  <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 text-xs font-bold">
-                    {report.ticker.slice(0, 4)}
-                  </div>
-
-                  {/* 내용 */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-white">
-                        {report.stockName}
-                      </span>
-                      <span className="text-xs text-zinc-500">{report.ticker}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                        report.trigger === "SIGNAL_AUTO"
-                          ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                          : "bg-violet-500/10 text-violet-400 border border-violet-500/20"
-                      }`}>
-                        {triggerLabel[report.trigger] ?? report.trigger}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-500 mt-1">
-                      {new Date(report.generatedAt + "Z").toLocaleString("ko-KR", {
-                        year: "numeric", month: "2-digit", day: "2-digit",
-                        hour: "2-digit", minute: "2-digit", second: "2-digit",
-                        hour12: false
-                      })}
-                    </p>
-                    <p className="text-xs text-zinc-400 mt-1.5 line-clamp-2 leading-relaxed">
-                      {report.preview.replace(/#+\s/g, "").slice(0, 150)}...
-                    </p>
-                  </div>
-
-                  {/* 화살표 */}
-                  <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0 mt-1">
-                    →
-                  </span>
-                </Link>
-              </li>
+              <ReportAccordion key={report.id} report={report} />
             ))}
           </ul>
         )}

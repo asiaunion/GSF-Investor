@@ -32,7 +32,7 @@ async function fetchReports(): Promise<ReportRow[]> {
       s.name AS stock_name,
       r.trigger,
       r.generated_at,
-      SUBSTR(r.content_md, 1, 300) AS preview
+      SUBSTR(r.content_md, 1, 800) AS preview
     FROM reports r
     JOIN stocks s ON s.id = r.stock_id
     ORDER BY r.generated_at DESC
