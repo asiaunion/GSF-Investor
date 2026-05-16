@@ -1,10 +1,10 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { Suspense } from "react";
 import DashboardClient from "./DashboardClient";
+import Navbar from "@/components/Navbar";
 
 export const dynamic = "force-dynamic";
 
@@ -120,25 +120,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* Nav */}
-      <nav className="border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
-                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                <polyline points="16 7 22 7 22 13" />
-              </svg>
-            </div>
-            <span className="font-semibold text-white text-sm">GSF Investor</span>
-          </div>
-          <div className="flex items-center gap-5">
-            <Link href="/" className="text-xs text-emerald-400 font-medium">대시보드</Link>
-            <Link href="/journal" className="text-xs text-zinc-400 hover:text-white transition-colors">매매 일지</Link>
-            <span className="text-xs text-zinc-600 hidden sm:block">{session.user?.email}</span>
-          </div>
-        </div>
-      </nav>
+      <Navbar email={session.user?.email} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
