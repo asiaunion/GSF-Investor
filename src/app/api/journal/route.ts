@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     thesis,
     category = "Core",
     emotionTag,
+    confidenceScore,
     retrospective,
   } = body;
 
@@ -71,6 +72,7 @@ export async function POST(req: NextRequest) {
       thesis,
       category,
       emotionTag: emotionTag || null,
+      confidenceScore: confidenceScore ? Number(confidenceScore) : null,
       retrospective: retrospective || null,
     })
     .returning();

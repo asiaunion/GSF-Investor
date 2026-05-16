@@ -102,6 +102,7 @@ export const tradeJournal = sqliteTable("trade_journal", {
   thesis: text("thesis").notNull(), // 필수: 왜 샀/팔았는가
   category: text("category").default("Core"), // 'Core' | 'Satellite'
   emotionTag: text("emotion_tag"), // '확신' | '불안' | '충동' | '계획적'
+  confidenceScore: integer("confidence_score"), // 1~5 (확신도)
   retrospective: text("retrospective"),
   createdAt: text("created_at").default(sql`(datetime('now'))`),
 });

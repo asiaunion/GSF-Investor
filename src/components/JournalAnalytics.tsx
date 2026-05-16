@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
+const ConfidenceTrend = dynamic(
+  () => import("./ConfidenceTrend"),
+  { ssr: false, loading: () => <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 animate-pulse h-56" /> }
+);
+
 const BarChart = dynamic(
   () => import("recharts").then((m) => m.BarChart),
   { ssr: false }
@@ -104,6 +109,7 @@ export default function JournalAnalytics() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [subTab, setSubTab] = useState<"손익 분석" | "확신도 추이">("손익 분석");
 
   useEffect(() => {
     fetch("/api/journal/analytics")
@@ -143,6 +149,29 @@ export default function JournalAnalytics() {
 
   return (
     <div className="space-y-5">
+      {/* ── 서브탭 바 ────────────────────────────────────────────────────────── */}
+      <div className="flex gap-1 border-b border-zinc-800 pb-1">
+        {(["손익 분석", "확신도 추이"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setSubTab(tab)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              subTab === tab
+                ? "bg-violet-600/20 text-violet-300 border border-violet-500/30"
+                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+            }`}
+          >
+            {tab === "손익 분석" ? "📊 손익 분석" : "🎯 확신도 추이"}
+          </button>
+        ))}
+      </div>
+
+      {/* ── 확신도 추이 탭 ───────────────────────────────────────────────────── */}
+      {subTab === "확신도 추이" && <ConfidenceTrend />}
+
+      {/* ── 손익 분석 탭 ─────────────────────────────────────────────────────── */}
+      {subTab === "손익 분석" && (
+      <div className="space-y-5">
       {/* ── 전체 요약 카드 ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -345,6 +374,8 @@ export default function JournalAnalytics() {
           <div className="text-3xl mb-3">📊</div>
           <p className="text-zinc-500 text-sm">SELL 거래 기록 후 실현 손익 분석이 표시됩니다.</p>
         </div>
+      )}
+      </div>
       )}
     </div>
   );

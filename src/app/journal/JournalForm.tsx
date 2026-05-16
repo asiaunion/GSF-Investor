@@ -45,13 +45,14 @@ export default function JournalForm({ onSuccess }: Props) {
     thesis: "",
     category: "Core",
     emotionTag: "",
+    confidenceScore: 0,
     retrospective: "",
   });
 
   useEffect(() => {
     fetch("/api/stocks")
       .then((r) => r.json())
-      .then(setStocks)
+      .then((data) => setStocks(Array.isArray(data) ? data : (data.stocks ?? [])))
       .catch(() => setError("종목 로딩 실패"));
   }, []);
 
@@ -75,6 +76,7 @@ export default function JournalForm({ onSuccess }: Props) {
           quantity: Number(form.quantity),
           price: Number(form.price),
           emotionTag: form.emotionTag || null,
+          confidenceScore: form.confidenceScore || null,
           retrospective: form.retrospective || null,
         }),
       });
@@ -91,6 +93,7 @@ export default function JournalForm({ onSuccess }: Props) {
         price: "",
         thesis: "",
         emotionTag: "",
+        confidenceScore: 0,
         retrospective: "",
       }));
 
@@ -244,6 +247,54 @@ export default function JournalForm({ onSuccess }: Props) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* 확신도 */}
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+          확신도{" "}
+          <span className="text-zinc-600 normal-case">(이 거래에 대한 확신 1~5점)</span>
+        </label>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map((score) => {
+            const isActive = form.confidenceScore >= score;
+            const color =
+              score <= 1 ? "text-red-400 border-red-500/50 bg-red-500/10"
+              : score <= 2 ? "text-amber-400 border-amber-500/50 bg-amber-500/10"
+              : score <= 3 ? "text-yellow-400 border-yellow-500/50 bg-yellow-500/10"
+              : score <= 4 ? "text-blue-400 border-blue-500/50 bg-blue-500/10"
+              : "text-emerald-400 border-emerald-500/50 bg-emerald-500/10";
+            return (
+              <button
+                key={score}
+                type="button"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    confidenceScore: prev.confidenceScore === score ? 0 : score,
+                  }))
+                }
+                className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${
+                  isActive
+                    ? color
+                    : "bg-zinc-800 border-zinc-700 text-zinc-600 hover:border-zinc-600"
+                }`}
+              >
+                {score === 1 ? "😰" : score === 2 ? "😕" : score === 3 ? "😐" : score === 4 ? "😊" : "💪"}
+                <span className="block text-[10px] mt-0.5">{score}점</span>
+              </button>
+            );
+          })}
+        </div>
+        {form.confidenceScore > 0 && (
+          <p className="text-[11px] text-zinc-600">
+            {form.confidenceScore === 1 && "매우 불확실 — 정말 이 거래를 해야 할까요?"}
+            {form.confidenceScore === 2 && "불확실 — 리스크 관리에 주의하세요."}
+            {form.confidenceScore === 3 && "보통 — 평균적인 확신도입니다."}
+            {form.confidenceScore === 4 && "높음 — 충분한 근거가 있는 거래입니다."}
+            {form.confidenceScore === 5 && "매우 높음 — 강력한 확신의 거래입니다."}
+          </p>
+        )}
       </div>
 
       {/* 회고 */}
