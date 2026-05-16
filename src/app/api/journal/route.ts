@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
       thesis: tradeJournal.thesis,
       category: tradeJournal.category,
       emotionTag: tradeJournal.emotionTag,
+      loanInterest: tradeJournal.loanInterest,
       retrospective: tradeJournal.retrospective,
       createdAt: tradeJournal.createdAt,
     })
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
     category = "Core",
     emotionTag,
     confidenceScore,
+    loanInterest,
     retrospective,
   } = body;
 
@@ -73,6 +75,7 @@ export async function POST(req: NextRequest) {
       category,
       emotionTag: emotionTag || null,
       confidenceScore: confidenceScore ? Number(confidenceScore) : null,
+      loanInterest: loanInterest ? Number(loanInterest) : null,
       retrospective: retrospective || null,
     })
     .returning();

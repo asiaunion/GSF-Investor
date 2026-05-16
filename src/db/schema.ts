@@ -103,6 +103,7 @@ export const tradeJournal = sqliteTable("trade_journal", {
   category: text("category").default("Core"), // 'Core' | 'Satellite'
   emotionTag: text("emotion_tag"), // '확신' | '불안' | '충동' | '계획적'
   confidenceScore: integer("confidence_score"), // 1~5 (확신도)
+  loanInterest: real("loan_interest"), // 융자 이자 비용 (원화, 선택)
   retrospective: text("retrospective"),
   createdAt: text("created_at").default(sql`(datetime('now'))`),
 });

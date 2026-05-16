@@ -43,7 +43,10 @@ interface RealizedTrade {
   sellPrice: number;
   avgBuyPrice: number;
   realizedPnl: number;
+  loanInterest: number;
+  netPnl: number;
   returnPct: number;
+  returnPctGross: number;
   currency: string | null;
   emotionTag: string | null;
 }
@@ -54,6 +57,8 @@ interface AnalyticsData {
     buyCount: number;
     sellCount: number;
     totalRealizedPnl: number;
+    totalLoanInterest: number;
+    totalNetPnl: number;
     winRate: number | null;
     winTrades: number;
     lossTrades: number;
@@ -172,22 +177,27 @@ export default function JournalAnalytics() {
       {/* ── 손익 분석 탭 ─────────────────────────────────────────────────────── */}
       {subTab === "손익 분석" && (
       <div className="space-y-5">
+
       {/* ── 전체 요약 카드 ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           {
-            label: "총 실현 손익",
-            value: summary.totalRealizedPnl !== 0
-              ? fmtPnl(summary.totalRealizedPnl)
+            label: "순 실현 손익",
+            value: summary.totalNetPnl !== 0
+              ? fmtPnl(summary.totalNetPnl)
               : "—",
-            color: summary.totalRealizedPnl >= 0
+            color: (summary.totalNetPnl ?? 0) >= 0
               ? "text-emerald-400"
               : "text-red-400",
+            sub: summary.totalLoanInterest > 0
+              ? `이자 ${fmtPnl(-summary.totalLoanInterest)} 차감`
+              : undefined,
           },
           {
             label: "승률",
             value: summary.winRate != null ? `${summary.winRate.toFixed(1)}%` : "—",
             color: (summary.winRate ?? 0) >= 50 ? "text-emerald-400" : "text-red-400",
+            sub: undefined,
           },
           {
             label: "승 / 패",
@@ -195,16 +205,21 @@ export default function JournalAnalytics() {
               ? `${summary.winTrades}W · ${summary.lossTrades}L`
               : "—",
             color: "text-white",
+            sub: undefined,
           },
           {
             label: "Core / Satellite",
             value: `${categoryBreakdown.core} / ${categoryBreakdown.satellite}`,
             color: "text-zinc-300",
+            sub: undefined,
           },
         ].map((card) => (
           <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
             <div className="text-zinc-600 text-[10px] uppercase tracking-wider mb-1.5">{card.label}</div>
             <div className={`text-lg font-bold tabular-nums ${card.color}`}>{card.value}</div>
+            {card.sub && (
+              <div className="text-[10px] text-red-400/70 mt-0.5">{card.sub}</div>
+            )}
           </div>
         ))}
       </div>
@@ -214,7 +229,7 @@ export default function JournalAnalytics() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-white">감정별 평균 수익률</h3>
-            <span className="text-xs text-zinc-600">SELL 거래 기준 · FIFO 매칭</span>
+            <span className="text-xs text-zinc-600">SELL 거래 기준 · FIFO + 이자 반영</span>
           </div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={chartData} margin={{ top: 0, right: 8, bottom: 0, left: 0 }}>
@@ -314,13 +329,13 @@ export default function JournalAnalytics() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
           <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-white">실현 손익 내역</h3>
-            <span className="text-xs text-zinc-600">FIFO 기준 최근 20건</span>
+            <span className="text-xs text-zinc-600">FIFO 기준 · 이자 반영 · 최근 20건</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-zinc-800">
-                  {["날짜", "종목", "수량", "평균 매수가", "매도가", "실현 손익", "수익률", "감정"].map((h) => (
+                  {["날짜", "종목", "수량", "평균 매수가", "매도가", "세전 손익", "융자 이자", "순손익", "수익률", "감정"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-zinc-600 font-medium whitespace-nowrap">
                       {h}
                     </th>
@@ -346,8 +361,16 @@ export default function JournalAnalytics() {
                     <td className="px-4 py-3 text-zinc-400 tabular-nums">
                       ₩{t.sellPrice.toLocaleString("ko-KR")}
                     </td>
-                    <td className={`px-4 py-3 font-bold tabular-nums ${t.realizedPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 font-medium tabular-nums ${t.realizedPnl >= 0 ? "text-zinc-300" : "text-red-300"}`}>
                       {fmtPnl(t.realizedPnl)}
+                    </td>
+                    <td className={`px-4 py-3 tabular-nums ${
+                      t.loanInterest > 0 ? "text-red-400" : "text-zinc-600"
+                    }`}>
+                      {t.loanInterest > 0 ? `-₩${Math.round(t.loanInterest).toLocaleString("ko-KR")}` : "—"}
+                    </td>
+                    <td className={`px-4 py-3 font-bold tabular-nums ${t.netPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      {fmtPnl(t.netPnl)}
                     </td>
                     <td className={`px-4 py-3 font-bold tabular-nums ${t.returnPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {t.returnPct >= 0 ? "+" : ""}{t.returnPct.toFixed(2)}%

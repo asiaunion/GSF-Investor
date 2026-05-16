@@ -46,6 +46,7 @@ export default function JournalForm({ onSuccess }: Props) {
     category: "Core",
     emotionTag: "",
     confidenceScore: 0,
+    loanInterest: "",
     retrospective: "",
   });
 
@@ -77,6 +78,7 @@ export default function JournalForm({ onSuccess }: Props) {
           price: Number(form.price),
           emotionTag: form.emotionTag || null,
           confidenceScore: form.confidenceScore || null,
+          loanInterest: form.loanInterest ? Number(form.loanInterest) : null,
           retrospective: form.retrospective || null,
         }),
       });
@@ -94,6 +96,7 @@ export default function JournalForm({ onSuccess }: Props) {
         thesis: "",
         emotionTag: "",
         confidenceScore: 0,
+        loanInterest: "",
         retrospective: "",
       }));
 
@@ -202,9 +205,30 @@ export default function JournalForm({ onSuccess }: Props) {
 
       {/* 거래 총액 미리보기 */}
       {totalAmount && (
-        <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 flex items-center justify-between">
-          <span className="text-xs text-zinc-500">거래 총액</span>
-          <span className="text-sm font-bold text-white">₩{totalAmount}</span>
+        <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-zinc-500">거래 총액</span>
+            <span className="text-sm font-bold text-white">₩{totalAmount}</span>
+          </div>
+          {form.action === "SELL" && form.loanInterest && Number(form.loanInterest) > 0 && (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zinc-500">융자 이자 차감</span>
+                <span className="text-sm font-semibold text-red-400">
+                  -₩{Number(form.loanInterest).toLocaleString("ko-KR")}
+                </span>
+              </div>
+              <div className="border-t border-zinc-700/50 pt-1.5 flex items-center justify-between">
+                <span className="text-xs text-zinc-400 font-medium">순 수익</span>
+                <span className={`text-sm font-bold ${
+                  (Number(form.quantity) * Number(form.price)) - Number(form.loanInterest) >= 0
+                    ? "text-emerald-400" : "text-red-400"
+                }`}>
+                  ₩{((Number(form.quantity) * Number(form.price)) - Number(form.loanInterest)).toLocaleString("ko-KR")}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -296,6 +320,31 @@ export default function JournalForm({ onSuccess }: Props) {
           </p>
         )}
       </div>
+
+      {/* 융자 이자 (SELL 시에만 표시) */}
+      {form.action === "SELL" && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
+            융자 이자{" "}
+            <span className="text-zinc-600 normal-case">(보유 기간 이자 비용, 원화)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">₩</span>
+            <input
+              type="number"
+              min="0"
+              step="100"
+              placeholder="0"
+              value={form.loanInterest}
+              onChange={set("loanInterest")}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl pl-7 pr-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-amber-500/60 transition-colors"
+            />
+          </div>
+          <p className="text-[11px] text-zinc-600">
+            매도 시 실현 손익에서 차감됩니다. 비융자 매매는 0원 또는 공백으로 두세요.
+          </p>
+        </div>
+      )}
 
       {/* 회고 */}
       <div className="space-y-1.5">

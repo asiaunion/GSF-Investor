@@ -26,6 +26,7 @@ export async function GET() {
       currency: tradeJournal.currency,
       category: tradeJournal.category,
       emotionTag: tradeJournal.emotionTag,
+      loanInterest: tradeJournal.loanInterest,
     })
     .from(tradeJournal)
     .leftJoin(stocks, eq(tradeJournal.stockId, stocks.id))
@@ -43,10 +44,13 @@ export async function GET() {
     quantity: number;
     sellPrice: number;
     avgBuyPrice: number;
-    realizedPnl: number;    // 실현 손익 (KRW)
-    returnPct: number;      // 수익률 (%)
+    realizedPnl: number;    // 실현 손익 (세전, 이자 미차감)
+    loanInterest: number;   // 매도 시점 누적 융자 이자
+    netPnl: number;         // 순손익 = realizedPnl - loanInterest
+    returnPct: number;      // 수익률 (이자 반영)
+    returnPctGross: number; // 수익률 (이자 미반영)
     currency: string | null;
-    emotionTag: string | null; // SELL 시점의 감정
+    emotionTag: string | null;
   }
 
   const realizedTrades: RealizedTrade[] = [];
@@ -78,7 +82,10 @@ export async function GET() {
         const sellRevenue = row.quantity * row.price;
         const buyCost = matchedQty * avgBuyPrice;
         const realizedPnl = sellRevenue - buyCost;
-        const returnPct = (realizedPnl / buyCost) * 100;
+        const interest = row.loanInterest ? Number(row.loanInterest) : 0;
+        const netPnl = realizedPnl - interest;
+        const returnPct = buyCost > 0 ? (netPnl / buyCost) * 100 : 0;
+        const returnPctGross = buyCost > 0 ? (realizedPnl / buyCost) * 100 : 0;
 
         realizedTrades.push({
           id: row.id,
@@ -89,7 +96,10 @@ export async function GET() {
           sellPrice: row.price,
           avgBuyPrice,
           realizedPnl,
+          loanInterest: interest,
+          netPnl,
           returnPct,
+          returnPctGross,
           currency: row.currency,
           emotionTag: row.emotionTag,
         });
@@ -156,7 +166,9 @@ export async function GET() {
 
   // ── 3. 전체 요약 ──────────────────────────────────────────────────────────
   const totalRealizedPnl = realizedTrades.reduce((s, t) => s + t.realizedPnl, 0);
-  const winTrades = realizedTrades.filter((t) => t.realizedPnl > 0).length;
+  const totalLoanInterest = realizedTrades.reduce((s, t) => s + t.loanInterest, 0);
+  const totalNetPnl = realizedTrades.reduce((s, t) => s + t.netPnl, 0);
+  const winTrades = realizedTrades.filter((t) => t.netPnl > 0).length;
   const totalSells = realizedTrades.length;
 
   // ── 4. 카테고리별 집계 ────────────────────────────────────────────────────
@@ -169,6 +181,8 @@ export async function GET() {
       buyCount: rows.filter((r) => r.action === "BUY").length,
       sellCount: rows.filter((r) => r.action === "SELL").length,
       totalRealizedPnl,
+      totalLoanInterest,
+      totalNetPnl,
       winRate: totalSells > 0 ? (winTrades / totalSells) * 100 : null,
       winTrades,
       lossTrades: totalSells - winTrades,
