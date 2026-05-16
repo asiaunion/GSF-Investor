@@ -41,3 +41,11 @@ yarn-error.log*
 next-env.d.ts
 .env.local
 drizzle/
+
+# local dev scratch files
+*.db
+local.db
+list_models.ts
+query.ts
+test_db.ts
+tmp/
