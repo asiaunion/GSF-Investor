@@ -71,14 +71,14 @@ def turso_one(sql: str, params: list = None) -> list:
              for i, v in enumerate(row)} for row in rs.get("rows", [])]
 
 # ── DART API ──────────────────────────────────────────────────────────────────
-def fetch_dart_financials(corp_code: str, year: int, report_code: str) -> Optional[dict]:
+def fetch_dart_financials(corp_code: str, year: int, report_code: str, fs_div: str = "CFS") -> Optional[dict]:
     url = "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json"
     params = {
         "crtfc_key": DART_KEY,
         "corp_code": corp_code,
         "bsns_year": str(year),
         "reprt_code": report_code,
-        "fs_div": "OFS",  # 별도재무제표
+        "fs_div": fs_div,
     }
     try:
         resp = requests.get(url, params=params, timeout=15)
@@ -173,17 +173,21 @@ def main():
 
         for year, period_label, report_code in quarters:
             # 이미 존재 확인
-            existing = turso_one(
-                "SELECT id FROM financials WHERE stock_id=? AND period=? AND source='DART'",
-                [stock_id, period_label]
-            )
-            if existing:
-                print(f"  ⏭️  {period_label}: 이미 존재 (id={existing[0]['id']}) — SKIP")
-                total_skipped += 1
-                continue
+            # existing = turso_one(
+            #     "SELECT id FROM financials WHERE stock_id=? AND period=? AND source='DART'",
+            #     [stock_id, period_label]
+            # )
+            # if existing:
+            #     print(f"  ⏭️  {period_label}: 이미 존재 (id={existing[0]['id']}) — SKIP")
+            #     total_skipped += 1
+            #     continue
 
             print(f"  📥 {period_label} ({report_code}) 조회 중...", end=" ", flush=True)
-            data = fetch_dart_financials(t["dart_corp_code"], year, report_code)
+            # 1순위: 연결(CFS), 2순위: 별도(OFS)
+            data = fetch_dart_financials(t["dart_corp_code"], year, report_code, "CFS")
+            if not data:
+                data = fetch_dart_financials(t["dart_corp_code"], year, report_code, "OFS")
+            
             if not data:
                 print("데이터 없음")
                 total_nodata += 1
@@ -228,13 +232,17 @@ def main():
                 total_liab = total_assets - total_equity
                 debt_ratio = round(total_liab / total_equity * 100, 2)
 
-            # EPS (회사마다 계정과목명 상이 — 우선순위 순으로 탐색)
+            # EPS (우선순위 순으로 탐색 후, 사용자 요청에 따라 전체 순이익 / 주식수로 오버라이드)
             eps = get_amount([
                 "기본주당이익", "희석주당이익", "기본주당순이익",
                 "기본주당이익(손실)", "희석주당이익(손실)",
                 "기본주당계속영업이익(손실)", "계속영업기본주당순이익",
                 "기본주당계속영업손익",
             ])
+            
+            if net_income and shares_out:
+                eps = round(net_income / shares_out, 2)
+
             bps = get_amount(["주당순자산가치", "주당순자산", "주당순자산(BPS)"])
 
             if not bps and total_equity and shares_out:

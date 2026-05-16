@@ -376,18 +376,15 @@ DART_REPORT_CODES = {
     "사업보고서":  "11011",
 }
 
-def fetch_dart_financials(corp_code: str, year: int, report_code: str) -> Optional[dict]:
-    """DART 단일회사 재무제표 조회 (주요계정 기준)"""
-    if not DART_KEY:
-        return None
-
+def fetch_dart_financials(corp_code: str, year: int, report_code: str, fs_div: str = "CFS") -> Optional[dict]:
+    """DART OpenAPI에서 재무제표(단일회사 전체계정과목) 조회"""
     url = "https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json"
     params = {
         "crtfc_key": DART_KEY,
         "corp_code": corp_code,
         "bsns_year": str(year),
         "reprt_code": report_code,
-        "fs_div": "OFS",  # 별도재무제표
+        "fs_div": fs_div,
     }
     try:
         resp = requests.get(url, params=params, timeout=15)
@@ -455,9 +452,9 @@ def seed_financials(ticker_to_id: dict) -> None:
     quarters_to_fetch = quarters_to_fetch[:8]
 
     for s in dart_stocks:
-        corp_code = s["dart_corp_code"]
+        dart_code = s["dart_corp_code"]
         stock_id  = ticker_to_id[s["ticker"]]
-        print(f"\n  📊 {s['ticker']} ({s['name']}) corp_code={corp_code}")
+        print(f"\n  📊 {s['ticker']} ({s['name']}) corp_code={dart_code}")
 
         # Yahoo Finance에서 shares_outstanding 가져오기 (BPS 계산용)
         shares_out = None
@@ -477,13 +474,17 @@ def seed_financials(ticker_to_id: dict) -> None:
                 print(f"    ⏭️  {period_label}: 이미 존재 — SKIP")
                 continue
 
-            print(f"    📥 {period_label} ({report_code}) 조회 중...", end=" ")
-            data = fetch_dart_financials(corp_code, year, report_code)
+            print(f"    📥 {period_label} ({report_code}) 조회 중...", end=" ", flush=True)
+            # 1순위: 연결(CFS), 2순위: 별도(OFS)
+            data = fetch_dart_financials(dart_code, year, report_code, "CFS")
+            if not data:
+                data = fetch_dart_financials(dart_code, year, report_code, "OFS")
+            
             if not data:
                 print("데이터 없음")
                 continue
 
-            # 계정과목 파싱 (별도재무제표 기준)
+            # 계정과목 파싱
             accounts = data.get("list", [])
             acc_map: dict[str, str] = {}
             for acc in accounts:
@@ -504,12 +505,17 @@ def seed_financials(ticker_to_id: dict) -> None:
             total_equity = get_amount(["자본총계"])
             cash_eq      = get_amount(["현금및현금성자산"])
             div_per_sh   = get_amount(["주당배당금"])
-            eps          = get_amount([
+            # EPS (우선순위 순으로 탐색 후, 전체 순이익 / 주식수로 오버라이드)
+            eps = get_amount([
                 "기본주당이익", "희석주당이익", "기본주당순이익",
                 "기본주당이익(손실)", "희석주당이익(손실)",
                 "기본주당계속영업이익(손실)", "계속영업기본주당순이익",
                 "기본주당계속영업손익",
             ])
+            
+            if net_income and shares_out:
+                eps = round(net_income / shares_out, 2)
+
             bps          = get_amount(["주당순자산가치", "주당순자산", "주당순자산(BPS)"])
 
             if not bps and total_equity and shares_out:
