@@ -135,7 +135,7 @@ STOCKS = [
     {
         "ticker":        "026960",
         "yahoo_ticker":  "026960.KS",
-        "dart_corp_code": "00296060",
+        "dart_corp_code": "00144395",  # DART corpCode.xml 1차 확인 (2026-05-16)
         "sec_cik":       None,
         "name":          "동서",
         "market":        "KR",
@@ -146,7 +146,7 @@ STOCKS = [
     {
         "ticker":        "059090",
         "yahoo_ticker":  "059090.KQ",
-        "dart_corp_code": None,         # TODO: DART corp_code 확인 후 추가
+        "dart_corp_code": "00366942",  # DART corpCode.xml 1차 확인 (2026-05-16)
         "sec_cik":       None,
         "name":          "미코",
         "market":        "KR",

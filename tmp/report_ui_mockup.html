@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>GSF Investor Reports UI Mockup</title>
+<style>
+  body {font-family: Arial, sans-serif; margin:0; padding:0; display:flex; height:100vh;}
+  .sidebar {width:30%; background:#f5f5f5; overflow-y:auto; border-right:1px solid #ddd;}
+  .content {flex:1; padding:20px; overflow-y:auto;}
+  .report-item {padding:12px 16px; border-bottom:1px solid #e0e0e0; cursor:pointer;}
+  .report-item:hover {background:#e0eaff;}
+  .report-title {font-weight:bold; margin-bottom:4px;}
+  .report-date {color:#666; font-size:0.9em;}
+  .report-snippet {color:#333; margin-top:4px;}
+  .markdown {white-space:pre-wrap; margin-top:20px;}
+  .chart {margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="sidebar" id="reportList">
+  <div class="report-item" onclick="showReport(1)">
+    <div class="report-title">[HIGH] Dongsuh Co. 매수 권고</div>
+    <div class="report-date">2026-05-16 10:32</div>
+    <div class="report-snippet">Gemini 모델이 제시한 핵심 인사이트 ...</div>
+  </div>
+  <div class="report-item" onclick="showReport(2)">
+    <div class="report-title">[MEDIUM] Mico Ltd. 주가 변동</div>
+    <div class="report-date">2026-05-15 14:08</div>
+    <div class="report-snippet">시장 변동성에 따른 리스크 평가 ...</div>
+  </div>
+</div>
+<div class="content" id="reportDetail">
+  <h2>보고서를 선택하세요</h2>
+</div>
+<script>
+  const reports = {
+    1: {
+      markdown: `# 매수 권고
+
+- **시그널:** HIGH
+- **종목:** Dongsuh Co. (026960)
+- **가격 목표:** 84,000원 (현재 78,500원)
+- **핵심 요인:**
+  - 최근 DART 공시에서 대규모 현금 확보
+  - 환율 헤지 포지션 강화
+  - 주주 연속 매수 의사 확인
+
+## 투자 의견
+Gemini 모델이 판단한 바에 따르면, 현재 가격 대비 약 7% 상승 여력이 있습니다.`,
+      chart: `<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="400" height="200" fill="#fafafa"/>
+        <polyline points="0,150 50,120 100,130 150,100 200,110 250,80 300,90 350,60 400,70" fill="none" stroke="#4a90e2" stroke-width="2"/>
+        <text x="200" y="190" text-anchor="middle" fill="#666" font-size="12">가격 추이 (최근 9개월)</text>
+      </svg>`
+    },
+    2: {
+      markdown: `# 주가 변동 분석
+
+- **시그널:** MEDIUM
+- **종목:** Mico Ltd. (123456)
+- **변동 요인:** 시장 전반적인 변동성, 외국인 순매도 증가
+
+## 요약
+가격 변동폭이 확대되고 있으며, 단기 하락 압력이 존재합니다.`,
+      chart: `<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="400" height="200" fill="#fafafa"/>
+        <polyline points="0,130 50,140 100,120 150,130 200,115 250,125 300,110 350,120 400,115" fill="none" stroke="#e94a4a" stroke-width="2"/>
+        <text x="200" y="190" text-anchor="middle" fill="#666" font-size="12">가격 변동 (최근 6개월)</text>
+      </svg>`
+    }
+  };
+  function showReport(id){
+    const r = reports[id];
+    const container = document.getElementById('reportDetail');
+    container.innerHTML = `<h2>${r.markdown.split('\n')[0].replace('# ','')}</h2>` +
+      `<div class="markdown">${r.markdown.replace(/\n/g,'<br>')}</div>` +
+      `<div class="chart">${r.chart}</div>`;
+  }
+</script>
+</body>
+</html>

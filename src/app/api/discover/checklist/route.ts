@@ -107,10 +107,25 @@ export async function GET(req: NextRequest) {
     pbr = latestPrice / latestFin.bps;
   }
 
-  // PER = 현재가 / EPS
+  // PER = 현재가 / 연간EPS
+  // 1) FY(사업보고서) EPS 우선 사용
+  // 2) FY 없으면 최근 4분기 EPS 합산(TTM)
   let per: number | null = null;
-  if (latestPrice && latestFin?.eps && latestFin.eps > 0) {
-    per = latestPrice / latestFin.eps;
+  const fyFin = fins.find((f) => f.period.endsWith("FY"));
+  const fyEps = fyFin?.eps ?? null;
+
+  if (latestPrice && fyEps && fyEps > 0) {
+    per = latestPrice / fyEps;
+  } else if (latestPrice) {
+    // TTM: 최근 분기 EPS 합산 (Q 포함 최대 4개)
+    const qEps = fins
+      .filter((f) => f.period.match(/Q\d$/) && f.eps != null && (f.eps as number) > 0)
+      .slice(0, 4)
+      .map((f) => f.eps as number);
+    if (qEps.length === 4) {
+      const ttmEps = qEps.reduce((a, b) => a + b, 0);
+      if (ttmEps > 0) per = latestPrice / ttmEps;
+    }
   }
 
   const debtRatio = latestFin?.debtRatio ?? null;
