@@ -1,90 +1,160 @@
 import { auth } from "@/auth";
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { db } from "@/db";
+import { sql } from "drizzle-orm";
+import { Suspense } from "react";
+import DashboardClient from "./DashboardClient";
 
+export const dynamic = "force-dynamic";
+
+// ── 데이터 페칭 (Server Side) ─────────────────────────────────────────────────
+async function fetchDashboardData() {
+  // v_portfolio
+  const portfolioRows = await db.run(sql`
+    SELECT stock_id, ticker, name, category, broker, quantity, avg_price, currency
+    FROM v_portfolio
+  `);
+
+  // 최신 종가
+  const latestPricesRows = await db.run(sql`
+    SELECT p.stock_id, p.close_price, p.currency, p.date
+    FROM prices p
+    INNER JOIN (
+      SELECT stock_id, MAX(date) AS max_date FROM prices GROUP BY stock_id
+    ) latest ON p.stock_id = latest.stock_id AND p.date = latest.max_date
+  `);
+
+  // 최신 환율
+  const fxRow = await db.run(sql`
+    SELECT rate, date FROM exchange_rates WHERE pair = 'USDKRW'
+    ORDER BY date DESC LIMIT 1
+  `);
+
+  const latestPriceMap = new Map<number, { closePrice: number; currency: string; date: string }>();
+  for (const row of latestPricesRows.rows) {
+    latestPriceMap.set(Number(row[0]), {
+      closePrice: Number(row[1]),
+      currency: String(row[2]),
+      date: String(row[3]),
+    });
+  }
+
+  const usdkrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
+  const fxDate = fxRow.rows.length > 0 ? String(fxRow.rows[0][1]) : null;
+
+  const holdings = portfolioRows.rows.map((row) => {
+    const stockId = Number(row[0]);
+    const ticker = String(row[1]);
+    const name = String(row[2]);
+    const category = String(row[3]);
+    const broker = row[4] ? String(row[4]) : null;
+    const quantity = Number(row[5]);
+    const avgPrice = Number(row[6]);
+    const currency = String(row[7]);
+
+    const latest = latestPriceMap.get(stockId);
+    const currentPrice = latest?.closePrice ?? avgPrice;
+    const priceDate = latest?.date ?? null;
+
+    const evalAmountLocal = currentPrice * quantity;
+    const costAmountLocal = avgPrice * quantity;
+
+    const evalAmountKRW = currency === "USD" ? evalAmountLocal * usdkrw : evalAmountLocal;
+    const costAmountKRW = currency === "USD" ? costAmountLocal * usdkrw : costAmountLocal;
+
+    const returnRate =
+      costAmountLocal > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
+
+    return {
+      stockId,
+      ticker,
+      name,
+      category,
+      broker,
+      quantity,
+      avgPrice,
+      currentPrice,
+      currency,
+      evalAmountKRW,
+      costAmountKRW,
+      returnRate,
+      priceDate,
+    };
+  });
+
+  const totalEvalKRW = holdings.reduce((s, h) => s + h.evalAmountKRW, 0);
+  const totalCostKRW = holdings.reduce((s, h) => s + h.costAmountKRW, 0);
+  const totalReturnRate =
+    totalCostKRW > 0 ? ((totalEvalKRW - totalCostKRW) / totalCostKRW) * 100 : 0;
+
+  const coreKRW = holdings.filter((h) => h.category === "Core").reduce((s, h) => s + h.evalAmountKRW, 0);
+  const satelliteKRW = holdings.filter((h) => h.category === "Satellite").reduce((s, h) => s + h.evalAmountKRW, 0);
+
+  return {
+    holdings,
+    summary: { totalEvalKRW, totalCostKRW, totalReturnRate, usdkrw, fxDate, coreKRW, satelliteKRW },
+  };
+}
+
+// ── 서버 컴포넌트 메인 ─────────────────────────────────────────────────────────
 export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
+  const data = await fetchDashboardData();
+
   return (
     <div className="min-h-screen bg-zinc-950">
-      <div className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      {/* Nav */}
+      <nav className="border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                 <polyline points="16 7 22 7 22 13" />
               </svg>
             </div>
-            <span className="font-semibold text-white">GSF Investor</span>
+            <span className="font-semibold text-white text-sm">GSF Investor</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/journal" className="text-sm text-zinc-400 hover:text-emerald-400 transition-colors">
-              매매 일지
-            </Link>
+          <div className="flex items-center gap-5">
+            <Link href="/" className="text-xs text-emerald-400 font-medium">대시보드</Link>
+            <Link href="/journal" className="text-xs text-zinc-400 hover:text-white transition-colors">매매 일지</Link>
             <span className="text-xs text-zinc-600 hidden sm:block">{session.user?.email}</span>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Status */}
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-white mb-1">포트폴리오 대시보드</h1>
-          <p className="text-zinc-400">Phase 1 세팅 완료 — Day 3 시드 데이터 투입 준비 중</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-white">포트폴리오 대시보드</h1>
+          <p className="text-zinc-500 text-sm mt-1">
+            기준일: {data.summary.fxDate ?? "—"} &nbsp;·&nbsp; USD/KRW {data.summary.usdkrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
+          </p>
         </div>
 
-        {/* Phase Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-          {[
-            { label: "총 자산", value: "—", sub: "시드 데이터 투입 전", color: "emerald" },
-            { label: "총 수익률", value: "—%", sub: "매매일지 입력 후 계산", color: "blue" },
-            { label: "시그널", value: "0건", sub: "미확인 없음", color: "amber" },
-          ].map((card) => (
-            <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-              <p className="text-sm text-zinc-400 mb-1">{card.label}</p>
-              <p className="text-2xl font-bold text-white">{card.value}</p>
-              <p className="text-xs text-zinc-600 mt-1">{card.sub}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Phase 1 Roadmap */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Phase 1 진행 상황</h2>
-          <div className="space-y-3">
-            {[
-              { day: "Day 1-2", task: "리포 + Next.js + Turso + Drizzle + NextAuth", done: true },
-              { day: "Day 3", task: "seed_portfolio.py — 종목 시딩 + INIT + 2년 주가·8분기 재무", done: true },
-              { day: "Day 4-5", task: "매매 일지 CRUD + 테제 필수 입력 + 감정 태그", done: true },
-              { day: "Day 6-7", task: "daily_price.py + GitHub Actions 크론", done: false },
-              { day: "Day 8-9", task: "포트폴리오 대시보드 v_portfolio View 연동", done: false },
-              { day: "Day 10-11", task: "종목 상세 페이지 (Overview + 재무 차트)", done: false },
-            ].map((item) => (
-              <div key={item.day} className="flex items-center gap-4">
-                <span
-                  className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    item.done
-                      ? "bg-emerald-500/20 border border-emerald-500/40"
-                      : "bg-zinc-800 border border-zinc-700"
-                  }`}
-                >
-                  {item.done && (
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
-                      <polyline points="2 6 5 9 10 3" />
-                    </svg>
-                  )}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-xs font-medium text-zinc-500 mr-2">{item.day}</span>
-                  <span className={`text-sm ${item.done ? "text-zinc-300" : "text-zinc-500"}`}>{item.task}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardClient data={data} />
+        </Suspense>
       </main>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-28 bg-zinc-900 rounded-2xl" />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="h-72 bg-zinc-900 rounded-2xl" />
+        <div className="h-72 bg-zinc-900 rounded-2xl" />
+      </div>
     </div>
   );
 }
