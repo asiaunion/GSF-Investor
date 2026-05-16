@@ -30,8 +30,106 @@ const triggerLabel: Record<string, string> = {
   SIGNAL_AUTO: "시그널 자동",
 };
 
-function formatMd(md: string): string {
-  return md;
+// ── 간단 마크다운 → React 노드 렌더러 ──────────────────────────────────────────
+function renderInline(text: string): React.ReactNode {
+  // **bold** 처리
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} className="text-white font-semibold">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part;
+  });
+}
+
+function MarkdownRenderer({ content }: { content: string }) {
+  const lines = content.split("\n");
+  const nodes: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // H1
+    if (line.startsWith("# ")) {
+      nodes.push(
+        <h1 key={i} className="text-xl font-bold text-white mt-6 mb-3">
+          {renderInline(line.slice(2))}
+        </h1>
+      );
+      i++;
+      continue;
+    }
+
+    // H2
+    if (line.startsWith("## ")) {
+      nodes.push(
+        <h2 key={i} className="text-base font-bold text-violet-300 mt-6 mb-2 pb-1 border-b border-zinc-800">
+          {renderInline(line.slice(3))}
+        </h2>
+      );
+      i++;
+      continue;
+    }
+
+    // H3
+    if (line.startsWith("### ")) {
+      nodes.push(
+        <h3 key={i} className="text-sm font-semibold text-zinc-300 mt-4 mb-1.5">
+          {renderInline(line.slice(4))}
+        </h3>
+      );
+      i++;
+      continue;
+    }
+
+    // HR
+    if (line.trim() === "---" || line.trim() === "***") {
+      nodes.push(<hr key={i} className="border-zinc-800 my-4" />);
+      i++;
+      continue;
+    }
+
+    // 빈 줄
+    if (line.trim() === "") {
+      nodes.push(<div key={i} className="my-1.5" />);
+      i++;
+      continue;
+    }
+
+    // 불릿 리스트 (- 또는 *)
+    if (line.match(/^[-*] /)) {
+      const listItems: React.ReactNode[] = [];
+      while (i < lines.length && lines[i].match(/^[-*] /)) {
+        listItems.push(
+          <li key={i} className="text-sm text-zinc-300 leading-relaxed">
+            {renderInline(lines[i].slice(2))}
+          </li>
+        );
+        i++;
+      }
+      nodes.push(
+        <ul key={`ul-${i}`} className="list-disc list-inside space-y-1 my-2 pl-2">
+          {listItems}
+        </ul>
+      );
+      continue;
+    }
+
+    // 일반 단락
+    nodes.push(
+      <p key={i} className="text-sm text-zinc-300 leading-7">
+        {renderInline(line)}
+      </p>
+    );
+    i++;
+  }
+
+  return <>{nodes}</>;
 }
 
 export default function ReportDetailClient({ report }: { report: ReportDetail }) {
@@ -52,8 +150,6 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
     순이익: f.netIncome != null ? Math.round(f.netIncome / 1e8) : null,
   }));
 
-  // 마크다운 → 간단 HTML 변환 (highlight 섹션)
-  const sections = report.contentMd.split(/^## /m).filter(Boolean);
   const titleMatch = report.contentMd.match(/^# (.+)$/m);
   const reportTitle = titleMatch ? titleMatch[1] : `${report.stockName} 분석 보고서`;
 
@@ -91,7 +187,7 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
       </div>
 
       {/* ── 차트 (가격 + 재무) ──────────────────────────────────────────── */}
-      {chartsData && (
+      {chartsData && (priceData.length > 0 || finData.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* 주가 차트 */}
           {priceData.length > 0 && (
@@ -152,15 +248,10 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
         </div>
       )}
 
-      {/* ── AI 보고서 본문 ───────────────────────────────────────────────── */}
+      {/* ── AI 보고서 본문 (마크다운 렌더링) ──────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <div className="prose prose-invert prose-sm max-w-none">
-          <pre
-            className="text-sm text-zinc-200 whitespace-pre-wrap leading-7"
-            style={{ fontFamily: "'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif" }}
-          >
-            {report.contentMd}
-          </pre>
+        <div className="max-w-none">
+          <MarkdownRenderer content={report.contentMd} />
         </div>
       </div>
     </div>
