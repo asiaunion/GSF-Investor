@@ -54,6 +54,8 @@ load_dotenv(os.path.join(_script_dir, "..", ".env"))
 
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 if not TURSO_URL or not TURSO_TOKEN:
     print("[ERROR] TURSO_DATABASE_URL / TURSO_AUTH_TOKEN 환경변수가 없습니다.")
@@ -66,6 +68,20 @@ SEC_USER_AGENT = "GSF-Investor/1.0 (asiaunion@gmail.com)"
 
 # 수집 대상 SEC 양식 유형
 TARGET_FORMS = {"10-Q", "10-K", "10-K/A", "10-Q/A"}
+
+
+def notify_telegram(message: str) -> None:
+    """Telegram Bot API로 메시지 발송. 토큰/채팅ID 없으면 조용히 스킵."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}
+    try:
+        resp = requests.post(url, json=payload, timeout=5)
+        if resp.status_code != 200:
+            print(f"    [WARN] Telegram 발송 실패: {resp.status_code} {resp.text[:100]}")
+    except Exception as e:
+        print(f"    [WARN] Telegram 알림 실패: {e}")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 1. Turso HTTP 헬퍼
@@ -330,6 +346,15 @@ def main():
             print(f"    → {len(filings)}건 10-Q/10-K 수신")
             result = process_sec_filings(stock, filings)
             results[ticker] = result
+
+            # 신규 공시 수신 시 Telegram 알림
+            newly = result.get("disclosures_inserted", 0)
+            if newly > 0:
+                new_forms = [f"{f['form']} ({f['filed_at']})" for f in filings[:newly]]
+                notify_telegram(
+                    f"🇺🇸 <b>SEC 공시 수신 — {stock['name']} ({ticker})</b>\n"
+                    + "\n".join(f"• {fstr}" for fstr in new_forms[:5])
+                )
         except Exception as e:
             print(f"    [ERROR] {e}")
             results[ticker] = {"error": str(e)}

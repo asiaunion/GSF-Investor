@@ -51,6 +51,8 @@ load_dotenv(os.path.join(_script_dir, "..", ".env"))
 
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 if not TURSO_URL or not TURSO_TOKEN:
     print("[ERROR] TURSO_DATABASE_URL / TURSO_AUTH_TOKEN 환경변수가 없습니다.")
@@ -58,6 +60,20 @@ if not TURSO_URL or not TURSO_TOKEN:
 
 # libsql:// → https://
 http_url = TURSO_URL.replace("libsql://", "https://")
+
+
+def notify_telegram(message: str) -> None:
+    """Telegram Bot API로 메시지 발송. 토큰/채팅ID 없으면 조용히 스킵."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"}
+    try:
+        resp = requests.post(url, json=payload, timeout=5)
+        if resp.status_code != 200:
+            print(f"    [WARN] Telegram 발송 실패: {resp.status_code} {resp.text[:100]}")
+    except Exception as e:
+        print(f"    [WARN] Telegram 알림 실패: {e}")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 1. Turso HTTP 헬퍼 (daily_price.py와 동일 패턴)
@@ -434,6 +450,15 @@ def main():
                 "signals_inserted": inserted,
                 "signals_list": new_signals,
             }
+
+            # MEDIUM 이상 시그널 → Telegram 알림
+            important = [s for s in new_signals if s["severity"] in ("HIGH", "MEDIUM")]
+            if important:
+                lines = [f"📊 <b>주간 시그널 — {stock['name']} ({ticker})</b>"]
+                for sig in important:
+                    icon = "🔴" if sig["severity"] == "HIGH" else "🟡"
+                    lines.append(f"{icon} [{sig['type']}] {sig['description']}")
+                notify_telegram("\n".join(lines))
 
         except Exception as e:
             print(f"    [ERROR] {e}")
