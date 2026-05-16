@@ -179,8 +179,8 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
 
 분석 시 구체적인 수치를 인용하고 근거를 명확히 제시하세요.`;
 
-  // ── Gemini API 스트리밍 호출 ────────────────────────────────────────────────
-  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${geminiKey}`;
+  // ── Gemini API 호출 (generateContent — 이 키는 스트리밍 미지원) ─────────────
+  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
 
   let geminiResponse: Response;
   try {
@@ -201,13 +201,17 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
 
   if (!geminiResponse.ok) {
     const errText = await geminiResponse.text();
-    return NextResponse.json({ error: `Gemini API error: ${errText.slice(0, 200)}` }, { status: 500 });
+    return NextResponse.json({ error: `Gemini API error: ${errText.slice(0, 400)}` }, { status: 500 });
   }
 
-  // ── SSE 스트림 → 클라이언트 전달 + 전체 텍스트 수집 ────────────────────────
-  const encoder = new TextEncoder();
+  const geminiData = await geminiResponse.json();
+  const fullText: string =
+    geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-  let fullText = "";
+  if (!fullText) {
+    return NextResponse.json({ error: "Gemini 응답 없음" }, { status: 500 });
+  }
+
   const chartsJson = JSON.stringify({
     prices: prices.slice(0, 30).reverse(),
     financials: financials.map((f) => ({
@@ -218,75 +222,37 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
     })).reverse(),
   });
 
+  // ── SSE 스트림: 텍스트를 청크로 나눠 스트리밍 시뮬레이션 ─────────────────────
+  const encoder = new TextEncoder();
+  const chunkSize = 80; // 청크당 글자 수 (타이핑 효과)
+
   const stream = new ReadableStream({
     async start(controller) {
-      const reader = geminiResponse.body?.getReader();
-      if (!reader) {
-        controller.close();
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.slice(6).trim();
-              if (dataStr === "[DONE]") continue;
-              try {
-                const parsed = JSON.parse(dataStr);
-                const text =
-                  parsed?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-                if (text) {
-                  fullText += text;
-                  // SSE 포맷으로 클라이언트에 전달
-                  controller.enqueue(
-                    encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
-                  );
-                }
-              } catch {
-                // JSON 파싱 실패 시 무시
-              }
-            }
-          }
-        }
-      } finally {
-        reader.releaseLock();
-      }
-
-      // 생성 완료 → DB 저장
-      if (fullText) {
-        try {
-          await db.run(sql`
-            INSERT INTO reports (stock_id, trigger, content_md, charts_json, generated_at)
-            VALUES (${stockId}, ${trigger}, ${fullText}, ${chartsJson}, datetime('now'))
-          `);
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ done: true, saved: true })}\n\n`)
-          );
-        } catch (dbErr) {
-          console.error("Report DB save error:", dbErr);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ done: true, saved: false, error: String(dbErr) })}\n\n`
-            )
-          );
-        }
-      } else {
+      // 텍스트를 청크로 나눠 전송
+      for (let i = 0; i < fullText.length; i += chunkSize) {
+        const chunk = fullText.slice(i, i + chunkSize);
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ done: true, saved: false })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`)
         );
+        // 미세한 딜레이 (타이핑 효과)
+        await new Promise((r) => setTimeout(r, 20));
       }
 
+      // DB 저장
+      let saved = false;
+      try {
+        await db.run(sql`
+          INSERT INTO reports (stock_id, trigger, content_md, charts_json, generated_at)
+          VALUES (${stockId}, ${trigger}, ${fullText}, ${chartsJson}, datetime('now'))
+        `);
+        saved = true;
+      } catch (dbErr) {
+        console.error("Report DB save error:", dbErr);
+      }
+
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ done: true, saved })}\n\n`)
+      );
       controller.close();
     },
   });
@@ -298,4 +264,5 @@ ${disclosures.length === 0 ? "최근 공시 없음" : disclosures.map((d) => `- 
       Connection: "keep-alive",
     },
   });
+
 }
