@@ -9,11 +9,22 @@ import DashboardClient from "./DashboardClient";
 export const dynamic = "force-dynamic";
 
 // ── 데이터 페칭 (Server Side) ─────────────────────────────────────────────────
+// 실제 v_portfolio 컬럼: ticker, name, market, category, broker, quantity, avg_price, currency
 async function fetchDashboardData() {
-  // v_portfolio
+  // v_portfolio + stocks JOIN → stock_id 확보
   const portfolioRows = await db.run(sql`
-    SELECT stock_id, ticker, name, category, broker, quantity, avg_price, currency
-    FROM v_portfolio
+    SELECT
+      s.id AS stock_id,
+      vp.ticker,
+      vp.name,
+      vp.market,
+      vp.category,
+      vp.broker,
+      vp.quantity,
+      vp.avg_price,
+      vp.currency
+    FROM v_portfolio vp
+    JOIN stocks s ON s.ticker = vp.ticker
   `);
 
   // 최신 종가
@@ -43,15 +54,17 @@ async function fetchDashboardData() {
   const usdkrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
   const fxDate = fxRow.rows.length > 0 ? String(fxRow.rows[0][1]) : null;
 
+  // 컬럼 인덱스: stock_id(0), ticker(1), name(2), market(3), category(4), broker(5), quantity(6), avg_price(7), currency(8)
   const holdings = portfolioRows.rows.map((row) => {
     const stockId = Number(row[0]);
     const ticker = String(row[1]);
     const name = String(row[2]);
-    const category = String(row[3]);
-    const broker = row[4] ? String(row[4]) : null;
-    const quantity = Number(row[5]);
-    const avgPrice = Number(row[6]);
-    const currency = String(row[7]);
+    const market = String(row[3]);
+    const category = String(row[4]);
+    const broker = row[5] ? String(row[5]) : null;
+    const quantity = Number(row[6]);
+    const avgPrice = Number(row[7]);
+    const currency = String(row[8]);
 
     const latest = latestPriceMap.get(stockId);
     const currentPrice = latest?.closePrice ?? avgPrice;
@@ -70,6 +83,7 @@ async function fetchDashboardData() {
       stockId,
       ticker,
       name,
+      market,
       category,
       broker,
       quantity,

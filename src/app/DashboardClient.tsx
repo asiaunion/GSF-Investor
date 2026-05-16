@@ -7,6 +7,7 @@ interface Holding {
   stockId: number;
   ticker: string;
   name: string;
+  market: string;
   category: string;
   broker: string | null;
   quantity: number;
