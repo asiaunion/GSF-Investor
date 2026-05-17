@@ -21,6 +21,23 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // ── 신규 종목 추가 ──────────────────────────────────────────────────────────
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({
+    ticker: "",
+    name: "",
+    market: "KR",
+    category: "Core",
+    yahooTicker: "",
+    dartCorpCode: "",
+    secCik: "",
+    broker: "",
+    thesis: "",
+  });
+  const [addSaving, setAddSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [addSuccess, setAddSuccess] = useState<string | null>(null);
+
   const handleExpand = (stock: StockSetting) => {
     if (expandedId === stock.id) {
       setExpandedId(null);
@@ -94,6 +111,43 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
   const activeCount = stocks.filter((s) => s.isActive === 1).length;
   const inactiveCount = stocks.filter((s) => s.isActive === 0).length;
 
+  const handleAddStock = async () => {
+    setAddSaving(true);
+    setAddError(null);
+    setAddSuccess(null);
+    try {
+      const res = await fetch("/api/discover/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ticker: addForm.ticker.trim().toUpperCase(),
+          name: addForm.name.trim(),
+          market: addForm.market,
+          category: addForm.category,
+          yahooTicker: addForm.yahooTicker.trim() || null,
+          dartCorpCode: addForm.dartCorpCode.trim() || null,
+          secCik: addForm.secCik.trim() || null,
+          broker: addForm.broker.trim() || null,
+          thesis: addForm.thesis.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAddError(data.error ?? "추가 실패");
+        return;
+      }
+      setAddSuccess(`✅ ${addForm.name}(${addForm.ticker.toUpperCase()}) 추가 완료! 다음 daily_price.py 실행 시 주가가 수집됩니다.`);
+      setAddForm({ ticker: "", name: "", market: "KR", category: "Core", yahooTicker: "", dartCorpCode: "", secCik: "", broker: "", thesis: "" });
+      setShowAddForm(false);
+      // 목록에 즉시 반영
+      window.location.reload();
+    } catch (e) {
+      setAddError(String(e));
+    } finally {
+      setAddSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ── 통계 요약 ────────────────────────────────────────────────── */}
@@ -124,10 +178,138 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
 
       {/* ── 종목 목록 ────────────────────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-zinc-800">
-          <h2 className="text-base font-semibold text-white">관심종목 관리</h2>
-          <p className="text-xs text-zinc-500 mt-0.5">클릭하여 상세 정보 확인 및 편집</p>
+        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-white">관심종목 관리</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">클릭하여 상세 정보 확인 및 편집</p>
+          </div>
+          <button
+            id="btn-add-stock"
+            onClick={() => { setShowAddForm((v) => !v); setAddError(null); setAddSuccess(null); }}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+              showAddForm
+                ? "bg-zinc-800 border-zinc-700 text-zinc-400"
+                : "bg-violet-600/10 border-violet-500/30 text-violet-400 hover:bg-violet-600/20"
+            }`}
+          >
+            {showAddForm ? "✕ 닫기" : "+ 신규 종목 추가"}
+          </button>
         </div>
+
+        {/* ── 신규 종목 추가 폼 ── */}
+        {showAddForm && (
+          <div className="px-6 py-5 bg-zinc-950/60 border-b border-zinc-800">
+            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">신규 종목 추가</h3>
+
+            {addError && (
+              <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+                ⚠️ {addError}
+              </div>
+            )}
+            {addSuccess && (
+              <div className="mb-3 p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-xs text-emerald-400">
+                {addSuccess}
+              </div>
+            )}
+
+            {/* 필수 필드 */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">티커 <span className="text-red-400">*</span></label>
+                <input
+                  id="input-add-ticker"
+                  value={addForm.ticker}
+                  onChange={(e) => setAddForm({ ...addForm, ticker: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500 uppercase"
+                  placeholder="069500"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">종목명 <span className="text-red-400">*</span></label>
+                <input
+                  id="input-add-name"
+                  value={addForm.name}
+                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  placeholder="KODEX 200"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">Yahoo Ticker</label>
+                <input
+                  id="input-add-yahoo"
+                  value={addForm.yahooTicker}
+                  onChange={(e) => setAddForm({ ...addForm, yahooTicker: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  placeholder="069500.KS"
+                />
+              </div>
+            </div>
+
+            {/* 선택 필드 */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">시장 <span className="text-red-400">*</span></label>
+                <select
+                  id="select-add-market"
+                  value={addForm.market}
+                  onChange={(e) => setAddForm({ ...addForm, market: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                >
+                  <option value="KR">KR (국내)</option>
+                  <option value="US">US (미국)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">카테고리</label>
+                <select
+                  id="select-add-category"
+                  value={addForm.category}
+                  onChange={(e) => setAddForm({ ...addForm, category: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                >
+                  <option value="Core">Core</option>
+                  <option value="Satellite">Satellite</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">DART Corp Code</label>
+                <input
+                  value={addForm.dartCorpCode}
+                  onChange={(e) => setAddForm({ ...addForm, dartCorpCode: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  placeholder="00296060"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">브로커</label>
+                <input
+                  value={addForm.broker}
+                  onChange={(e) => setAddForm({ ...addForm, broker: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  placeholder="대신증권"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowAddForm(false)}
+                className="px-4 py-2 text-xs text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                id="btn-submit-add-stock"
+                onClick={handleAddStock}
+                disabled={addSaving || !addForm.ticker || !addForm.name}
+                className="px-6 py-2 text-xs font-medium text-white bg-violet-600 hover:bg-violet-500 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {addSaving ? "추가 중..." : "종목 추가"}
+              </button>
+            </div>
+          </div>
+        )}
 
         <ul className="divide-y divide-zinc-800/60">
           {stocks.map((stock) => {
@@ -304,7 +486,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
           <p>• <span className="text-zinc-300 font-medium">식별자 (Yahoo/DART/SEC)</span>: 자동 데이터 수집에 사용됩니다. 정확히 입력해야 수집이 정상 동작합니다.</p>
           <p>• <span className="text-zinc-300 font-medium">카테고리 변경</span>: Core ↔ Satellite 전환은 즉시 대시보드 비중 차트에 반영됩니다.</p>
           <p>• <span className="text-zinc-300 font-medium">비활성화</span>: 종목 데이터는 보존하되 대시보드에서 제외됩니다. 완전 삭제가 아닙니다.</p>
-          <p>• <span className="text-zinc-300 font-medium">신규 종목 추가</span>: 발굴 페이지 <a href="/discover" className="text-violet-400 hover:text-violet-300">(/discover)</a>에서 추가하세요.</p>
+          <p>• <span className="text-zinc-300 font-medium">신규 종목 추가</span>: 위 <span className="text-violet-400 font-medium">"+ 신규 종목 추가"</span> 버튼을 클릭하세요. Yahoo Ticker가 있어야 주가 자동 수집이 됩니다.</p>
         </div>
       </div>
     </div>

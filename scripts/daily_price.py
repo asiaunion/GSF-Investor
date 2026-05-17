@@ -28,6 +28,7 @@ import sys
 import json
 import time
 import datetime
+from typing import Optional
 import requests
 
 # Phase A3: 어댑터 패턴 — Yahoo Finance 실패 시 FMP 폴백
@@ -232,7 +233,7 @@ def collect_prices(stocks: list) -> dict:
     return results
 
 
-def _legacy_yahoo_get(yahoo_sym: str) -> dict | None:
+def _legacy_yahoo_get(yahoo_sym: str) -> Optional[dict]:
     """data_provider 없을 때 직접 yfinance 호출 (레거시 폴백)"""
     try:
         import yfinance as yf

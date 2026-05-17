@@ -22,6 +22,7 @@ import os
 import sys
 import time
 import datetime
+from typing import Optional
 import requests
 
 # ─────────────────────────────────────────────────────────────
@@ -38,7 +39,7 @@ REQUEST_TIMEOUT = 15  # HTTP 요청 타임아웃 (초)
 # 공급자 1: Yahoo Finance (yfinance)
 # ─────────────────────────────────────────────────────────────
 
-def _yahoo_get_price(yahoo_ticker: str) -> dict | None:
+def _yahoo_get_price(yahoo_ticker: str) -> Optional[dict]:
     """
     yfinance로 최근 종가를 가져옵니다.
     반환: {"close": float, "date": str, "source": "yahoo"} 또는 None
@@ -77,7 +78,7 @@ def _yahoo_get_price(yahoo_ticker: str) -> dict | None:
         return None
 
 
-def _yahoo_get_fx(pair: str = "USDKRW=X") -> dict | None:
+def _yahoo_get_fx(pair: str = "USDKRW=X") -> Optional[dict]:
     """Yahoo Finance 환율 조회."""
     try:
         import yfinance as yf
@@ -106,7 +107,7 @@ def _yahoo_get_fx(pair: str = "USDKRW=X") -> dict | None:
 # 무료 API 한도: 250 req/day
 # 한국 종목: "026960.KS" → FMP ticker는 "026960.KS" 그대로 사용 가능
 
-def _fmp_get_price(ticker: str) -> dict | None:
+def _fmp_get_price(ticker: str) -> Optional[dict]:
     """
     FMP API로 최근 종가를 가져옵니다.
     ticker: Yahoo 형식("026960.KS", "AAPL") 그대로 전달
@@ -142,7 +143,7 @@ def _fmp_get_price(ticker: str) -> dict | None:
         return None
 
 
-def _fmp_get_fx() -> dict | None:
+def _fmp_get_fx() -> Optional[dict]:
     """FMP에서 USDKRW 환율 조회."""
     if not FMP_API_KEY:
         return None
@@ -170,7 +171,7 @@ def _fmp_get_fx() -> dict | None:
 # ─────────────────────────────────────────────────────────────
 # 현재는 stub만 정의. KIS_APP_KEY, KIS_APP_SECRET 환경변수 설정 시 활성화 가능.
 
-def _kis_get_price(ticker: str) -> dict | None:
+def _kis_get_price(ticker: str) -> Optional[dict]:
     """
     한국투자증권 오픈API — 현재 Stub.
     TODO: KIS_APP_KEY, KIS_APP_SECRET 환경변수로 OAuth 토큰 발급 후 구현.
@@ -188,7 +189,7 @@ def _kis_get_price(ticker: str) -> dict | None:
 # 공개 인터페이스 (daily_price.py에서 호출)
 # ─────────────────────────────────────────────────────────────
 
-def get_price(yahoo_ticker: str, currency: str = "KRW") -> dict | None:
+def get_price(yahoo_ticker: str, currency: str = "KRW") -> Optional[dict]:
     """
     주가 조회 (어댑터 패턴).
     공급자 순서: Yahoo Finance → FMP → KIS → None
@@ -225,7 +226,7 @@ def get_price(yahoo_ticker: str, currency: str = "KRW") -> dict | None:
     return None
 
 
-def get_fx_rate(pair: str = "USDKRW") -> dict | None:
+def get_fx_rate(pair: str = "USDKRW") -> Optional[dict]:
     """
     환율 조회 (어댑터 패턴).
     공급자 순서: Yahoo Finance → FMP → None
