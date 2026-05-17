@@ -67,30 +67,30 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
   };
 
   return (
-    <li className="border-b border-zinc-800/60 last:border-0">
+    <li className="border-b border-[var(--color-border-default)]/60 last:border-0">
       {/* 헤더 행 */}
       <div className="flex items-start gap-4 px-6 py-4">
         {/* 종목 배지 */}
-        <div className="shrink-0 w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 text-xs font-bold">
+        <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-bold">
           {report.ticker.slice(0, 4)}
         </div>
 
         {/* 내용 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-white">{report.stockName}</span>
-            <span className="text-xs text-zinc-500">{report.ticker}</span>
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{report.stockName}</span>
+            <span className="text-xs text-[var(--color-text-muted)]">{report.ticker}</span>
             <span
               className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                 report.trigger === "SIGNAL_AUTO"
                   ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                  : "bg-violet-500/10 text-violet-400 border border-violet-500/20"
+                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
               }`}
             >
               {triggerLabel[report.trigger] ?? report.trigger}
             </span>
           </div>
-          <p className="text-xs text-zinc-500 mt-1">
+          <p className="text-xs text-[var(--color-text-muted)] mt-1">
             {new Date(report.generatedAt + "Z").toLocaleString("ko-KR", {
               year: "numeric",
               month: "2-digit",
@@ -105,14 +105,14 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
           {summaryLines ? (
             <ul className="mt-2 space-y-0.5">
               {summaryLines.map((line, i) => (
-                <li key={i} className="flex items-start gap-1.5 text-xs text-zinc-300 leading-relaxed">
-                  <span className="text-violet-500 mt-0.5 shrink-0 text-[10px]">▸</span>
+                <li key={i} className="flex items-start gap-1.5 text-xs text-[var(--color-text-primary)] leading-relaxed">
+                  <span className="text-emerald-500 mt-0.5 shrink-0 text-[10px]">▸</span>
                   <span>{line}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+            <p className="text-xs text-[var(--color-text-secondary)] mt-1.5 leading-relaxed">
               {report.preview.replace(/#+\s*/g, "").replace(/\*\*/g, "").slice(0, 150)}...
             </p>
           )}
@@ -121,10 +121,10 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
         {/* 토글 버튼 */}
         <button
           onClick={handleToggle}
-          className="shrink-0 mt-1 flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors px-2 py-1 rounded-md hover:bg-violet-500/10 whitespace-nowrap"
+          className="shrink-0 mt-1 flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 rounded-md hover:bg-emerald-500/10 whitespace-nowrap"
         >
           {loading ? (
-            <span className="w-3 h-3 border-2 border-violet-400/30 border-t-violet-400 rounded-full animate-spin inline-block" />
+            <span className="w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin inline-block" />
           ) : (
             <span
               className="inline-block transition-transform duration-200"
@@ -140,10 +140,10 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
       {/* 전문 패널 */}
       {open && (
         <div className="px-6 pb-5 pt-0">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 max-h-[600px] overflow-y-auto">
+          <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4 max-h-[600px] overflow-y-auto">
             <pre
-              className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed"
-              style={{ fontFamily: "'Noto Sans KR', sans-serif" }}
+              className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed"
+              
             >
               {fullContent ?? ""}
             </pre>
@@ -244,9 +244,9 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
   return (
     <div className="space-y-6">
       {/* ── 보고서 생성 카드 ──────────────────────────────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-          <span className="text-violet-400">✦</span> 새 보고서 생성
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6">
+        <h2 className="text-base font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
+          <span className="text-emerald-400">✦</span> 새 보고서 생성
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -254,7 +254,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             id="select-stock-report"
             value={selectedStockId}
             onChange={(e) => setSelectedStockId(Number(e.target.value))}
-            className="flex-1 bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="flex-1 bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             disabled={generating}
           >
             {stocks.map((s) => (
@@ -268,7 +268,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             id="btn-generate-report"
             onClick={handleGenerate}
             disabled={generating || !selectedStockId}
-            className="px-5 py-2 bg-violet-600 hover:bg-violet-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-[var(--color-bg-elevated)] disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
           >
             {generating ? (
               <>
@@ -285,24 +285,24 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
         {(streamText || generating) && (
           <div className="mt-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-[var(--color-text-secondary)]">
                 {selectedStock?.name} ({selectedStock?.ticker}) — Gemini 2.5 Flash
               </span>
               {streamDone && (
-                <span className="text-xs text-emerald-400 font-medium">✓ 저장 완료</span>
+                <span className="text-xs text-[var(--color-brand-green)] font-medium">✓ 저장 완료</span>
               )}
             </div>
             <div
               ref={streamRef}
-              className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 max-h-[520px] overflow-y-auto"
+              className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4 max-h-[520px] overflow-y-auto"
             >
               <pre
-                className="text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed"
-                style={{ fontFamily: "'Noto Sans KR', sans-serif" }}
+                className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed"
+                
               >
                 {streamText}
                 {generating && !streamDone && (
-                  <span className="inline-block w-2 h-4 bg-violet-400 ml-0.5 animate-pulse align-middle" />
+                  <span className="inline-block w-2 h-4 bg-emerald-400 ml-0.5 animate-pulse align-middle" />
                 )}
               </pre>
             </div>
@@ -317,16 +317,16 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
       </div>
 
       {/* ── 보고서 목록 (아코디언) ─────────────────────────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl">
-        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-white">
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm">
+        <div className="px-6 py-4 border-b border-[var(--color-border-default)] flex items-center justify-between">
+          <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
             저장된 보고서 ({reports.length}건)
           </h2>
-          <span className="text-xs text-zinc-500">▶ 전문 보기 클릭으로 펼치기</span>
+          <span className="text-xs text-[var(--color-text-muted)]">▶ 전문 보기 클릭으로 펼치기</span>
         </div>
 
         {reports.length === 0 ? (
-          <div className="py-16 text-center text-zinc-500 text-sm">
+          <div className="py-16 text-center text-[var(--color-text-muted)] text-sm">
             <p className="text-3xl mb-3">📋</p>
             <p>아직 생성된 보고서가 없습니다.</p>
             <p className="mt-1 text-xs">위에서 종목을 선택하고 AI 분석을 시작하세요.</p>

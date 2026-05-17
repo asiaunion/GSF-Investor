@@ -65,7 +65,7 @@ export function PriceAreaChart({
   const first = data[0].price;
   const last = data[data.length - 1].price;
   const isUp = last >= first;
-  const color = isUp ? "#10b981" : "#f87171";
+  const color = isUp ? "var(--color-brand-green)" : "var(--color-brand-red)";
 
   const formatted = data.map((d) => ({
     date: d.date.slice(5), // MM-DD
@@ -81,16 +81,16 @@ export function PriceAreaChart({
             <stop offset="95%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
         <XAxis
           dataKey="date"
-          tick={{ fill: "#52525b", fontSize: 10 }}
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           interval={Math.floor(formatted.length / 5)}
         />
         <YAxis
-          tick={{ fill: "#52525b", fontSize: 10 }}
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) =>
@@ -100,11 +100,11 @@ export function PriceAreaChart({
         />
         <Tooltip
           contentStyle={{
-            background: "#18181b",
-            border: "1px solid #3f3f46",
+            background: "var(--color-bg-surface)",
+            border: "1px solid var(--color-border-strong)",
             borderRadius: 8,
             fontSize: 12,
-            color: "#f4f4f5",
+            color: "var(--color-text-primary)",
           }}
           formatter={(v) =>
             typeof v === "number"
@@ -113,7 +113,7 @@ export function PriceAreaChart({
                 : [`₩${v.toLocaleString("ko-KR")}`, "종가"]
               : [String(v ?? "—"), "종가"]
           }
-          labelStyle={{ color: "#a1a1aa" }}
+          labelStyle={{ color: "var(--color-text-secondary)" }}
         />
         <Area
           type="monotone"
@@ -149,15 +149,15 @@ export function IncomeLineChart({
   return (
     <ResponsiveContainer width="100%" height={240}>
       <LineChart data={formatted} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
         <XAxis
           dataKey="period"
-          tick={{ fill: "#52525b", fontSize: 10 }}
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
-          tick={{ fill: "#52525b", fontSize: 10 }}
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => fmtAmt(v, currency)}
@@ -165,25 +165,25 @@ export function IncomeLineChart({
         />
         <Tooltip
           contentStyle={{
-            background: "#18181b",
-            border: "1px solid #3f3f46",
+            background: "var(--color-bg-surface)",
+            border: "1px solid var(--color-border-strong)",
             borderRadius: 8,
             fontSize: 12,
-            color: "#f4f4f5",
+            color: "var(--color-text-primary)",
           }}
           formatter={(v, name) => [fmtAmt(typeof v === 'number' ? v : null, currency), String(name)]}
-          labelStyle={{ color: "#a1a1aa" }}
+          labelStyle={{ color: "var(--color-text-secondary)" }}
         />
         <Legend
-          wrapperStyle={{ fontSize: 11, color: "#71717a", paddingTop: 8 }}
+          wrapperStyle={{ fontSize: 11, color: "var(--color-text-muted)", paddingTop: 8 }}
         />
         <Line
           type="monotone"
           dataKey="revenue"
           name="매출"
-          stroke="#6366f1"
+          stroke="var(--color-brand-blue)"
           strokeWidth={2}
-          dot={{ r: 3, fill: "#6366f1" }}
+          dot={{ r: 3, fill: "var(--color-brand-blue)" }}
           activeDot={{ r: 5 }}
           connectNulls
         />
@@ -191,9 +191,9 @@ export function IncomeLineChart({
           type="monotone"
           dataKey="opIncome"
           name="영업이익"
-          stroke="#10b981"
+          stroke="var(--color-brand-green)"
           strokeWidth={2}
-          dot={{ r: 3, fill: "#10b981" }}
+          dot={{ r: 3, fill: "var(--color-brand-green)" }}
           activeDot={{ r: 5 }}
           connectNulls
         />
@@ -201,9 +201,9 @@ export function IncomeLineChart({
           type="monotone"
           dataKey="netIncome"
           name="순이익"
-          stroke="#f59e0b"
+          stroke="var(--color-warn-500)"
           strokeWidth={2}
-          dot={{ r: 3, fill: "#f59e0b" }}
+          dot={{ r: 3, fill: "var(--color-warn-500)" }}
           activeDot={{ r: 5 }}
           connectNulls
         />
@@ -233,15 +233,15 @@ export function BalanceSheetBarChart({
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={formatted} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
         <XAxis
           dataKey="period"
-          tick={{ fill: "#52525b", fontSize: 10 }}
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
-          tick={{ fill: "#52525b", fontSize: 10 }}
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => fmtAmt(v, currency)}
@@ -249,21 +249,21 @@ export function BalanceSheetBarChart({
         />
         <Tooltip
           contentStyle={{
-            background: "#18181b",
-            border: "1px solid #3f3f46",
+            background: "var(--color-bg-surface)",
+            border: "1px solid var(--color-border-strong)",
             borderRadius: 8,
             fontSize: 12,
-            color: "#f4f4f5",
+            color: "var(--color-text-primary)",
           }}
           formatter={(v, name) => [fmtAmt(typeof v === 'number' ? v : null, currency), String(name)]}
-          labelStyle={{ color: "#a1a1aa" }}
+          labelStyle={{ color: "var(--color-text-secondary)" }}
         />
         <Legend
-          wrapperStyle={{ fontSize: 11, color: "#71717a", paddingTop: 8 }}
+          wrapperStyle={{ fontSize: 11, color: "var(--color-text-muted)", paddingTop: 8 }}
         />
-        <Bar dataKey="totalAssets" name="총자산" fill="#6366f1" opacity={0.8} radius={[3, 3, 0, 0]} />
-        <Bar dataKey="totalEquity" name="자기자본" fill="#10b981" opacity={0.8} radius={[3, 3, 0, 0]} />
-        <Bar dataKey="cashAndEquivalents" name="현금·등가물" fill="#f59e0b" opacity={0.8} radius={[3, 3, 0, 0]} />
+        <Bar dataKey="totalAssets" name="총자산" fill="var(--color-brand-blue)" opacity={0.8} radius={[3, 3, 0, 0]} />
+        <Bar dataKey="totalEquity" name="자기자본" fill="var(--color-brand-green)" opacity={0.8} radius={[3, 3, 0, 0]} />
+        <Bar dataKey="cashAndEquivalents" name="현금·등가물" fill="var(--color-warn-500)" opacity={0.8} radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -272,7 +272,7 @@ export function BalanceSheetBarChart({
 function Empty({ label }: { label: string }) {
   return (
     <div className="h-[200px] flex items-center justify-center">
-      <span className="text-zinc-600 text-sm">{label}</span>
+      <span className="text-[var(--color-text-disabled)] text-sm">{label}</span>
     </div>
   );
 }

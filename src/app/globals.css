@@ -6,83 +6,80 @@
    변수명 규칙: --color-{role}-{shade}, --space-{size}, --radius-{size}
    ─────────────────────────────────────────────────────────────────────────── */
 
-:root {
-  /* ── 색상 팔레트 ────────────────────────────────────────────── */
-  /* Surface */
-  --color-bg-base:        #050508;  /* 페이지 배경 */
-  --color-bg-surface:     #0f0f12;  /* 카드/패널 */
-  --color-bg-elevated:    #18181b;  /* 호버, 인풋 */
-  --color-bg-overlay:     #27272a;  /* 드롭다운 */
+@theme {
+  /* ── 색상 팔레트 매핑 (Light/Dark 자동 전환) ── */
+  --color-bg-base:        var(--bg-base);
+  --color-bg-surface:     var(--bg-surface);
+  --color-bg-elevated:    var(--bg-elevated);
+  --color-bg-overlay:     var(--bg-overlay);
 
-  /* Border */
-  --color-border-default: #27272a;  /* zinc-800 */
-  --color-border-subtle:  #1f1f22;  /* zinc-800/60 */
-  --color-border-strong:  #3f3f46;  /* zinc-700 */
+  --color-border-default: var(--border-default);
+  --color-border-subtle:  var(--border-subtle);
+  --color-border-strong:  var(--border-strong);
 
-  /* Text */
-  --color-text-primary:   #fafafa;  /* zinc-50 */
-  --color-text-secondary: #a1a1aa;  /* zinc-400 */
-  --color-text-muted:     #71717a;  /* zinc-500 */
-  --color-text-disabled:  #3f3f46;  /* zinc-700 */
+  --color-text-primary:   var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted:     var(--text-muted);
+  --color-text-disabled:  var(--text-disabled);
 
-  /* Accent — Profit (Emerald) */
-  --color-profit-500:     #10b981;
-  --color-profit-400:     #34d399;
-  --color-profit-bg:      rgba(16, 185, 129, 0.08);
-  --color-profit-border:  rgba(16, 185, 129, 0.20);
+  --color-brand-red:      var(--brand-red);
+  --color-brand-blue:     var(--brand-blue);
+  --color-brand-green:    var(--brand-green);
 
-  /* Accent — Loss (Red) */
-  --color-loss-500:       #ef4444;
-  --color-loss-400:       #f87171;
-  --color-loss-bg:        rgba(239, 68, 68, 0.08);
-  --color-loss-border:    rgba(239, 68, 68, 0.20);
+  --color-profit-500:     var(--profit-500);
+  --color-profit-400:     var(--profit-400);
+  --color-profit-bg:      var(--profit-bg);
+  --color-profit-border:  var(--profit-border);
 
-  /* Accent — Alpha (Violet) */
-  --color-alpha-500:      #8b5cf6;
-  --color-alpha-400:      #a78bfa;
-  --color-alpha-bg:       rgba(139, 92, 246, 0.08);
-  --color-alpha-border:   rgba(139, 92, 246, 0.20);
+  --color-loss-500:       var(--loss-500);
+  --color-loss-400:       var(--loss-400);
+  --color-loss-bg:        var(--loss-bg);
+  --color-loss-border:    var(--loss-border);
 
-  /* Accent — Warning (Amber) */
-  --color-warn-500:       #f59e0b;
-  --color-warn-400:       #fbbf24;
-  --color-warn-bg:        rgba(245, 158, 11, 0.08);
-  --color-warn-border:    rgba(245, 158, 11, 0.20);
+  --color-alpha-500:      var(--alpha-500);
+  --color-alpha-400:      var(--alpha-400);
+  --color-alpha-bg:       var(--alpha-bg);
+  --color-alpha-border:   var(--alpha-border);
 
-  /* Accent — Satellite (Indigo) */
-  --color-satellite-500:  #6366f1;
-  --color-satellite-400:  #818cf8;
-  --color-satellite-bg:   rgba(99, 102, 241, 0.08);
-  --color-satellite-border: rgba(99, 102, 241, 0.20);
+  --color-warn-500:       var(--warn-500);
+  --color-warn-400:       var(--warn-400);
+  --color-warn-bg:        var(--warn-bg);
+  --color-warn-border:    var(--warn-border);
+
+  --color-satellite-500:  var(--satellite-500);
+  --color-satellite-400:  var(--satellite-400);
+  --color-satellite-bg:   var(--satellite-bg);
+  --color-satellite-border: var(--satellite-border);
 
   /* ── 타이포그래피 ────────────────────────────────────────────── */
+  --font-serif: "Georgia", "Times New Roman", serif; /* 뉴스페이퍼 감성 */
   --font-sans: "Inter", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
 
   /* ── 간격 스케일 ─────────────────────────────────────────────── */
-  --space-1:   0.25rem;  /*  4px */
-  --space-2:   0.5rem;   /*  8px */
-  --space-3:   0.75rem;  /* 12px */
-  --space-4:   1rem;     /* 16px */
-  --space-5:   1.25rem;  /* 20px */
-  --space-6:   1.5rem;   /* 24px */
-  --space-8:   2rem;     /* 32px */
-  --space-10:  2.5rem;   /* 40px */
-  --space-12:  3rem;     /* 48px */
+  --space-1:   0.25rem;
+  --space-2:   0.5rem;
+  --space-3:   0.75rem;
+  --space-4:   1rem;
+  --space-5:   1.25rem;
+  --space-6:   1.5rem;
+  --space-8:   2rem;
+  --space-10:  2.5rem;
+  --space-12:  3rem;
 
-  /* ── 반경 스케일 ─────────────────────────────────────────────── */
-  --radius-sm:  0.375rem;  /*  6px */
-  --radius-md:  0.5rem;    /*  8px */
-  --radius-lg:  0.75rem;   /* 12px */
-  --radius-xl:  1rem;      /* 16px */
-  --radius-2xl: 1.25rem;   /* 20px */
+  /* ── 반경 스케일 (더 각진 형태) ─────────────────────────────────────────────── */
+  --radius-sm:  0px;
+  --radius-md:  0px;
+  --radius-lg:  2px;
+  --radius-xl:  4px;
+  --radius-2xl: 4px;
   --radius-full: 9999px;
 
   /* ── 그림자 ──────────────────────────────────────────────────── */
-  --shadow-sm:  0 1px 2px rgba(0,0,0,0.5);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.4);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.5);
-  --shadow-card: 0 0 0 1px var(--color-border-default), 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:  0 4px 6px rgba(0,0,0,0.05);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,0.05);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.1);
 
   /* ── 전환 ────────────────────────────────────────────────────── */
   --transition-fast:   150ms ease;
@@ -90,8 +87,126 @@
   --transition-slow:   300ms ease;
 
   /* legacy — 기존 코드와 호환 */
-  --background: #050508;
-  --foreground: #fafafa;
+  --background: var(--color-bg-base);
+  --foreground: var(--color-text-primary);
+}
+
+@layer base {
+  :root {
+    /* ── Light Mode (Minimalist Tonal Warmth) ── */
+    --bg-base:        #F9F8F6;
+    --bg-surface:     #F2EFEA;
+    --bg-elevated:    #EBE7E0;
+    --bg-overlay:     #F2EFEA;
+
+    --border-default: #D4CFC5;
+    --border-subtle:  #E3DDD3;
+    --border-strong:  #A39E96;
+
+    --text-primary:   #1F1E1D;
+    --text-secondary: #54524F;
+    --text-muted:     #85827E;
+    --text-disabled:  #B8B4AE;
+
+    --brand-red:      #8C3A35;
+    --brand-blue:     #3B4B52;
+    --brand-green:    #2E633F; /* Noticeable Forest Green */
+
+    /* Profit: Elegant Muted Olive */
+    --profit-500:     #3A4D39;
+    --profit-400:     #4A6149;
+    --profit-bg:      rgba(58, 77, 57, 0.06);
+    --profit-border:  rgba(58, 77, 57, 0.15);
+
+    /* Loss: Elegant Terracotta */
+    --loss-500:       #8C3A35;
+    --loss-400:       #A64842;
+    --loss-bg:        rgba(140, 58, 53, 0.06);
+    --loss-border:    rgba(140, 58, 53, 0.15);
+
+    /* Alpha: Neutral Slate Gray */
+    --alpha-500:      #78828A;
+    --alpha-400:      #919BA3;
+    --alpha-bg:       rgba(120, 130, 138, 0.08);
+    --alpha-border:   rgba(120, 130, 138, 0.20);
+
+    /* Warning: Muted Bronze */
+    --warn-500:       #8C5A2A;
+    --warn-400:       #A66B33;
+    --warn-bg:        rgba(140, 90, 42, 0.06);
+    --warn-border:    rgba(140, 90, 42, 0.15);
+
+    /* Satellite: Muted Gray */
+    --satellite-500:  #9CA3AF;
+    --satellite-400:  #D1D5DB;
+    --satellite-bg:   rgba(156, 163, 175, 0.08);
+    --satellite-border: rgba(156, 163, 175, 0.20);
+
+    /* Adaptive Tailwind Colors for Light Mode (High Contrast) */
+    --adaptive-red-400:     #DC2626; /* red-600 */
+    --adaptive-amber-400:   #D97706; /* amber-600 */
+    --adaptive-emerald-400: #059669; /* emerald-600 */
+    --adaptive-blue-400:    #2563EB; /* blue-600 */
+    --adaptive-violet-400:  #7C3AED; /* violet-600 */
+  }
+
+  .dark {
+    /* ── Dark Mode (Minimalist Tonal Slate) ── */
+    --bg-base:        #161719;
+    --bg-surface:     #1C1D21;
+    --bg-elevated:    #24252A;
+    --bg-overlay:     #1C1D21;
+
+    --border-default: #2F3138;
+    --border-subtle:  #24252A;
+    --border-strong:  #474A54;
+
+    --text-primary:   #EAECEF;
+    --text-secondary: #9FA2A8;
+    --text-muted:     #6A6D75;
+    --text-disabled:  #40424A;
+
+    --brand-red:      #B25852;
+    --brand-blue:     #526973;
+    --brand-green:    #6BA87C; /* Brighter, elegant Sage Green for visibility in dark mode */
+
+    /* Profit: Muted Pine */
+    --profit-500:     #4A6B53;
+    --profit-400:     #5E8569;
+    --profit-bg:      rgba(74, 107, 83, 0.1);
+    --profit-border:  rgba(74, 107, 83, 0.2);
+
+    /* Loss: Muted Brick */
+    --loss-500:       #B25852;
+    --loss-400:       #CC6962;
+    --loss-bg:        rgba(178, 88, 82, 0.1);
+    --loss-border:    rgba(178, 88, 82, 0.2);
+
+    /* Alpha: Neutral Slate Gray */
+    --alpha-500:      #AAB3BB;
+    --alpha-400:      #C8CED4;
+    --alpha-bg:       rgba(170, 179, 187, 0.1);
+    --alpha-border:   rgba(170, 179, 187, 0.25);
+
+    /* Warning: Muted Ochre */
+    --warn-500:       #A37B45;
+    --warn-400:       #BD9053;
+    --warn-bg:        rgba(163, 123, 69, 0.1);
+    --warn-border:    rgba(163, 123, 69, 0.2);
+
+    /* Satellite: Light Gray */
+    --satellite-500:  #CBD5E1;
+    --satellite-400:  #E2E8F0;
+    --satellite-bg:   rgba(203, 213, 225, 0.1);
+    --satellite-border: rgba(203, 213, 225, 0.25);
+
+    /* Adaptive Tailwind Colors for Dark Mode (Standard 400) */
+    --adaptive-red-400:     #F87171;
+    --adaptive-amber-400:   #FBBF24;
+    --adaptive-emerald-400: #34D399;
+    --adaptive-blue-400:    #60A5FA;
+    --adaptive-violet-400:  #A78BFA;
+  }
 }
 
 /* ── Tailwind 테마 연동 ──────────────────────────────────────────────────── */
@@ -99,7 +214,15 @@
   --color-background:     var(--background);
   --color-foreground:     var(--foreground);
   --font-sans:            var(--font-sans);
+  --font-serif:           var(--font-serif);
   --font-mono:            var(--font-mono);
+
+  /* Override default 400 colors to be adaptive for legibility */
+  --color-red-400:        var(--adaptive-red-400);
+  --color-amber-400:      var(--adaptive-amber-400);
+  --color-emerald-400:    var(--adaptive-emerald-400);
+  --color-blue-400:       var(--adaptive-blue-400);
+  --color-violet-400:     var(--adaptive-violet-400);
 }
 
 /* ── 기본 스타일 ─────────────────────────────────────────────────────────── */
@@ -127,14 +250,14 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-surface);
+  background: var(--color-bg-base);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b; /* zinc-600 */
+  background: var(--color-text-muted);
 }
 
 /* ── 유틸리티 클래스 ─────────────────────────────────────────────────────── */
