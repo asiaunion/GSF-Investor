@@ -51,7 +51,7 @@ export async function GET(
     ORDER BY date DESC LIMIT 90
   `);
 
-  // 재무제표 (최근 8분기)
+  // 재무제표 (최근 8분기) — FY 우선, 없으면 분기
   const financialRows = await db.run(sql`
     SELECT
       period, revenue, op_income, net_income,
@@ -60,6 +60,14 @@ export async function GET(
     FROM financials
     WHERE stock_id = ${stockId}
     ORDER BY period DESC LIMIT 8
+  `);
+
+  // FY EPS (PER 계산 기준): period가 'FY'로 끝나는 최신 레코드
+  const fyFinancialRow = await db.run(sql`
+    SELECT eps, bps, roe, net_income, total_equity, dividend_per_share
+    FROM financials
+    WHERE stock_id = ${stockId} AND period LIKE '%FY'
+    ORDER BY period DESC LIMIT 1
   `);
 
   // 공시 (최근 20건)
@@ -110,38 +118,66 @@ export async function GET(
         }
       : null;
 
-  // 재무 데이터 파싱
+  // 재무 데이터 파싱 (ROE null시 netIncome/totalEquity 런타임 계산)
   const financials = financialRows.rows
-    .map((r) => ({
-      period: String(r[0]),
-      revenue: r[1] != null ? Number(r[1]) : null,
-      opIncome: r[2] != null ? Number(r[2]) : null,
-      netIncome: r[3] != null ? Number(r[3]) : null,
-      totalAssets: r[4] != null ? Number(r[4]) : null,
-      totalEquity: r[5] != null ? Number(r[5]) : null,
-      cashAndEquivalents: r[6] != null ? Number(r[6]) : null,
-      debtRatio: r[7] != null ? Number(r[7]) : null,
-      eps: r[8] != null ? Number(r[8]) : null,
-      bps: r[9] != null ? Number(r[9]) : null,
-      roe: r[10] != null ? Number(r[10]) : null,
-      dividendPerShare: r[11] != null ? Number(r[11]) : null,
-      source: String(r[12]),
-    }))
+    .map((r) => {
+      const netIncome = r[3] != null ? Number(r[3]) : null;
+      const totalEquity = r[5] != null ? Number(r[5]) : null;
+      const roeStored = r[10] != null ? Number(r[10]) : null;
+      // ROE 폴백: DB에 null이면 순이익/자본 * 100으로 계산
+      const roeComputed =
+        roeStored !== null
+          ? roeStored
+          : netIncome != null && totalEquity != null && totalEquity > 0
+          ? (netIncome / totalEquity) * 100
+          : null;
+      return {
+        period: String(r[0]),
+        revenue: r[1] != null ? Number(r[1]) : null,
+        opIncome: r[2] != null ? Number(r[2]) : null,
+        netIncome,
+        totalAssets: r[4] != null ? Number(r[4]) : null,
+        totalEquity,
+        cashAndEquivalents: r[6] != null ? Number(r[6]) : null,
+        debtRatio: r[7] != null ? Number(r[7]) : null,
+        eps: r[8] != null ? Number(r[8]) : null,
+        bps: r[9] != null ? Number(r[9]) : null,
+        roe: roeComputed,
+        dividendPerShare: r[11] != null ? Number(r[11]) : null,
+        source: String(r[12]),
+      };
+    })
     .reverse(); // 오래된 것부터 정렬 (차트용)
 
-  // 최신 재무에서 PER/PBR/배당률 계산
+  // FY 재무 파싱 (PER/PBR/배당률 계산 기준)
+  const fyFinancial =
+    fyFinancialRow.rows.length > 0
+      ? {
+          eps: fyFinancialRow.rows[0][0] != null ? Number(fyFinancialRow.rows[0][0]) : null,
+          bps: fyFinancialRow.rows[0][1] != null ? Number(fyFinancialRow.rows[0][1]) : null,
+          roe: fyFinancialRow.rows[0][2] != null ? Number(fyFinancialRow.rows[0][2]) : null,
+          netIncome: fyFinancialRow.rows[0][3] != null ? Number(fyFinancialRow.rows[0][3]) : null,
+          totalEquity: fyFinancialRow.rows[0][4] != null ? Number(fyFinancialRow.rows[0][4]) : null,
+          dividendPerShare: fyFinancialRow.rows[0][5] != null ? Number(fyFinancialRow.rows[0][5]) : null,
+        }
+      : null;
+
+  // 최신 재무에서 PBR/배당률 (FY 우선, 없으면 최신 분기)
   const latestFinancial = financials.length > 0 ? financials[financials.length - 1] : null;
+  const refFinancial = fyFinancial ?? latestFinancial;
+
+  // PER: 반드시 FY EPS 기준 (분기 EPS × 4 근사는 사용하지 않음)
   const per =
-    currentPrice != null && latestFinancial?.eps && latestFinancial.eps > 0
-      ? currentPrice / latestFinancial.eps
+    currentPrice != null && fyFinancial?.eps && fyFinancial.eps > 0
+      ? currentPrice / fyFinancial.eps
       : null;
   const pbr =
-    currentPrice != null && latestFinancial?.bps && latestFinancial.bps > 0
-      ? currentPrice / latestFinancial.bps
+    currentPrice != null && refFinancial?.bps && refFinancial.bps > 0
+      ? currentPrice / refFinancial.bps
       : null;
   const dividendYield =
-    currentPrice != null && latestFinancial?.dividendPerShare && latestFinancial.dividendPerShare > 0
-      ? (latestFinancial.dividendPerShare / currentPrice) * 100
+    currentPrice != null && refFinancial?.dividendPerShare && refFinancial.dividendPerShare > 0
+      ? (refFinancial.dividendPerShare / currentPrice) * 100
       : null;
 
   const holdingReturn =

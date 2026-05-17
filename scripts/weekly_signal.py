@@ -358,7 +358,8 @@ def save_signals(stock_id: int, new_signals: list) -> int:
             continue
 
         stmts.append({
-            "q": """INSERT INTO signals
+            # INSERT OR IGNORE: DB 레벨 uq_signals(stock_id, type, date(detected_at))로 중복 방지
+            "q": """INSERT OR IGNORE INTO signals
                     (stock_id, type, severity, description, detected_at)
                     VALUES (?,?,?,?,datetime('now'))""",
             "params": [stock_id, sig["type"], sig["severity"], sig["description"]],
