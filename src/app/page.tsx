@@ -10,7 +10,6 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 // ── 데이터 페칭 (Server Side) ─────────────────────────────────────────────────
-// 실제 v_portfolio 컬럼: ticker, name, market, category, broker, quantity, avg_price, currency
 async function fetchDashboardData() {
   // v_portfolio + stocks JOIN → stock_id 확보
   const portfolioRows = await db.run(sql`
@@ -43,6 +42,25 @@ async function fetchDashboardData() {
     ORDER BY date DESC LIMIT 1
   `);
 
+  // ── Phase A: 벤치마크 Alpha (KODEX 200 ETF: 069500.KS) ────────────────────
+  // 가장 최근 가격 + 30일 전 가격으로 벤치마크 수익률 계산
+  const benchmarkRows = await db.run(sql`
+    SELECT
+      p1.close_price AS latest_price,
+      p2.close_price AS base_price,
+      p1.date AS latest_date
+    FROM prices p1
+    JOIN stocks bm ON bm.ticker = '069500' AND p1.stock_id = bm.id
+    JOIN prices p2 ON p2.stock_id = bm.id
+      AND p2.date = (
+        SELECT date FROM prices
+        WHERE stock_id = bm.id
+        ORDER BY date ASC LIMIT 1
+      )
+    ORDER BY p1.date DESC
+    LIMIT 1
+  `).catch(() => ({ rows: [] }));
+
   const latestPriceMap = new Map<number, { closePrice: number; currency: string; date: string }>();
   for (const row of latestPricesRows.rows) {
     latestPriceMap.set(Number(row[0]), {
@@ -52,8 +70,18 @@ async function fetchDashboardData() {
     });
   }
 
-  const usdkrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
+  const usdKrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
   const fxDate = fxRow.rows.length > 0 ? String(fxRow.rows[0][1]) : null;
+
+  // 벤치마크 수익률 계산
+  let benchmarkReturn: number | null = null;
+  if (benchmarkRows.rows.length > 0) {
+    const latestPrice = Number(benchmarkRows.rows[0][0]);
+    const basePrice = Number(benchmarkRows.rows[0][1]);
+    if (basePrice > 0 && latestPrice > 0) {
+      benchmarkReturn = ((latestPrice - basePrice) / basePrice) * 100;
+    }
+  }
 
   // 컬럼 인덱스: stock_id(0), ticker(1), name(2), market(3), category(4), broker(5), quantity(6), avg_price(7), currency(8)
   const holdings = portfolioRows.rows.map((row) => {
@@ -74,8 +102,8 @@ async function fetchDashboardData() {
     const evalAmountLocal = currentPrice * quantity;
     const costAmountLocal = avgPrice * quantity;
 
-    const evalAmountKRW = currency === "USD" ? evalAmountLocal * usdkrw : evalAmountLocal;
-    const costAmountKRW = currency === "USD" ? costAmountLocal * usdkrw : costAmountLocal;
+    const evalAmountKRW = currency === "USD" ? evalAmountLocal * usdKrw : evalAmountLocal;
+    const costAmountKRW = currency === "USD" ? costAmountLocal * usdKrw : costAmountLocal;
 
     const returnRate =
       costAmountLocal > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
@@ -106,9 +134,22 @@ async function fetchDashboardData() {
   const coreKRW = holdings.filter((h) => h.category === "Core").reduce((s, h) => s + h.evalAmountKRW, 0);
   const satelliteKRW = holdings.filter((h) => h.category === "Satellite").reduce((s, h) => s + h.evalAmountKRW, 0);
 
+  // Alpha = 포트폴리오 수익률 - 벤치마크 수익률
+  const alpha = benchmarkReturn !== null ? totalReturnRate - benchmarkReturn : null;
+
   return {
     holdings,
-    summary: { totalEvalKRW, totalCostKRW, totalReturnRate, usdkrw, fxDate, coreKRW, satelliteKRW },
+    summary: {
+      totalEvalKRW,
+      totalCostKRW,
+      totalReturnRate,
+      usdKrw,
+      fxDate,
+      coreKRW,
+      satelliteKRW,
+      benchmarkReturn,
+      alpha,
+    },
   };
 }
 
@@ -183,7 +224,7 @@ export default async function HomePage() {
               )}
             </h1>
             <p className="text-zinc-500 text-sm mt-1">
-              기준일: {data.summary.fxDate ?? "—"} &nbsp;·&nbsp; USD/KRW {data.summary.usdkrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
+              기준일: {data.summary.fxDate ?? "—"}&nbsp;·&nbsp; USD/KRW {data.summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
             </p>
           </div>
         </div>
@@ -199,8 +240,10 @@ export default async function HomePage() {
 function DashboardSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[0, 1, 2].map((i) => (
+      {/* Hero skeleton */}
+      <div className="h-36 bg-zinc-900 rounded-2xl" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map((i) => (
           <div key={i} className="h-28 bg-zinc-900 rounded-2xl" />
         ))}
       </div>

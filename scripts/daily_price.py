@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-GSF-Investor Phase 1 Day 6-7 — daily_price.py
-===============================================
+GSF-Investor Phase 1 Day 6-7 — daily_price.py (Phase A3: data_provider 어댑터 통합)
+=====================================================================================
 매일 KST 07:00 (UTC 22:00 전날) GitHub Actions 크론으로 실행.
 
 수집 대상:
@@ -29,6 +29,15 @@ import json
 import time
 import datetime
 import requests
+
+# Phase A3: 어댑터 패턴 — Yahoo Finance 실패 시 FMP 폴백
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    from data_provider import get_price as _dp_get_price, get_fx_rate as _dp_get_fx
+    DATA_PROVIDER_AVAILABLE = True
+except ImportError:
+    DATA_PROVIDER_AVAILABLE = False
+    print("[WARN] data_provider.py 미발견 — yfinance 직접 호출 모드")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 0. .env.local 로드 (로컬 개발 시)
@@ -177,81 +186,69 @@ def fetch_active_stocks() -> list:
 
 def collect_prices(stocks: list) -> dict:
     """
-    Yahoo Finance에서 각 종목의 전일 종가를 수집 → Turso INSERT OR IGNORE.
-    반환: {"026960": {"date": "2026-05-15", "close": 28500.0, "inserted": True}, ...}
+    data_provider 어댑터를 통해 주가 수집 (Yahoo → FMP 폴백) → Turso INSERT OR REPLACE.
+    반환: {"026960": {"date": "2026-05-15", "close": 28500.0, "source": "yahoo"}, ...}
     """
-    try:
-        import yfinance as yf
-    except ImportError:
-        print("[ERROR] yfinance 미설치: pip3 install yfinance")
-        sys.exit(1)
-
-    today_kst = datetime.date.today()
-    # KST 07:00 실행 시 "전일"은 어제 (한국 장 종료 기준)
-    target_date = (today_kst - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
-
     results = {}
     stmts = []
 
     for s in stocks:
         yahoo_sym = s["yahoo_ticker"]
-        print(f"  📥 {yahoo_sym} ({s['ticker']}) 조회 중...", end=" ", flush=True)
-        try:
-            # 최근 5일치 → 전일 데이터 안정적 확보
-            hist = yf.download(
-                yahoo_sym,
-                period="5d",
-                auto_adjust=True,
-                actions=True,
-                progress=False,
-            )
-            if hist.empty:
-                print("데이터 없음")
-                results[s["ticker"]] = {"error": "empty"}
-                continue
 
-            import pandas as pd
-            if isinstance(hist.columns, pd.MultiIndex):
-                hist.columns = hist.columns.droplevel(1)
+        if DATA_PROVIDER_AVAILABLE:
+            # 어댑터 패턴: Yahoo 실패 시 FMP 자동 폴백
+            r = _dp_get_price(yahoo_sym, s["currency"])
+        else:
+            # data_provider 미존재 시 직접 yfinance 호출 (레거시)
+            r = _legacy_yahoo_get(yahoo_sym)
 
-            # 가장 최근 행 = 전일 종가
-            latest = hist.iloc[-1]
-            latest_date = hist.index[-1].strftime("%Y-%m-%d")
+        if r is None:
+            results[s["ticker"]] = {"error": "all_providers_failed"}
+            continue
 
-            close = float(latest["Close"].item()) if hasattr(latest["Close"], "item") else float(latest["Close"])
-            volume_raw = latest["Volume"]
-            volume = int(volume_raw.item()) if hasattr(volume_raw, "item") else int(volume_raw)
-            
-            dividend = 0.0
-            if "Dividends" in latest and not pd.isna(latest["Dividends"]):
-                dividend = float(latest["Dividends"].item()) if hasattr(latest["Dividends"], "item") else float(latest["Dividends"])
+        close       = r["close"]
+        latest_date = r["date"]
+        source      = r.get("source", "unknown")
 
-            print(f"✅ {latest_date} close={close:,.0f}")
-
-            stmts.append({
-                "q": """INSERT OR REPLACE INTO prices
-                        (stock_id, date, close_price, volume, dividend, currency)
-                        VALUES (?,?,?,?,?,?)""",
-                "params": [s["stock_id"], latest_date, close, volume, dividend, s["currency"]],
-            })
-            results[s["ticker"]] = {
-                "date":   latest_date,
-                "close":  close,
-                "volume": volume,
-            }
-        except Exception as e:
-            print(f"[ERROR] {e}")
-            results[s["ticker"]] = {"error": str(e)}
-        
-        time.sleep(0.3)  # Yahoo Finance 부하 분산
+        stmts.append({
+            "q": """INSERT OR REPLACE INTO prices
+                    (stock_id, date, close_price, volume, dividend, currency)
+                    VALUES (?,?,?,?,?,?)""",
+            "params": [s["stock_id"], latest_date, close, 0, 0.0, s["currency"]],
+        })
+        results[s["ticker"]] = {
+            "date":   latest_date,
+            "close":  close,
+            "source": source,
+        }
+        time.sleep(0.3)
 
     if stmts:
         inserted = turso_batch(stmts)
-        print(f"\n  ✅ prices 신규 삽입: {inserted}행 (INSERT OR IGNORE 기준)")
+        print(f"\n  ✅ prices 신규/갱신 삽입: {inserted}행")
     else:
         print("\n  ⚠️  prices 삽입 건 없음")
 
     return results
+
+
+def _legacy_yahoo_get(yahoo_sym: str) -> dict | None:
+    """data_provider 없을 때 직접 yfinance 호출 (레거시 폴백)"""
+    try:
+        import yfinance as yf
+        import pandas as pd
+        hist = yf.download(yahoo_sym, period="5d", auto_adjust=True, progress=False)
+        if hist is None or hist.empty:
+            return None
+        if isinstance(hist.columns, pd.MultiIndex):
+            hist.columns = hist.columns.droplevel(1)
+        latest = hist.iloc[-1]
+        date  = hist.index[-1].strftime("%Y-%m-%d")
+        close = float(latest["Close"].item()) if hasattr(latest["Close"], "item") else float(latest["Close"])
+        return {"close": close, "date": date, "source": "yahoo_legacy"}
+    except Exception as e:
+        print(f"[LEGACY/yahoo] {yahoo_sym}: {e}")
+        return None
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -260,43 +257,42 @@ def collect_prices(stocks: list) -> dict:
 
 def collect_exchange_rate() -> dict:
     """
-    Yahoo Finance USDKRW=X 전일 종가 → exchange_rates INSERT OR IGNORE.
+    data_provider 어댑터로 USDKRW 환율 수집 (Yahoo → FMP 폴백) → exchange_rates INSERT OR IGNORE.
     반환: {"date": "2026-05-15", "rate": 1380.5, "inserted": True}
     """
-    try:
-        import yfinance as yf
-    except ImportError:
-        print("[ERROR] yfinance 미설치")
-        sys.exit(1)
+    if DATA_PROVIDER_AVAILABLE:
+        r = _dp_get_fx("USDKRW")
+    else:
+        # 레거시 직접 호출
+        try:
+            import yfinance as yf
+            import pandas as pd
+            hist = yf.download("USDKRW=X", period="5d", auto_adjust=True, progress=False)
+            if hist.empty:
+                return {"error": "empty"}
+            if isinstance(hist.columns, pd.MultiIndex):
+                hist.columns = hist.columns.droplevel(1)
+            latest = hist.iloc[-1]
+            rate = float(latest["Close"].item()) if hasattr(latest["Close"], "item") else float(latest["Close"])
+            r = {"rate": rate, "date": hist.index[-1].strftime("%Y-%m-%d"), "source": "yahoo_legacy"}
+        except Exception as e:
+            return {"error": str(e)}
 
-    print("  📥 USDKRW=X 환율 조회 중...", end=" ", flush=True)
-    try:
-        hist = yf.download("USDKRW=X", period="5d", auto_adjust=True, progress=False)
-        if hist.empty:
-            print("데이터 없음")
-            return {"error": "empty"}
+    if r is None:
+        return {"error": "all_providers_failed"}
 
-        latest = hist.iloc[-1]
-        latest_date = hist.index[-1].strftime("%Y-%m-%d")
-        rate = float(latest["Close"].item()) if hasattr(latest["Close"], "item") else float(latest["Close"])
+    stmt = [{
+        "q": "INSERT OR IGNORE INTO exchange_rates (pair, date, rate) VALUES (?,?,?)",
+        "params": ["USDKRW", r["date"], r["rate"]],
+    }]
+    inserted = turso_batch(stmt)
 
-        print(f"✅ {latest_date} rate={rate:.2f}")
-
-        stmt = [{
-            "q": """INSERT OR IGNORE INTO exchange_rates (pair, date, rate)
-                    VALUES (?,?,?)""",
-            "params": ["USDKRW", latest_date, rate],
-        }]
-        inserted = turso_batch(stmt)
-
-        return {
-            "date":     latest_date,
-            "rate":     rate,
-            "inserted": inserted > 0,
-        }
-    except Exception as e:
-        print(f"[ERROR] {e}")
-        return {"error": str(e)}
+    return {
+        "date":     r["date"],
+        "rate":     r["rate"],
+        "source":   r.get("source", "unknown"),
+        "inserted": inserted > 0,
+    }
 
 
 # ──────────────────────────────────────────────────────────────────────────────

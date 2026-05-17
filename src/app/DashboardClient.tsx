@@ -24,10 +24,12 @@ interface Summary {
   totalEvalKRW: number;
   totalCostKRW: number;
   totalReturnRate: number;
-  usdkrw: number;
+  usdKrw: number;
   fxDate: string | null;
   coreKRW: number;
   satelliteKRW: number;
+  benchmarkReturn: number | null;
+  alpha: number | null;
 }
 
 interface RecentSignal {
@@ -60,50 +62,92 @@ export default function DashboardClient({ data, recentSignals }: Props) {
   }));
 
   const isPositive = summary.totalReturnRate >= 0;
+  const isAlphaPositive = (summary.alpha ?? 0) >= 0;
+  const pnl = summary.totalEvalKRW - summary.totalCostKRW;
 
   return (
     <div className="space-y-6">
-      {/* 요약 카드 3개 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* 총 평가금액 */}
-        <SummaryCard
-          label="총 평가금액"
-          value={formatKRW(summary.totalEvalKRW)}
-          sub={`매입원가 ${formatKRW(summary.totalCostKRW)}`}
-          accent="emerald"
-          icon={
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-            </svg>
-          }
-        />
-        {/* 총 수익률 */}
-        <SummaryCard
-          label="총 수익률"
-          value={`${isPositive ? "+" : ""}${summary.totalReturnRate.toFixed(2)}%`}
-          sub={`손익 ${isPositive ? "+" : ""}${formatKRW(summary.totalEvalKRW - summary.totalCostKRW)}`}
-          accent={isPositive ? "emerald" : "red"}
-          icon={
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-              <polyline points="16 7 22 7 22 13" />
-            </svg>
-          }
-        />
-        {/* 종목 수 */}
-        <SummaryCard
+
+      {/* ── Phase A: 히어로 메트릭 배너 ─────────────────────────────────── */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden">
+        {/* 배경 그라디언트 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-violet-500/5 rounded-2xl pointer-events-none" />
+
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-6 sm:divide-x divide-zinc-800">
+          {/* 총 평가금액 */}
+          <div className="sm:pr-6">
+            <p className="text-xs font-medium text-zinc-500 mb-1.5">총 평가금액</p>
+            <p className="text-3xl font-bold text-white tracking-tight tabular-nums">
+              {formatKRW(summary.totalEvalKRW)}
+            </p>
+            <p className="text-xs text-zinc-600 mt-1">
+              매입원가 {formatKRW(summary.totalCostKRW)}
+            </p>
+          </div>
+
+          {/* 총 수익률 */}
+          <div className="sm:px-6">
+            <p className="text-xs font-medium text-zinc-500 mb-1.5">총 수익률</p>
+            <p className={`text-3xl font-bold tracking-tight tabular-nums ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+              {isPositive ? "+" : ""}{summary.totalReturnRate.toFixed(2)}%
+            </p>
+            <p className={`text-xs mt-1 ${isPositive ? "text-emerald-600" : "text-red-600"}`}>
+              {isPositive ? "+" : ""}{formatKRW(pnl)}
+            </p>
+          </div>
+
+          {/* Alpha (vs KOSPI 200) */}
+          <div className="sm:pl-6">
+            <p className="text-xs font-medium text-zinc-500 mb-1.5 flex items-center gap-1.5">
+              Alpha
+              <span className="text-zinc-700 font-normal">(vs KODEX 200)</span>
+            </p>
+            {summary.alpha !== null ? (
+              <>
+                <p className={`text-3xl font-bold tracking-tight tabular-nums ${isAlphaPositive ? "text-violet-400" : "text-amber-400"}`}>
+                  {isAlphaPositive ? "+" : ""}{summary.alpha.toFixed(2)}%
+                </p>
+                <p className="text-xs text-zinc-600 mt-1">
+                  벤치마크 {summary.benchmarkReturn !== null ? `${summary.benchmarkReturn >= 0 ? "+" : ""}${summary.benchmarkReturn.toFixed(2)}%` : "—"}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-bold tracking-tight text-zinc-700">—</p>
+                <p className="text-xs text-zinc-700 mt-1">
+                  KODEX 200(069500) watchlist 등록 필요
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── 요약 메트릭 4개 ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <MetricCard
           label="보유 종목"
           value={`${holdings.length}종목`}
-          sub={`Core ${holdings.filter((h) => h.category === "Core").length} · Satellite ${holdings.filter((h) => h.category === "Satellite").length}`}
+          sub={`Core ${holdings.filter((h) => h.category === "Core").length} · Sat ${holdings.filter((h) => h.category === "Satellite").length}`}
           accent="violet"
-          icon={
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              <path d="M2 12h20" />
-            </svg>
-          }
+        />
+        <MetricCard
+          label="USD/KRW"
+          value={summary.usdKrw > 0 ? summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) : "—"}
+          sub={summary.fxDate ? `기준일 ${summary.fxDate.slice(5)}` : "—"}
+          accent="amber"
+        />
+        <MetricCard
+          label="Core 비중"
+          value={summary.totalEvalKRW > 0 ? `${((summary.coreKRW / summary.totalEvalKRW) * 100).toFixed(0)}%` : "—"}
+          sub={formatKRW(summary.coreKRW)}
+          accent="emerald"
+        />
+        <MetricCard
+          label="Satellite 비중"
+          value={summary.totalEvalKRW > 0 ? `${((summary.satelliteKRW / summary.totalEvalKRW) * 100).toFixed(0)}%` : "—"}
+          sub={formatKRW(summary.satelliteKRW)}
+          accent="indigo"
         />
       </div>
 
@@ -118,7 +162,10 @@ export default function DashboardClient({ data, recentSignals }: Props) {
           {barData.length > 0 ? (
             <ReturnBarChart data={barData} />
           ) : (
-            <EmptyState message="보유 종목 없음" />
+            <EmptyState
+              message="보유 종목 없음"
+              cta={{ label: "매매 일지에서 종목 추가", href: "/journal" }}
+            />
           )}
         </div>
 
@@ -131,7 +178,10 @@ export default function DashboardClient({ data, recentSignals }: Props) {
           {donutData.length > 0 ? (
             <CoreSatelliteDonut data={donutData} />
           ) : (
-            <EmptyState message="보유 종목 없음" />
+            <EmptyState
+              message="보유 종목 없음"
+              cta={{ label: "매매 일지에서 종목 추가", href: "/journal" }}
+            />
           )}
         </div>
       </div>
@@ -148,8 +198,14 @@ export default function DashboardClient({ data, recentSignals }: Props) {
           </Link>
         </div>
         {holdings.length === 0 ? (
-          <div className="px-5 py-12 text-center text-zinc-500 text-sm">
-            아직 보유 종목이 없습니다. 매매 일지에서 INIT 레코드를 추가하세요.
+          <div className="px-5 py-12 text-center">
+            <p className="text-zinc-500 text-sm mb-3">아직 보유 종목이 없습니다.</p>
+            <Link
+              href="/journal"
+              className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-emerald-500/20 transition-colors"
+            >
+              + 매매 일지에서 INIT 레코드 추가
+            </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -245,22 +301,24 @@ export default function DashboardClient({ data, recentSignals }: Props) {
           </Link>
         </div>
         {recentSignals.length === 0 ? (
-          <div className="px-5 py-10 text-center text-zinc-600 text-sm">
-            수집된 시그널이 없습니다 — DART/SEC 크론잡 확인
+          <div className="px-5 py-10 text-center">
+            <p className="text-zinc-600 text-sm mb-2">수집된 시그널이 없습니다</p>
+            <p className="text-zinc-700 text-xs">DART/SEC 크론잡 확인 또는 /discover에서 체크리스트 실행</p>
           </div>
         ) : (
           <div className="divide-y divide-zinc-800/50">
             {recentSignals.map((s) => {
-              const sevMap: Record<string, { dot: string; text: string }> = {
-                HIGH: { dot: "bg-red-500", text: "text-red-400" },
-                MEDIUM: { dot: "bg-amber-400", text: "text-amber-400" },
-                LOW: { dot: "bg-emerald-500", text: "text-emerald-400" },
+              // Phase A: LOW=gray(충돌 수정), MEDIUM=amber, HIGH=red
+              const sevMap: Record<string, { dot: string; text: string; bg: string }> = {
+                HIGH:   { dot: "bg-red-500",    text: "text-red-400",    bg: "bg-red-500/5" },
+                MEDIUM: { dot: "bg-amber-400",  text: "text-amber-400",  bg: "bg-amber-500/5" },
+                LOW:    { dot: "bg-zinc-500",   text: "text-zinc-400",   bg: "" },
               };
               const sev = sevMap[s.severity] ?? sevMap.LOW;
               return (
                 <div
                   key={s.id}
-                  className={`px-5 py-3.5 flex items-start gap-3 hover:bg-zinc-800/30 transition-colors ${
+                  className={`px-5 py-3.5 flex items-start gap-3 hover:bg-zinc-800/30 transition-colors ${sev.bg} ${
                     s.isResolved ? "opacity-50" : ""
                   }`}
                 >
@@ -287,51 +345,50 @@ export default function DashboardClient({ data, recentSignals }: Props) {
   );
 }
 
-// ── 요약 카드 컴포넌트 ─────────────────────────────────────────────────────────
-type Accent = "emerald" | "red" | "violet" | "amber";
+// ── 히어로 메트릭 서브 카드 ──────────────────────────────────────────────────
+type Accent = "emerald" | "red" | "violet" | "amber" | "indigo";
 
-function SummaryCard({
+function MetricCard({
   label,
   value,
   sub,
   accent,
-  icon,
 }: {
   label: string;
   value: string;
   sub: string;
   accent: Accent;
-  icon: React.ReactNode;
 }) {
-  const accentMap: Record<Accent, { bg: string; border: string; text: string; icon: string }> = {
-    emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400", icon: "text-emerald-400" },
-    red: { bg: "bg-red-500/10", border: "border-red-500/20", text: "text-red-400", icon: "text-red-400" },
-    violet: { bg: "bg-violet-500/10", border: "border-violet-500/20", text: "text-violet-400", icon: "text-violet-400" },
-    amber: { bg: "bg-amber-500/10", border: "border-amber-500/20", text: "text-amber-400", icon: "text-amber-400" },
+  const accentMap: Record<Accent, { bg: string; border: string; text: string }> = {
+    emerald: { bg: "bg-emerald-500/8",  border: "border-emerald-500/15", text: "text-emerald-400" },
+    red:     { bg: "bg-red-500/8",      border: "border-red-500/15",     text: "text-red-400" },
+    violet:  { bg: "bg-violet-500/8",   border: "border-violet-500/15",  text: "text-violet-400" },
+    amber:   { bg: "bg-amber-500/8",    border: "border-amber-500/15",   text: "text-amber-400" },
+    indigo:  { bg: "bg-indigo-500/8",   border: "border-indigo-500/15",  text: "text-indigo-400" },
   };
   const c = accentMap[accent];
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 relative overflow-hidden">
-      <div className={`absolute inset-0 ${c.bg} opacity-20 rounded-2xl`} />
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-3">
-          <div className={`w-6 h-6 rounded-md ${c.bg} border ${c.border} flex items-center justify-center ${c.icon}`}>
-            {icon}
-          </div>
-          <p className="text-xs text-zinc-400 font-medium">{label}</p>
-        </div>
-        <p className={`text-2xl font-bold ${c.text} tracking-tight`}>{value}</p>
-        <p className="text-xs text-zinc-600 mt-1.5">{sub}</p>
-      </div>
+    <div className={`${c.bg} border ${c.border} rounded-xl p-4`}>
+      <p className="text-xs text-zinc-500 font-medium mb-1.5">{label}</p>
+      <p className={`text-lg font-bold ${c.text} tabular-nums`}>{value}</p>
+      <p className="text-xs text-zinc-600 mt-1 truncate">{sub}</p>
     </div>
   );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message, cta }: { message: string; cta?: { label: string; href: string } }) {
   return (
-    <div className="h-[220px] flex items-center justify-center text-zinc-600 text-sm">
-      {message}
+    <div className="h-[220px] flex flex-col items-center justify-center gap-3 text-zinc-600 text-sm">
+      <span>{message}</span>
+      {cta && (
+        <a
+          href={cta.href}
+          className="text-xs text-emerald-500/70 hover:text-emerald-400 transition-colors underline underline-offset-2"
+        >
+          {cta.label}
+        </a>
+      )}
     </div>
   );
 }
