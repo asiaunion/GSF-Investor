@@ -39,28 +39,28 @@ const triggerLabel: Record<string, string> = {
 // ── react-markdown 커스텀 컴포넌트 맵 ──────────────────────────────────────────
 const mdComponents: Components = {
   h1: ({ children }) => (
-    <h1 className="text-xl font-bold text-white mt-8 mb-4 leading-tight">{children}</h1>
+    <h1 className="text-xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 leading-tight">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-base font-bold text-violet-300 mt-7 mb-3 pb-2 border-b border-zinc-800 flex items-center gap-2">
-      <span className="w-1 h-4 bg-violet-500 rounded-full inline-block shrink-0" />
+    <h2 className="text-base font-bold text-emerald-300 mt-7 mb-3 pb-2 border-b border-[var(--color-border-default)] flex items-center gap-2">
+      <span className="w-1 h-4 bg-emerald-500 rounded-full inline-block shrink-0" />
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-sm font-semibold text-zinc-200 mt-5 mb-2">{children}</h3>
+    <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mt-5 mb-2">{children}</h3>
   ),
   h4: ({ children }) => (
-    <h4 className="text-sm font-medium text-zinc-400 mt-3 mb-1">{children}</h4>
+    <h4 className="text-sm font-medium text-[var(--color-text-secondary)] mt-3 mb-1">{children}</h4>
   ),
   p: ({ children }) => (
-    <p className="text-sm text-zinc-300 leading-7 my-2">{children}</p>
+    <p className="text-sm text-[var(--color-text-primary)] leading-7 my-2">{children}</p>
   ),
   strong: ({ children }) => (
-    <strong className="text-white font-semibold">{children}</strong>
+    <strong className="text-[var(--color-text-primary)] font-semibold">{children}</strong>
   ),
   em: ({ children }) => (
-    <em className="text-zinc-300 italic">{children}</em>
+    <em className="text-[var(--color-text-primary)] italic">{children}</em>
   ),
   ul: ({ children }) => (
     <ul className="my-3 space-y-1.5 pl-1">{children}</ul>
@@ -69,25 +69,25 @@ const mdComponents: Components = {
     <ol className="my-3 space-y-1.5 list-decimal list-inside pl-1">{children}</ol>
   ),
   li: ({ children }) => (
-    <li className="text-sm text-zinc-300 leading-relaxed flex gap-2 items-start">
-      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-violet-500/60 shrink-0" />
+    <li className="text-sm text-[var(--color-text-primary)] leading-relaxed flex gap-2 items-start">
+      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-emerald-500/60 shrink-0" />
       <span>{children}</span>
     </li>
   ),
-  hr: () => <hr className="border-zinc-800 my-6" />,
+  hr: () => <hr className="border-[var(--color-border-default)] my-6" />,
   blockquote: ({ children }) => (
-    <blockquote className="my-3 pl-4 border-l-2 border-violet-500/40 text-zinc-400 text-sm italic">
+    <blockquote className="my-3 pl-4 border-l-2 border-emerald-500/40 text-[var(--color-text-secondary)] text-sm italic">
       {children}
     </blockquote>
   ),
   code: ({ children, className }) => {
     const isBlock = className?.startsWith("language-");
     return isBlock ? (
-      <code className="block bg-zinc-800/60 border border-zinc-700/50 rounded-lg px-4 py-3 text-xs text-emerald-300 font-mono whitespace-pre-wrap my-3 overflow-x-auto">
+      <code className="block bg-[var(--color-bg-elevated)]/60 border border-[var(--color-border-strong)]/50 rounded-lg px-4 py-3 text-xs text-emerald-300 font-mono whitespace-pre-wrap my-3 overflow-x-auto">
         {children}
       </code>
     ) : (
-      <code className="bg-zinc-800 rounded px-1.5 py-0.5 text-xs text-emerald-300 font-mono">
+      <code className="bg-[var(--color-bg-elevated)] rounded px-1.5 py-0.5 text-xs text-emerald-300 font-mono">
         {children}
       </code>
     );
@@ -96,30 +96,30 @@ const mdComponents: Components = {
     <pre className="my-3 overflow-x-auto">{children}</pre>
   ),
   table: ({ children }) => (
-    <div className="my-4 overflow-x-auto rounded-xl border border-zinc-800">
+    <div className="my-4 overflow-x-auto rounded-xl border border-[var(--color-border-default)]">
       <table className="w-full text-xs">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="bg-zinc-800/60">{children}</thead>
+    <thead className="bg-[var(--color-bg-elevated)]/60">{children}</thead>
   ),
   th: ({ children }) => (
-    <th className="px-4 py-2.5 text-left text-zinc-400 font-semibold border-b border-zinc-700">
+    <th className="px-4 py-2.5 text-left text-[var(--color-text-secondary)] font-semibold border-b border-[var(--color-border-strong)]">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="px-4 py-2.5 text-zinc-300 border-b border-zinc-800/50">{children}</td>
+    <td className="px-4 py-2.5 text-[var(--color-text-primary)] border-b border-[var(--color-border-default)]/50">{children}</td>
   ),
   tr: ({ children }) => (
-    <tr className="hover:bg-zinc-800/20 transition-colors">{children}</tr>
+    <tr className="hover:bg-[var(--color-bg-elevated)]/20 transition-colors">{children}</tr>
   ),
   a: ({ href, children }) => (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
+      className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors"
     >
       {children}
     </a>
@@ -144,7 +144,7 @@ function FactCheckPanel({ result }: { result: FactCheckResult }) {
       ? "text-red-400 border-red-500/30 bg-red-500/10"
       : result.warnings > 0
       ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
-      : "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+      : "text-[var(--color-brand-green)] border-emerald-500/30 bg-emerald-500/10";
 
   const scoreLabel =
     result.errors > 0 ? "오류" : result.warnings > 0 ? "주의" : "검증됨";
@@ -152,12 +152,12 @@ function FactCheckPanel({ result }: { result: FactCheckResult }) {
   if (result.totalChecked === 0) return null;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+    <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-zinc-200">🔍 데이터 검증 패널</span>
-          <span className="text-xs text-zinc-500">AI 보고서 수치 교차검증</span>
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">🔍 데이터 검증 패널</span>
+          <span className="text-xs text-[var(--color-text-muted)]">AI 보고서 수치 교차검증</span>
         </div>
         <span className={`text-xs px-2.5 py-1 rounded-full border font-semibold ${scoreColor}`}>
           {scoreLabel} · {result.verified}/{result.totalChecked}
@@ -178,20 +178,20 @@ function FactCheckPanel({ result }: { result: FactCheckResult }) {
               }`}
             >
               <span className={`mt-0.5 text-sm shrink-0 ${
-                isVerified ? "text-emerald-400" : "text-amber-400"
+                isVerified ? "text-[var(--color-brand-green)]" : "text-amber-400"
               }`}>
                 {isVerified ? "✓" : "!"}
               </span>
               <div>
-                <p className="text-xs font-medium text-zinc-300">{item.label}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">{item.note}</p>
+                <p className="text-xs font-medium text-[var(--color-text-primary)]">{item.label}</p>
+                <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{item.note}</p>
               </div>
             </div>
           );
         })}
       </div>
 
-      <p className="text-xs text-zinc-600 mt-3">
+      <p className="text-xs text-[var(--color-text-disabled)] mt-3">
         검증 기준: DB 재무수치 ±5% 허용범위 · {new Date(result.checkedAt).toLocaleString("ko-KR")}
       </p>
     </div>
@@ -226,13 +226,13 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
         <div>
           <Link
             href="/reports"
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors mb-3 inline-flex items-center gap-1"
+            className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors mb-3 inline-flex items-center gap-1"
           >
             ← 보고서 목록
           </Link>
-          <h1 className="text-xl font-bold text-white mt-1">{reportTitle}</h1>
+          <h1 className="text-xl font-bold text-[var(--color-text-primary)] mt-1">{reportTitle}</h1>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <span className="text-sm text-zinc-400">
+            <span className="text-sm text-[var(--color-text-secondary)]">
               {new Date(report.generatedAt + "Z").toLocaleString("ko-KR", {
                 year: "numeric", month: "2-digit", day: "2-digit",
                 hour: "2-digit", minute: "2-digit", second: "2-digit",
@@ -242,13 +242,13 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${
               report.trigger === "SIGNAL_AUTO"
                 ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                : "bg-violet-500/10 text-violet-400 border border-violet-500/20"
+                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
             }`}>
               {triggerLabel[report.trigger] ?? report.trigger}
             </span>
             <Link
               href={`/stocks/${report.ticker}`}
-              className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
             >
               {report.ticker} 종목 상세 →
             </Link>
@@ -261,8 +261,8 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* 주가 차트 */}
           {priceData.length > 0 && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-zinc-300 mb-4">주가 추이 (최근 30일)</h3>
+            <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">주가 추이 (최근 30일)</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={priceData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -296,8 +296,8 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
 
           {/* 재무 차트 */}
           {finData.length > 0 && (
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-zinc-300 mb-4">재무 추이 (억원)</h3>
+            <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">재무 추이 (억원)</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={finData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -324,7 +324,7 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
       )}
 
       {/* ── AI 보고서 본문 (마크다운 렌더링) ──────────────────────────── */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6">
         <div className="max-w-none">
           <MarkdownRenderer content={report.contentMd} />
         </div>

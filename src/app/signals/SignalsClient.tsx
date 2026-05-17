@@ -20,7 +20,7 @@ const SEVERITY_CONFIG = {
   },
   LOW: {
     dot: "bg-emerald-500",
-    badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    badge: "bg-emerald-500/15 text-[var(--color-brand-green)] border-emerald-500/30",
     label: "🟢 LOW",
   },
 } as const;
@@ -100,8 +100,8 @@ export default function SignalsClient({ signals }: Props) {
               onClick={() => setFilterSeverity(sev)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 filterSeverity === sev
-                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                  : "bg-zinc-900 text-zinc-400 border border-zinc-700 hover:border-zinc-500"
+                  ? "bg-[var(--color-brand-green)]/10 text-[var(--color-brand-green)] font-bold border border-emerald-500/40"
+                  : "bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border-strong)] hover:border-zinc-500"
               }`}
             >
               {sev}
@@ -116,8 +116,8 @@ export default function SignalsClient({ signals }: Props) {
               onClick={() => setFilterResolved(r)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 filterResolved === r
-                  ? "bg-violet-500/20 text-violet-400 border border-violet-500/40"
-                  : "bg-zinc-900 text-zinc-400 border border-zinc-700 hover:border-zinc-500"
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                  : "bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] border border-[var(--color-border-strong)] hover:border-zinc-500"
               }`}
             >
               {r === "ALL" ? "전체" : r === "UNRESOLVED" ? "미확인" : "확인됨"}
@@ -125,7 +125,7 @@ export default function SignalsClient({ signals }: Props) {
           ))}
         </div>
 
-        <span className="ml-auto text-xs text-zinc-600">{filtered.length}건</span>
+        <span className="ml-auto text-xs text-[var(--color-text-disabled)]">{filtered.length}건</span>
       </div>
 
       {/* 시그널 리스트 */}
@@ -166,10 +166,10 @@ function SignalCard({
 
   return (
     <div
-      className={`bg-zinc-900 border rounded-xl overflow-hidden transition-colors ${
+      className={`bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm transition-colors ${
         s.isResolved === 0
-          ? "border-zinc-700 hover:border-zinc-600"
-          : "border-zinc-800 opacity-60"
+          ? "border-[var(--color-border-strong)] hover:border-zinc-600"
+          : "border-[var(--color-border-default)] opacity-60"
       }`}
     >
       <div className="px-5 py-4">
@@ -187,17 +187,17 @@ function SignalCard({
               >
                 {sevConfig.label}
               </span>
-              <span className="text-xs font-medium text-zinc-300">{s.ticker}</span>
-              <span className="text-xs text-zinc-600">·</span>
-              <span className="text-xs text-zinc-500">{typeLabel}</span>
-              <span className="text-xs text-zinc-600">·</span>
-              <span className="text-xs text-zinc-600">{detectedDate}</span>
+              <span className="text-xs font-medium text-[var(--color-text-primary)]">{s.ticker}</span>
+              <span className="text-xs text-[var(--color-text-disabled)]">·</span>
+              <span className="text-xs text-[var(--color-text-muted)]">{typeLabel}</span>
+              <span className="text-xs text-[var(--color-text-disabled)]">·</span>
+              <span className="text-xs text-[var(--color-text-disabled)]">{detectedDate}</span>
             </div>
 
-            <p className="text-sm text-zinc-200 leading-snug">{s.description}</p>
+            <p className="text-sm text-[var(--color-text-primary)] leading-snug">{s.description}</p>
 
             {s.isResolved === 1 && s.resolvedNote && (
-              <p className="text-xs text-zinc-500 mt-2 bg-zinc-800/50 px-3 py-1.5 rounded-lg">
+              <p className="text-xs text-[var(--color-text-muted)] mt-2 bg-[var(--color-bg-elevated)]/50 px-3 py-1.5 rounded-lg">
                 ✓ {s.resolvedNote}
               </p>
             )}
@@ -210,7 +210,7 @@ function SignalCard({
                   placeholder="처리 메모 (선택)..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
                 />
                 <div className="flex gap-2">
                   <button
@@ -219,13 +219,13 @@ function SignalCard({
                       setShowResolveForm(false);
                     }}
                     disabled={isResolving}
-                    className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                    className="px-4 py-1.5 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
                     {isResolving ? "처리 중..." : "확인 완료"}
                   </button>
                   <button
                     onClick={() => setShowResolveForm(false)}
-                    className="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-xs font-medium rounded-lg transition-colors"
+                    className="px-4 py-1.5 bg-[var(--color-bg-elevated)] hover:bg-zinc-700 text-[var(--color-text-secondary)] text-xs font-medium rounded-lg transition-colors"
                   >
                     취소
                   </button>
@@ -238,13 +238,13 @@ function SignalCard({
           {s.isResolved === 0 && !showResolveForm && (
             <button
               onClick={() => setShowResolveForm(true)}
-              className="shrink-0 mt-0.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors px-2 py-1 rounded-lg hover:bg-zinc-800"
+              className="shrink-0 mt-0.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-brand-green)] transition-colors px-2 py-1 rounded-lg hover:bg-[var(--color-bg-elevated)]"
             >
               확인
             </button>
           )}
           {s.isResolved === 1 && (
-            <span className="shrink-0 mt-0.5 text-xs text-zinc-600">✓ 완료</span>
+            <span className="shrink-0 mt-0.5 text-xs text-[var(--color-text-disabled)]">✓ 완료</span>
           )}
         </div>
       </div>
@@ -264,7 +264,7 @@ function StatBadge({
   const colorMap = {
     red: "bg-red-500/10 text-red-400 border-red-500/20",
     amber: "bg-amber-400/10 text-amber-400 border-amber-400/20",
-    zinc: "bg-zinc-800 text-zinc-400 border-zinc-700",
+    zinc: "bg-[var(--color-bg-elevated)] text-[var(--color-text-secondary)] border-[var(--color-border-strong)]",
   };
   return (
     <div className={`border rounded-lg px-3 py-1.5 text-xs flex items-center gap-2 ${colorMap[color]}`}>
@@ -276,8 +276,8 @@ function StatBadge({
 
 function EmptyState() {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-8 py-16 text-center">
-      <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+    <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm px-8 py-16 text-center">
+      <div className="w-12 h-12 rounded-full bg-[var(--color-bg-elevated)] flex items-center justify-center mx-auto mb-4">
         <svg
           width="20"
           height="20"
@@ -292,8 +292,8 @@ function EmptyState() {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
       </div>
-      <p className="text-zinc-400 font-medium text-sm">감지된 시그널이 없습니다</p>
-      <p className="text-zinc-600 text-xs mt-1">
+      <p className="text-[var(--color-text-secondary)] font-medium text-sm">감지된 시그널이 없습니다</p>
+      <p className="text-[var(--color-text-disabled)] text-xs mt-1">
         daily_dart.py에서 HIGH 시그널 감지 시 여기에 표시됩니다
       </p>
     </div>
