@@ -72,7 +72,7 @@ export function ReturnBarChart({ data }: { data: ReturnBarData[] }) {
           {sorted.map((entry) => (
             <Cell
               key={entry.ticker}
-              fill={entry.returnRate >= 0 ? "#10b981" : "#ef4444"}
+              fill={entry.returnRate >= 0 ? "var(--color-brand-green)" : "#ef4444"}
               fillOpacity={0.85}
             />
           ))}
@@ -89,7 +89,7 @@ interface DonutData {
   pct: number;
 }
 
-const DONUT_COLORS = ["#10b981", "#6366f1"];
+const DONUT_COLORS = ["var(--color-brand-green)", "var(--color-brand-blue)"];
 
 export function CoreSatelliteDonut({ data }: { data: DonutData[] }) {
   const CustomTooltip = ({
@@ -187,8 +187,8 @@ interface ContribData {
 }
 
 const CAT_COLORS: Record<string, string> = {
-  Core: "#10b981",
-  Satellite: "#6366f1",
+  Core: "var(--color-brand-green)",
+  Satellite: "var(--color-brand-blue)",
 };
 
 export function WeightedContributionChart({ data }: { data: ContribData[] }) {
@@ -267,8 +267,8 @@ interface SectorData {
 }
 
 const SECTOR_COLORS = [
-  "#10b981", "#6366f1", "#f59e0b", "#3b82f6",
-  "#ec4899", "#14b8a6", "#f97316", "#8b5cf6",
+  "var(--color-brand-green)", "var(--color-brand-blue)", "var(--color-warn-500)", "var(--color-brand-blue)",
+  "var(--color-loss-500)", "var(--color-brand-green)", "var(--color-warn-400)", "var(--color-brand-blue)",
 ];
 
 export function SectorDonut({ data }: { data: SectorData[] }) {

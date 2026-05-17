@@ -113,7 +113,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
       {/* ── Phase A: 히어로 메트릭 배너 ─────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden">
         {/* 배경 그라디언트 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-violet-500/5 rounded-2xl pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-emerald-500/5 rounded-2xl pointer-events-none" />
 
         <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-6 sm:divide-x divide-zinc-800">
           {/* 총 평가금액 */}
@@ -146,7 +146,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
             </p>
             {summary.alpha !== null ? (
               <>
-                <p className={`text-3xl font-bold tracking-tight tabular-nums ${isAlphaPositive ? "text-violet-400" : "text-amber-400"}`}>
+                <p className={`text-3xl font-bold tracking-tight tabular-nums ${isAlphaPositive ? "text-emerald-400" : "text-amber-400"}`}>
                   {isAlphaPositive ? "+" : ""}{summary.alpha.toFixed(2)}%
                 </p>
                 <p className="text-xs text-zinc-600 mt-1">
@@ -171,7 +171,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
           label="보유 종목"
           value={`${holdings.length}종목`}
           sub={`Core ${holdings.filter((h) => h.category === "Core").length} · Sat ${holdings.filter((h) => h.category === "Satellite").length}`}
-          accent="violet"
+          accent="emerald"
         />
         <MetricCard
           label="USD/KRW"
@@ -189,7 +189,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
           label="Satellite 비중"
           value={summary.totalEvalKRW > 0 ? `${((summary.satelliteKRW / summary.totalEvalKRW) * 100).toFixed(0)}%` : "—"}
           sub={formatKRW(summary.satelliteKRW)}
-          accent="indigo"
+          accent="teal"
         />
       </div>
 
@@ -240,7 +240,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Core
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="inline-block w-2 h-2 rounded-full bg-indigo-500" /> Satellite
+                  <span className="inline-block w-2 h-2 rounded-full bg-teal-500" /> Satellite
                 </span>
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={`w-1.5 h-7 rounded-full ${h.category === "Core" ? "bg-emerald-500/60" : "bg-indigo-500/60"}`} />
+                          <div className={`w-1.5 h-7 rounded-full ${h.category === "Core" ? "bg-emerald-500/60" : "bg-teal-500/60"}`} />
                           <div>
                             <p className="text-white font-medium">{h.ticker}</p>
                             <p className="text-xs text-zinc-500">
@@ -508,7 +508,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
 
 // ── 서브 컴포넌트 ─────────────────────────────────────────────────────────────
 
-type Accent = "emerald" | "red" | "violet" | "amber" | "indigo";
+type Accent = "emerald" | "red" | "emerald_alt" | "amber" | "teal";
 
 function MetricCard({
   label,
@@ -524,9 +524,9 @@ function MetricCard({
   const accentMap: Record<Accent, { bg: string; border: string; text: string }> = {
     emerald: { bg: "bg-emerald-500/8",  border: "border-emerald-500/15", text: "text-emerald-400" },
     red:     { bg: "bg-red-500/8",      border: "border-red-500/15",     text: "text-red-400" },
-    violet:  { bg: "bg-violet-500/8",   border: "border-violet-500/15",  text: "text-violet-400" },
+    emerald_alt:  { bg: "bg-emerald-500/8",   border: "border-emerald-500/15",  text: "text-emerald-400" },
     amber:   { bg: "bg-amber-500/8",    border: "border-amber-500/15",   text: "text-amber-400" },
-    indigo:  { bg: "bg-indigo-500/8",   border: "border-indigo-500/15",  text: "text-indigo-400" },
+    teal:  { bg: "bg-teal-500/8",   border: "border-teal-500/15",  text: "text-teal-400" },
   };
   const c = accentMap[accent];
 
