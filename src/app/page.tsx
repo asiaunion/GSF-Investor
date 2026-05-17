@@ -22,7 +22,8 @@ async function fetchDashboardData() {
       vp.broker,
       vp.quantity,
       vp.avg_price,
-      vp.currency
+      vp.currency,
+      s.sector
     FROM v_portfolio vp
     JOIN stocks s ON s.ticker = vp.ticker
   `);
@@ -83,7 +84,7 @@ async function fetchDashboardData() {
     }
   }
 
-  // 컬럼 인덱스: stock_id(0), ticker(1), name(2), market(3), category(4), broker(5), quantity(6), avg_price(7), currency(8)
+  // 컬럼 인덱스: stock_id(0), ticker(1), name(2), market(3), category(4), broker(5), quantity(6), avg_price(7), currency(8), sector(9)
   const holdings = portfolioRows.rows.map((row) => {
     const stockId = Number(row[0]);
     const ticker = String(row[1]);
@@ -94,6 +95,7 @@ async function fetchDashboardData() {
     const quantity = Number(row[6]);
     const avgPrice = Number(row[7]);
     const currency = String(row[8]);
+    const sector = row[9] ? String(row[9]) : null;
 
     const latest = latestPriceMap.get(stockId);
     const currentPrice = latest?.closePrice ?? avgPrice;
@@ -114,6 +116,7 @@ async function fetchDashboardData() {
       name,
       market,
       category,
+      sector,
       broker,
       quantity,
       avgPrice,
@@ -137,6 +140,30 @@ async function fetchDashboardData() {
   // Alpha = 포트폴리오 수익률 - 벤치마크 수익률
   const alpha = benchmarkReturn !== null ? totalReturnRate - benchmarkReturn : null;
 
+  // ── B-1: Weighted Contribution 차트 데이터 ──────────────────────────────────
+  const contribData = holdings.map((h) => ({
+    ticker: h.ticker,
+    name: h.name,
+    weightPct: totalEvalKRW > 0 ? (h.evalAmountKRW / totalEvalKRW) * 100 : 0,
+    pnlKRW: h.evalAmountKRW - h.costAmountKRW,
+    category: h.category,
+    sector: h.sector,
+  }));
+
+  // ── B-2: Sector 집중도 ──────────────────────────────────────────────────────
+  const sectorMap = new Map<string, number>();
+  for (const h of holdings) {
+    const s = h.sector || "기타";
+    sectorMap.set(s, (sectorMap.get(s) ?? 0) + h.evalAmountKRW);
+  }
+  const sectorData = Array.from(sectorMap.entries())
+    .map(([sector, valueKRW]) => ({
+      sector,
+      valueKRW,
+      pct: totalEvalKRW > 0 ? (valueKRW / totalEvalKRW) * 100 : 0,
+    }))
+    .sort((a, b) => b.valueKRW - a.valueKRW);
+
   return {
     holdings,
     summary: {
@@ -150,6 +177,8 @@ async function fetchDashboardData() {
       benchmarkReturn,
       alpha,
     },
+    contribData,
+    sectorData,
   };
 }
 
@@ -197,11 +226,12 @@ export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [data, recentSignals, unresolvedCount] = await Promise.all([
+  const [rawData, recentSignals, unresolvedCount] = await Promise.all([
     fetchDashboardData(),
     fetchRecentSignals(),
     fetchUnresolvedCount(),
   ]);
+  const { contribData, sectorData, ...data } = rawData;
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -230,7 +260,12 @@ export default async function HomePage() {
         </div>
 
         <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardClient data={data} recentSignals={recentSignals} />
+          <DashboardClient
+            data={data}
+            recentSignals={recentSignals}
+            contribData={contribData}
+            sectorData={sectorData}
+          />
         </Suspense>
       </main>
     </div>

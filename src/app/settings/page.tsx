@@ -13,6 +13,7 @@ export type StockSetting = {
   name: string;
   market: string;
   category: string;
+  sector: string;
   broker: string;
   thesis: string;
   yahooTicker: string;
@@ -27,7 +28,7 @@ export default async function SettingsPage() {
   if (!session) redirect("/login");
 
   const rows = await db.run(sql`
-    SELECT id, ticker, name, market, category, broker, thesis,
+    SELECT id, ticker, name, market, category, sector, broker, thesis,
            yahoo_ticker, dart_corp_code, sec_cik, is_active, added_at
     FROM stocks
     ORDER BY is_active DESC, category, ticker
@@ -39,13 +40,14 @@ export default async function SettingsPage() {
     name: String(r[2]),
     market: String(r[3]),
     category: String(r[4]),
-    broker: r[5] ? String(r[5]) : "",
-    thesis: r[6] ? String(r[6]) : "",
-    yahooTicker: r[7] ? String(r[7]) : "",
-    dartCorpCode: r[8] ? String(r[8]) : "",
-    secCik: r[9] ? String(r[9]) : "",
-    isActive: Number(r[10]),
-    addedAt: String(r[11]),
+    sector: r[5] ? String(r[5]) : "",
+    broker: r[6] ? String(r[6]) : "",
+    thesis: r[7] ? String(r[7]) : "",
+    yahooTicker: r[8] ? String(r[8]) : "",
+    dartCorpCode: r[9] ? String(r[9]) : "",
+    secCik: r[10] ? String(r[10]) : "",
+    isActive: Number(r[11]),
+    addedAt: String(r[12]),
   }));
 
   return (

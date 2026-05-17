@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
 import dynamic from "next/dynamic";
 import type { ReportDetail } from "./page";
+import type { FactCheckResult } from "@/lib/gemini";
 
 // recharts — SSR 비활성화 (recharts는 window 객체 사용)
 const LineChart   = dynamic(() => import("recharts").then((m) => m.LineChart),         { ssr: false });
@@ -136,6 +137,67 @@ function MarkdownRenderer({ content }: { content: string }) {
   );
 }
 
+// ── C-3: 팩트체크 패널 ────────────────────────────────────────────────────────
+function FactCheckPanel({ result }: { result: FactCheckResult }) {
+  const scoreColor =
+    result.errors > 0
+      ? "text-red-400 border-red-500/30 bg-red-500/10"
+      : result.warnings > 0
+      ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+      : "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+
+  const scoreLabel =
+    result.errors > 0 ? "오류" : result.warnings > 0 ? "주의" : "검증됨";
+
+  if (result.totalChecked === 0) return null;
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-zinc-200">🔍 데이터 검증 패널</span>
+          <span className="text-xs text-zinc-500">AI 보고서 수치 교차검증</span>
+        </div>
+        <span className={`text-xs px-2.5 py-1 rounded-full border font-semibold ${scoreColor}`}>
+          {scoreLabel} · {result.verified}/{result.totalChecked}
+        </span>
+      </div>
+
+      {/* 항목별 검증 결과 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {result.items.map((item, i) => {
+          const isVerified = item.status === "verified";
+          return (
+            <div
+              key={i}
+              className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg border ${
+                isVerified
+                  ? "border-emerald-500/20 bg-emerald-500/5"
+                  : "border-amber-500/20 bg-amber-500/5"
+              }`}
+            >
+              <span className={`mt-0.5 text-sm shrink-0 ${
+                isVerified ? "text-emerald-400" : "text-amber-400"
+              }`}>
+                {isVerified ? "✓" : "!"}
+              </span>
+              <div>
+                <p className="text-xs font-medium text-zinc-300">{item.label}</p>
+                <p className="text-xs text-zinc-500 mt-0.5">{item.note}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-xs text-zinc-600 mt-3">
+        검증 기준: DB 재무수치 ±5% 허용범위 · {new Date(result.checkedAt).toLocaleString("ko-KR")}
+      </p>
+    </div>
+  );
+}
+
 export default function ReportDetailClient({ report }: { report: ReportDetail }) {
   let chartsData: ChartsData | null = null;
   try {
@@ -254,6 +316,11 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
             </div>
           )}
         </div>
+      )}
+
+      {/* ── C-3: 팩트체크 패널 ───────────────────────────────────────── */}
+      {report.factCheck && report.factCheck.totalChecked > 0 && (
+        <FactCheckPanel result={report.factCheck} />
       )}
 
       {/* ── AI 보고서 본문 (마크다운 렌더링) ──────────────────────────── */}

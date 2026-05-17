@@ -1,27 +1,203 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* ── Design Token System ─────────────────────────────────────────────────────
+   GSF-Investor 디자인 토큰 시스템 (Phase B)
+   변수명 규칙: --color-{role}-{shade}, --space-{size}, --radius-{size}
+   ─────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── 색상 팔레트 ────────────────────────────────────────────── */
+  /* Surface */
+  --color-bg-base:        #050508;  /* 페이지 배경 */
+  --color-bg-surface:     #0f0f12;  /* 카드/패널 */
+  --color-bg-elevated:    #18181b;  /* 호버, 인풋 */
+  --color-bg-overlay:     #27272a;  /* 드롭다운 */
+
+  /* Border */
+  --color-border-default: #27272a;  /* zinc-800 */
+  --color-border-subtle:  #1f1f22;  /* zinc-800/60 */
+  --color-border-strong:  #3f3f46;  /* zinc-700 */
+
+  /* Text */
+  --color-text-primary:   #fafafa;  /* zinc-50 */
+  --color-text-secondary: #a1a1aa;  /* zinc-400 */
+  --color-text-muted:     #71717a;  /* zinc-500 */
+  --color-text-disabled:  #3f3f46;  /* zinc-700 */
+
+  /* Accent — Profit (Emerald) */
+  --color-profit-500:     #10b981;
+  --color-profit-400:     #34d399;
+  --color-profit-bg:      rgba(16, 185, 129, 0.08);
+  --color-profit-border:  rgba(16, 185, 129, 0.20);
+
+  /* Accent — Loss (Red) */
+  --color-loss-500:       #ef4444;
+  --color-loss-400:       #f87171;
+  --color-loss-bg:        rgba(239, 68, 68, 0.08);
+  --color-loss-border:    rgba(239, 68, 68, 0.20);
+
+  /* Accent — Alpha (Violet) */
+  --color-alpha-500:      #8b5cf6;
+  --color-alpha-400:      #a78bfa;
+  --color-alpha-bg:       rgba(139, 92, 246, 0.08);
+  --color-alpha-border:   rgba(139, 92, 246, 0.20);
+
+  /* Accent — Warning (Amber) */
+  --color-warn-500:       #f59e0b;
+  --color-warn-400:       #fbbf24;
+  --color-warn-bg:        rgba(245, 158, 11, 0.08);
+  --color-warn-border:    rgba(245, 158, 11, 0.20);
+
+  /* Accent — Satellite (Indigo) */
+  --color-satellite-500:  #6366f1;
+  --color-satellite-400:  #818cf8;
+  --color-satellite-bg:   rgba(99, 102, 241, 0.08);
+  --color-satellite-border: rgba(99, 102, 241, 0.20);
+
+  /* ── 타이포그래피 ────────────────────────────────────────────── */
+  --font-sans: "Inter", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* ── 간격 스케일 ─────────────────────────────────────────────── */
+  --space-1:   0.25rem;  /*  4px */
+  --space-2:   0.5rem;   /*  8px */
+  --space-3:   0.75rem;  /* 12px */
+  --space-4:   1rem;     /* 16px */
+  --space-5:   1.25rem;  /* 20px */
+  --space-6:   1.5rem;   /* 24px */
+  --space-8:   2rem;     /* 32px */
+  --space-10:  2.5rem;   /* 40px */
+  --space-12:  3rem;     /* 48px */
+
+  /* ── 반경 스케일 ─────────────────────────────────────────────── */
+  --radius-sm:  0.375rem;  /*  6px */
+  --radius-md:  0.5rem;    /*  8px */
+  --radius-lg:  0.75rem;   /* 12px */
+  --radius-xl:  1rem;      /* 16px */
+  --radius-2xl: 1.25rem;   /* 20px */
+  --radius-full: 9999px;
+
+  /* ── 그림자 ──────────────────────────────────────────────────── */
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.5);
+  --shadow-card: 0 0 0 1px var(--color-border-default), 0 4px 24px rgba(0,0,0,0.3);
+
+  /* ── 전환 ────────────────────────────────────────────────────── */
+  --transition-fast:   150ms ease;
+  --transition-base:   200ms ease;
+  --transition-slow:   300ms ease;
+
+  /* legacy — 기존 코드와 호환 */
+  --background: #050508;
+  --foreground: #fafafa;
 }
 
+/* ── Tailwind 테마 연동 ──────────────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:     var(--background);
+  --color-foreground:     var(--foreground);
+  --font-sans:            var(--font-sans);
+  --font-mono:            var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── 기본 스타일 ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── 스크롤바 (webkit) ─────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #52525b; /* zinc-600 */
+}
+
+/* ── 유틸리티 클래스 ─────────────────────────────────────────────────────── */
+
+/* 수익 / 손실 배지 */
+.badge-profit {
+  background: var(--color-profit-bg);
+  border: 1px solid var(--color-profit-border);
+  color: var(--color-profit-400);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-loss {
+  background: var(--color-loss-bg);
+  border: 1px solid var(--color-loss-border);
+  color: var(--color-loss-400);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* 카드 기본 */
+.card {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-2xl);
+}
+
+/* 마이크로 애니메이션 */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-base) both;
+}
+
+/* 스켈레톤 로딩 */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-surface) 25%,
+    var(--color-bg-elevated) 50%,
+    var(--color-bg-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-xl);
+}
+
+/* 포커스 링 (접근성) */
+:focus-visible {
+  outline: 2px solid var(--color-alpha-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }

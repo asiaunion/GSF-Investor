@@ -17,6 +17,7 @@ export const stocks = sqliteTable("stocks", {
   name: text("name").notNull(),
   market: text("market").notNull(), // 'KR' | 'US'
   category: text("category").default("Core"), // 'Core' | 'Satellite'
+  sector: text("sector"), // e.g. 'Food & Beverage' | 'Technology' | 'Finance' | 'ETF'
   broker: text("broker"),
   thesis: text("thesis"),
   addedAt: text("added_at").default(sql`(datetime('now'))`),

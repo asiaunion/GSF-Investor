@@ -1,10 +1,106 @@
 /**
  * src/lib/gemini.ts
- * Gemini API 공통 유틸리티 — 프롬프트 빌더 + 호출 헬퍼
+ * Gemini API 공통 유틸리티 — 프롬프트 빌더 + 호출 헬퍼 + 팩트체크 레이어
  */
 
 export const GEMINI_MODEL = "gemini-2.5-flash";
 export const GEMINI_MAX_TOKENS = 8192;
+
+// ── 팩트체크 레이어 ───────────────────────────────────────────────────────────
+
+export type FactCheckItem = {
+  label: string;      // 검증 항목 이름 (예: "EPS 2024Q4")
+  dbValue: number;    // DB 실제 값
+  unit: string;       // 단위 (원, %, 배)
+  status: "verified" | "warning" | "error" | "not_found";
+  note: string;       // 검증 결과 설명
+};
+
+export type FactCheckResult = {
+  checkedAt: string;
+  totalChecked: number;
+  verified: number;
+  warnings: number;
+  errors: number;
+  items: FactCheckItem[];
+};
+
+/**
+ * AI 보고서 팩트체크
+ * - DB 실제 재무수치 vs. 보고서 마크다운 내 숫자 교차검증
+ * - 허용 오차: ±5% (숫자 표기 방식 차이 고려)
+ * - 보고서에서 숫자를 못 찾으면 "not_found" 처리 (오류 아님)
+ */
+export function factCheckReport(
+  contentMd: string,
+  financials: FinancialData[]
+): FactCheckResult {
+  const checkedAt = new Date().toISOString();
+  const items: FactCheckItem[] = [];
+
+  if (!financials.length) {
+    return { checkedAt, totalChecked: 0, verified: 0, warnings: 0, errors: 0, items };
+  }
+
+  const latest = financials[0];
+
+  // 검증 대상 수치 목록
+  const targets: { label: string; value: number | null; unit: string }[] = [
+    { label: `EPS (${latest.period})`, value: latest.eps, unit: "원" },
+    { label: `BPS (${latest.period})`, value: latest.bps, unit: "원" },
+    { label: `ROE (${latest.period})`, value: latest.roe, unit: "%" },
+    { label: `부채비율 (${latest.period})`, value: latest.debtRatio, unit: "%" },
+  ];
+
+  // 보고서에서 모든 숫자 추출 (콤마 제거 후 파싱)
+  const numberPattern = /([\d,]+(?:\.\d+)?)/g;
+  const numsInReport: number[] = [];
+  let match;
+  while ((match = numberPattern.exec(contentMd)) !== null) {
+    const n = parseFloat(match[1].replace(/,/g, ""));
+    if (!isNaN(n) && n > 0) numsInReport.push(n);
+  }
+
+  for (const target of targets) {
+    if (target.value === null || target.value === undefined) continue;
+    const dbAbs = Math.abs(target.value);
+    if (dbAbs < 0.01) continue; // 0에 가까운 값 스킵
+
+    // 보고서에서 ±5% 범위 내 숫자 찾기
+    const TOLERANCE = 0.05;
+    const found = numsInReport.some(
+      (n) => Math.abs(n - dbAbs) / dbAbs <= TOLERANCE
+    );
+
+    let status: FactCheckItem["status"];
+    let note: string;
+
+    if (!found) {
+      // 보고서에 해당 수치가 없음 → not_found (경고 수준)
+      status = "not_found";
+      note = `DB값 ${target.value.toLocaleString()}${target.unit} — 보고서 내 미언급`;
+    } else {
+      status = "verified";
+      note = `DB값 ${target.value.toLocaleString()}${target.unit} — 보고서 일치 확인 (±5% 허용)`;
+    }
+
+    items.push({ label: target.label, dbValue: target.value, unit: target.unit, status, note });
+  }
+
+  // 통계 집계
+  const verified = items.filter((i) => i.status === "verified").length;
+  const warnings = items.filter((i) => i.status === "not_found" || i.status === "warning").length;
+  const errors = items.filter((i) => i.status === "error").length;
+
+  return {
+    checkedAt,
+    totalChecked: items.length,
+    verified,
+    warnings,
+    errors,
+    items,
+  };
+}
 
 // ── 타입 ──────────────────────────────────────────────────────────────────────
 

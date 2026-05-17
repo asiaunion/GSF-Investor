@@ -28,6 +28,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
     name: "",
     market: "KR",
     category: "Core",
+    sector: "",
     yahooTicker: "",
     dartCorpCode: "",
     secCik: "",
@@ -60,6 +61,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
         broker: editForm.broker,
         thesis: editForm.thesis,
         category: editForm.category,
+        sector: editForm.sector,
         yahoo_ticker: editForm.yahooTicker,
         dart_corp_code: editForm.dartCorpCode,
         sec_cik: editForm.secCik,
@@ -124,6 +126,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
           name: addForm.name.trim(),
           market: addForm.market,
           category: addForm.category,
+          sector: addForm.sector.trim() || null,
           yahooTicker: addForm.yahooTicker.trim() || null,
           dartCorpCode: addForm.dartCorpCode.trim() || null,
           secCik: addForm.secCik.trim() || null,
@@ -137,7 +140,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
         return;
       }
       setAddSuccess(`✅ ${addForm.name}(${addForm.ticker.toUpperCase()}) 추가 완료! 다음 daily_price.py 실행 시 주가가 수집됩니다.`);
-      setAddForm({ ticker: "", name: "", market: "KR", category: "Core", yahooTicker: "", dartCorpCode: "", secCik: "", broker: "", thesis: "" });
+      setAddForm({ ticker: "", name: "", market: "KR", category: "Core", sector: "", yahooTicker: "", dartCorpCode: "", secCik: "", broker: "", thesis: "" });
       setShowAddForm(false);
       // 목록에 즉시 반영
       window.location.reload();
@@ -246,7 +249,6 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
               </div>
             </div>
 
-            {/* 선택 필드 */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <div>
                 <label className="text-xs text-zinc-500 block mb-1">시장 <span className="text-red-400">*</span></label>
@@ -273,12 +275,12 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">DART Corp Code</label>
+                <label className="text-xs text-zinc-500 block mb-1">섹터</label>
                 <input
-                  value={addForm.dartCorpCode}
-                  onChange={(e) => setAddForm({ ...addForm, dartCorpCode: e.target.value })}
+                  value={addForm.sector}
+                  onChange={(e) => setAddForm({ ...addForm, sector: e.target.value })}
                   className="w-full bg-zinc-800 border border-zinc-700 focus:border-violet-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
-                  placeholder="00296060"
+                  placeholder="Food & Beverage"
                 />
               </div>
               <div>

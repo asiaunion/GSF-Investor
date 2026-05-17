@@ -1,7 +1,15 @@
 "use client";
 
-import { ReturnBarChart, CoreSatelliteDonut, formatKRW } from "@/components/DashboardCharts";
+import {
+  ReturnBarChart,
+  CoreSatelliteDonut,
+  WeightedContributionChart,
+  SectorDonut,
+  formatKRW,
+} from "@/components/DashboardCharts";
 import Link from "next/link";
+
+// ── 타입 ─────────────────────────────────────────────────────────────────────
 
 interface Holding {
   stockId: number;
@@ -9,6 +17,7 @@ interface Holding {
   name: string;
   market: string;
   category: string;
+  sector: string | null;
   broker: string | null;
   quantity: number;
   avgPrice: number;
@@ -42,12 +51,31 @@ interface RecentSignal {
   isResolved: number;
 }
 
+interface ContribItem {
+  ticker: string;
+  name: string;
+  weightPct: number;
+  pnlKRW: number;
+  category: string;
+  sector: string | null;
+}
+
+interface SectorItem {
+  sector: string;
+  valueKRW: number;
+  pct: number;
+}
+
 interface Props {
   data: { holdings: Holding[]; summary: Summary };
   recentSignals: RecentSignal[];
+  contribData: ContribItem[];
+  sectorData: SectorItem[];
 }
 
-export default function DashboardClient({ data, recentSignals }: Props) {
+// ── 컴포넌트 ─────────────────────────────────────────────────────────────────
+
+export default function DashboardClient({ data, recentSignals, contribData, sectorData }: Props) {
   const { holdings, summary } = data;
 
   const donutData = [
@@ -96,7 +124,7 @@ export default function DashboardClient({ data, recentSignals }: Props) {
             </p>
           </div>
 
-          {/* Alpha (vs KOSPI 200) */}
+          {/* Alpha (vs KODEX 200) */}
           <div className="sm:pl-6">
             <p className="text-xs font-medium text-zinc-500 mb-1.5 flex items-center gap-1.5">
               Alpha
@@ -151,7 +179,7 @@ export default function DashboardClient({ data, recentSignals }: Props) {
         />
       </div>
 
-      {/* 차트 섹션 */}
+      {/* ── Row 1: 수익률 바 차트 + Core/Satellite 도넛 ───────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* 수익률 바 차트 */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
@@ -169,7 +197,7 @@ export default function DashboardClient({ data, recentSignals }: Props) {
           )}
         </div>
 
-        {/* 도넛 차트 */}
+        {/* Core vs Satellite 도넛 */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-white">Core vs Satellite</h2>
@@ -186,7 +214,44 @@ export default function DashboardClient({ data, recentSignals }: Props) {
         </div>
       </div>
 
-      {/* 종목별 상세 테이블 */}
+      {/* ── B-1+B-2: Weighted Contribution + Sector 집중도 ──────────────── */}
+      {contribData.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* 포트폴리오 기여도 (비중 bar) */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-white">포트폴리오 기여도</h2>
+              <div className="flex items-center gap-3 text-xs text-zinc-500">
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" /> Core
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-indigo-500" /> Satellite
+                </span>
+              </div>
+            </div>
+            <WeightedContributionChart data={contribData} />
+          </div>
+
+          {/* 섹터 집중도 도넛 */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-white">섹터 집중도</h2>
+              <span className="text-xs text-zinc-500">평가금액 기준</span>
+            </div>
+            {sectorData.length > 0 ? (
+              <SectorDonut data={sectorData} />
+            ) : (
+              <EmptyState
+                message="섹터 정보 미입력"
+                cta={{ label: "Settings에서 섹터 지정", href: "/settings" }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── 보유 종목 현황 테이블 ────────────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white">보유 종목 현황</h2>
@@ -234,7 +299,10 @@ export default function DashboardClient({ data, recentSignals }: Props) {
                           <div className={`w-1.5 h-7 rounded-full ${h.category === "Core" ? "bg-emerald-500/60" : "bg-indigo-500/60"}`} />
                           <div>
                             <p className="text-white font-medium">{h.ticker}</p>
-                            <p className="text-xs text-zinc-500">{h.name} · {h.category}</p>
+                            <p className="text-xs text-zinc-500">
+                              {h.name} · {h.category}
+                              {h.sector && <span className="text-zinc-600"> · {h.sector}</span>}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -284,7 +352,7 @@ export default function DashboardClient({ data, recentSignals }: Props) {
         )}
       </div>
 
-      {/* 최근 시그널 타임라인 */}
+      {/* ── 최근 시그널 타임라인 ─────────────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-white flex items-center gap-2">
@@ -308,7 +376,6 @@ export default function DashboardClient({ data, recentSignals }: Props) {
         ) : (
           <div className="divide-y divide-zinc-800/50">
             {recentSignals.map((s) => {
-              // Phase A: LOW=gray(충돌 수정), MEDIUM=amber, HIGH=red
               const sevMap: Record<string, { dot: string; text: string; bg: string }> = {
                 HIGH:   { dot: "bg-red-500",    text: "text-red-400",    bg: "bg-red-500/5" },
                 MEDIUM: { dot: "bg-amber-400",  text: "text-amber-400",  bg: "bg-amber-500/5" },
@@ -345,7 +412,8 @@ export default function DashboardClient({ data, recentSignals }: Props) {
   );
 }
 
-// ── 히어로 메트릭 서브 카드 ──────────────────────────────────────────────────
+// ── 서브 컴포넌트 ─────────────────────────────────────────────────────────────
+
 type Accent = "emerald" | "red" | "violet" | "amber" | "indigo";
 
 function MetricCard({
