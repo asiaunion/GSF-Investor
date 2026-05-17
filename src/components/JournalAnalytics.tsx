@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 
 const ConfidenceTrend = dynamic(
   () => import("./ConfidenceTrend"),
-  { ssr: false, loading: () => <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 animate-pulse h-56" /> }
+  { ssr: false, loading: () => <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6 animate-pulse h-56" /> }
 );
 
 const BarChart = dynamic(
@@ -70,14 +70,14 @@ interface AnalyticsData {
 
 // ── Color maps ────────────────────────────────────────────────────────────────
 const emotionColors: Record<string, string> = {
-  확신: "#10b981",
+  확신: "var(--color-brand-green)",
   계획적: "#3b82f6",
-  불안: "#f59e0b",
+  불안: "var(--color-warn-500)",
   충동: "#ef4444",
 };
 const emotionBgStyles: Record<string, string> = {
-  확신: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-  계획적: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+  확신: "text-[var(--color-brand-green)] bg-emerald-500/10 border-emerald-500/20",
+  계획적: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
   불안: "text-amber-400 bg-amber-500/10 border-amber-500/20",
   충동: "text-red-400 bg-red-500/10 border-red-500/20",
 };
@@ -92,18 +92,18 @@ function CustomBarTooltip({ active, payload }: { active?: boolean; payload?: { p
   if (!active || !payload?.[0]) return null;
   const { payload: stat, value } = payload[0];
   return (
-    <div className="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs shadow-xl">
+    <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-strong)] rounded-xl px-4 py-3 text-xs shadow-xl">
       <div className="flex items-center gap-2 mb-2">
         <span
           className="inline-block w-2.5 h-2.5 rounded-sm"
           style={{ background: emotionColors[stat.tag] ?? "#71717a" }}
         />
-        <span className="font-bold text-white">{stat.tag}</span>
+        <span className="font-bold text-[var(--color-text-primary)]">{stat.tag}</span>
       </div>
-      <div className="space-y-1 text-zinc-400">
-        <div>평균 수익률: <span className={value >= 0 ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>{value >= 0 ? "+" : ""}{value.toFixed(2)}%</span></div>
-        <div>SELL 건수: <span className="text-zinc-200">{stat.sellCount}건</span></div>
-        <div>승률: <span className="text-zinc-200">{stat.sellCount > 0 ? ((stat.winCount / stat.sellCount) * 100).toFixed(0) : "—"}%</span></div>
+      <div className="space-y-1 text-[var(--color-text-secondary)]">
+        <div>평균 수익률: <span className={value >= 0 ? "text-[var(--color-brand-green)] font-bold" : "text-red-400 font-bold"}>{value >= 0 ? "+" : ""}{value.toFixed(2)}%</span></div>
+        <div>SELL 건수: <span className="text-[var(--color-text-primary)]">{stat.sellCount}건</span></div>
+        <div>승률: <span className="text-[var(--color-text-primary)]">{stat.sellCount > 0 ? ((stat.winCount / stat.sellCount) * 100).toFixed(0) : "—"}%</span></div>
       </div>
     </div>
   );
@@ -131,7 +131,7 @@ export default function JournalAnalytics() {
     return (
       <div className="space-y-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 animate-pulse h-32" />
+          <div key={i} className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6 animate-pulse h-32" />
         ))}
       </div>
     );
@@ -139,7 +139,7 @@ export default function JournalAnalytics() {
 
   if (error || !data) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-zinc-500 text-sm">
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6 text-[var(--color-text-muted)] text-sm">
         분석 데이터를 불러오지 못했습니다.
       </div>
     );
@@ -155,15 +155,15 @@ export default function JournalAnalytics() {
   return (
     <div className="space-y-5">
       {/* ── 서브탭 바 ────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 border-b border-zinc-800 pb-1">
+      <div className="flex gap-1 border-b border-[var(--color-border-default)] pb-1">
         {(["손익 분석", "확신도 추이"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setSubTab(tab)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               subTab === tab
-                ? "bg-violet-600/20 text-violet-300 border border-violet-500/30"
-                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50"
+                ? "bg-[var(--color-brand-green)]/10 text-[var(--color-brand-green)] font-bold"
+                : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-elevated)]/50"
             }`}
           >
             {tab === "손익 분석" ? "📊 손익 분석" : "🎯 확신도 추이"}
@@ -187,7 +187,7 @@ export default function JournalAnalytics() {
               ? fmtPnl(summary.totalNetPnl)
               : "—",
             color: (summary.totalNetPnl ?? 0) >= 0
-              ? "text-emerald-400"
+              ? "text-[var(--color-brand-green)]"
               : "text-red-400",
             sub: summary.totalLoanInterest > 0
               ? `이자 ${fmtPnl(-summary.totalLoanInterest)} 차감`
@@ -196,7 +196,7 @@ export default function JournalAnalytics() {
           {
             label: "승률",
             value: summary.winRate != null ? `${summary.winRate.toFixed(1)}%` : "—",
-            color: (summary.winRate ?? 0) >= 50 ? "text-emerald-400" : "text-red-400",
+            color: (summary.winRate ?? 0) >= 50 ? "text-[var(--color-brand-green)]" : "text-red-400",
             sub: undefined,
           },
           {
@@ -204,18 +204,18 @@ export default function JournalAnalytics() {
             value: summary.sellCount > 0
               ? `${summary.winTrades}W · ${summary.lossTrades}L`
               : "—",
-            color: "text-white",
+            color: "text-[var(--color-text-primary)]",
             sub: undefined,
           },
           {
             label: "Core / Satellite",
             value: `${categoryBreakdown.core} / ${categoryBreakdown.satellite}`,
-            color: "text-zinc-300",
+            color: "text-[var(--color-text-primary)]",
             sub: undefined,
           },
         ].map((card) => (
-          <div key={card.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-zinc-600 text-[10px] uppercase tracking-wider mb-1.5">{card.label}</div>
+          <div key={card.label} className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4">
+            <div className="text-[var(--color-text-disabled)] text-[10px] uppercase tracking-wider mb-1.5">{card.label}</div>
             <div className={`text-lg font-bold tabular-nums ${card.color}`}>{card.value}</div>
             {card.sub && (
               <div className="text-[10px] text-red-400/70 mt-0.5">{card.sub}</div>
@@ -226,22 +226,22 @@ export default function JournalAnalytics() {
 
       {/* ── 감정별 수익률 차트 ──────────────────────────────────────────────── */}
       {chartData.length > 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+        <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-white">감정별 평균 수익률</h3>
-            <span className="text-xs text-zinc-600">SELL 거래 기준 · FIFO + 이자 반영</span>
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">감정별 평균 수익률</h3>
+            <span className="text-xs text-[var(--color-text-disabled)]">SELL 거래 기준 · FIFO + 이자 반영</span>
           </div>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={chartData} margin={{ top: 0, right: 8, bottom: 0, left: 0 }}>
               <XAxis
                 dataKey="tag"
-                tick={{ fill: "#71717a", fontSize: 12 }}
+                tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
                 tickFormatter={(v: number) => `${v.toFixed(1)}%`}
-                tick={{ fill: "#52525b", fontSize: 11 }}
+                tick={{ fill: "var(--color-text-secondary)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 width={50}
@@ -252,7 +252,7 @@ export default function JournalAnalytics() {
                   <Cell
                     key={entry.tag}
                     fill={entry.value >= 0
-                      ? (emotionColors[entry.tag] ?? "#10b981")
+                      ? (emotionColors[entry.tag] ?? "var(--color-brand-green)")
                       : "#ef4444"}
                     fillOpacity={0.85}
                   />
@@ -265,34 +265,34 @@ export default function JournalAnalytics() {
 
       {/* ── 감정 태그별 상세 카드 ───────────────────────────────────────────── */}
       {emotionStats.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          <h3 className="text-sm font-semibold text-white mb-4">감정 태그 분석</h3>
+        <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">감정 태그 분석</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {emotionStats.map((stat) => (
               <div
                 key={stat.tag}
-                className="flex items-start gap-3 bg-zinc-800/40 border border-zinc-700/30 rounded-xl p-4"
+                className="flex items-start gap-3 bg-[var(--color-bg-elevated)]/40 border border-[var(--color-border-strong)]/30 rounded-xl p-4"
               >
                 <span
-                  className={`shrink-0 inline-flex px-2.5 py-1 rounded-lg text-xs font-bold border ${emotionBgStyles[stat.tag] ?? "text-zinc-400 bg-zinc-800 border-zinc-700"}`}
+                  className={`shrink-0 inline-flex px-2.5 py-1 rounded-lg text-xs font-bold border ${emotionBgStyles[stat.tag] ?? "text-[var(--color-text-secondary)] bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)]"}`}
                 >
                   {stat.tag}
                 </span>
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">총 거래</span>
-                    <span className="text-zinc-200 font-medium">{stat.count}건</span>
+                    <span className="text-[var(--color-text-muted)]">총 거래</span>
+                    <span className="text-[var(--color-text-primary)] font-medium">{stat.count}건</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-zinc-500">매수 / 매도</span>
-                    <span className="text-zinc-200">{stat.buyCount} / {stat.sellCount}</span>
+                    <span className="text-[var(--color-text-muted)]">매수 / 매도</span>
+                    <span className="text-[var(--color-text-primary)]">{stat.buyCount} / {stat.sellCount}</span>
                   </div>
                   {stat.sellCount > 0 && (
                     <>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-500">평균 수익률</span>
+                        <span className="text-[var(--color-text-muted)]">평균 수익률</span>
                         <span
-                          className={`font-bold ${(stat.avgReturnPct ?? 0) >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                          className={`font-bold ${(stat.avgReturnPct ?? 0) >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}
                         >
                           {stat.avgReturnPct != null
                             ? `${stat.avgReturnPct >= 0 ? "+" : ""}${stat.avgReturnPct.toFixed(2)}%`
@@ -300,18 +300,18 @@ export default function JournalAnalytics() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-500">실현 손익</span>
+                        <span className="text-[var(--color-text-muted)]">실현 손익</span>
                         <span
-                          className={`font-medium ${stat.totalRealizedPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                          className={`font-medium ${stat.totalRealizedPnl >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}
                         >
                           {fmtPnl(stat.totalRealizedPnl)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-zinc-500">승 / 패</span>
-                        <span className="text-zinc-300">
-                          <span className="text-emerald-400">{stat.winCount}W</span>
-                          <span className="text-zinc-600 mx-1">·</span>
+                        <span className="text-[var(--color-text-muted)]">승 / 패</span>
+                        <span className="text-[var(--color-text-primary)]">
+                          <span className="text-[var(--color-brand-green)]">{stat.winCount}W</span>
+                          <span className="text-[var(--color-text-disabled)] mx-1">·</span>
                           <span className="text-red-400">{stat.lossCount}L</span>
                         </span>
                       </div>
@@ -326,17 +326,17 @@ export default function JournalAnalytics() {
 
       {/* ── 실현 손익 거래 내역 ─────────────────────────────────────────────── */}
       {realizedTrades.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white">실현 손익 내역</h3>
-            <span className="text-xs text-zinc-600">FIFO 기준 · 이자 반영 · 최근 20건</span>
+        <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm">
+          <div className="px-5 py-4 border-b border-[var(--color-border-default)] flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">실현 손익 내역</h3>
+            <span className="text-xs text-[var(--color-text-disabled)]">FIFO 기준 · 이자 반영 · 최근 20건</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-zinc-800">
+                <tr className="border-b border-[var(--color-border-default)]">
                   {["날짜", "종목", "수량", "평균 매수가", "매도가", "세전 손익", "융자 이자", "순손익", "수익률", "감정"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-zinc-600 font-medium whitespace-nowrap">
+                    <th key={h} className="px-4 py-3 text-left text-[var(--color-text-disabled)] font-medium whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -344,41 +344,41 @@ export default function JournalAnalytics() {
               </thead>
               <tbody className="divide-y divide-zinc-800/40">
                 {realizedTrades.map((t) => (
-                  <tr key={t.id} className="hover:bg-zinc-800/20 transition-colors">
-                    <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{t.tradedAt}</td>
+                  <tr key={t.id} className="hover:bg-[var(--color-bg-elevated)]/20 transition-colors">
+                    <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">{t.tradedAt}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col">
-                        <span className="text-white font-mono font-semibold">{t.ticker}</span>
-                        <span className="text-zinc-600">{t.name}</span>
+                        <span className="text-[var(--color-text-primary)] font-mono font-semibold">{t.ticker}</span>
+                        <span className="text-[var(--color-text-disabled)]">{t.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-300 tabular-nums">
+                    <td className="px-4 py-3 text-[var(--color-text-primary)] tabular-nums">
                       {t.quantity.toLocaleString("ko-KR")}주
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 tabular-nums">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] tabular-nums">
                       ₩{Math.round(t.avgBuyPrice).toLocaleString("ko-KR")}
                     </td>
-                    <td className="px-4 py-3 text-zinc-400 tabular-nums">
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] tabular-nums">
                       ₩{t.sellPrice.toLocaleString("ko-KR")}
                     </td>
-                    <td className={`px-4 py-3 font-medium tabular-nums ${t.realizedPnl >= 0 ? "text-zinc-300" : "text-red-300"}`}>
+                    <td className={`px-4 py-3 font-medium tabular-nums ${t.realizedPnl >= 0 ? "text-[var(--color-text-primary)]" : "text-red-300"}`}>
                       {fmtPnl(t.realizedPnl)}
                     </td>
                     <td className={`px-4 py-3 tabular-nums ${
-                      t.loanInterest > 0 ? "text-red-400" : "text-zinc-600"
+                      t.loanInterest > 0 ? "text-red-400" : "text-[var(--color-text-disabled)]"
                     }`}>
                       {t.loanInterest > 0 ? `-₩${Math.round(t.loanInterest).toLocaleString("ko-KR")}` : "—"}
                     </td>
-                    <td className={`px-4 py-3 font-bold tabular-nums ${t.netPnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 font-bold tabular-nums ${t.netPnl >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}>
                       {fmtPnl(t.netPnl)}
                     </td>
-                    <td className={`px-4 py-3 font-bold tabular-nums ${t.returnPct >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 font-bold tabular-nums ${t.returnPct >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}>
                       {t.returnPct >= 0 ? "+" : ""}{t.returnPct.toFixed(2)}%
                     </td>
                     <td className="px-4 py-3">
                       {t.emotionTag && (
                         <span
-                          className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${emotionBgStyles[t.emotionTag] ?? "text-zinc-400 bg-zinc-800 border-zinc-700"}`}
+                          className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${emotionBgStyles[t.emotionTag] ?? "text-[var(--color-text-secondary)] bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)]"}`}
                         >
                           {t.emotionTag}
                         </span>
@@ -393,9 +393,9 @@ export default function JournalAnalytics() {
       )}
 
       {realizedTrades.length === 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+        <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-8 text-center">
           <div className="text-3xl mb-3">📊</div>
-          <p className="text-zinc-500 text-sm">SELL 거래 기록 후 실현 손익 분석이 표시됩니다.</p>
+          <p className="text-[var(--color-text-muted)] text-sm">SELL 거래 기록 후 실현 손익 분석이 표시됩니다.</p>
         </div>
       )}
       </div>

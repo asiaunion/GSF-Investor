@@ -34,9 +34,9 @@ interface RawEntry {
 }
 
 const emotionColors: Record<string, string> = {
-  확신: "#10b981",
+  확신: "var(--color-brand-green)",
   계획적: "#3b82f6",
-  불안: "#f59e0b",
+  불안: "var(--color-warn-500)",
   충동: "#ef4444",
 };
 
@@ -49,9 +49,9 @@ function scoreLabel(score: number) {
 }
 
 function scoreDotColor(score: number) {
-  if (score >= 4) return "#10b981";
+  if (score >= 4) return "var(--color-brand-green)";
   if (score >= 3) return "#3b82f6";
-  if (score >= 2) return "#f59e0b";
+  if (score >= 2) return "var(--color-warn-500)";
   return "#ef4444";
 }
 
@@ -66,26 +66,26 @@ function CustomTooltip({
   if (!active || !payload?.[0]) return null;
   const p = payload[0].payload;
   return (
-    <div className="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-xs shadow-xl min-w-[140px]">
-      <div className="text-zinc-400 mb-1">{p.date}</div>
+    <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-strong)] rounded-xl px-4 py-3 text-xs shadow-xl min-w-[140px]">
+      <div className="text-[var(--color-text-secondary)] mb-1">{p.date}</div>
       <div className="flex items-center gap-2 mb-1.5">
         <span
           className="w-2 h-2 rounded-full inline-block"
           style={{ background: scoreDotColor(p.avgScore) }}
         />
-        <span className="text-white font-bold text-sm">
+        <span className="text-[var(--color-text-primary)] font-bold text-sm">
           {p.avgScore.toFixed(1)}점
         </span>
-        <span className="text-zinc-500">/ 5</span>
+        <span className="text-[var(--color-text-muted)]">/ 5</span>
       </div>
-      <div className="text-zinc-500">{scoreLabel(p.avgScore)}</div>
+      <div className="text-[var(--color-text-muted)]">{scoreLabel(p.avgScore)}</div>
       {p.ticker && (
-        <div className="mt-1 text-zinc-400">
-          종목: <span className="text-zinc-200 font-mono">{p.ticker}</span>
+        <div className="mt-1 text-[var(--color-text-secondary)]">
+          종목: <span className="text-[var(--color-text-primary)] font-mono">{p.ticker}</span>
         </div>
       )}
       {p.emotionTag && (
-        <div className="mt-0.5 text-zinc-400">
+        <div className="mt-0.5 text-[var(--color-text-secondary)]">
           감정:{" "}
           <span style={{ color: emotionColors[p.emotionTag] ?? "#71717a" }}>
             {p.emotionTag}
@@ -93,7 +93,7 @@ function CustomTooltip({
         </div>
       )}
       {p.count > 1 && (
-        <div className="mt-0.5 text-zinc-600">{p.count}건 평균</div>
+        <div className="mt-0.5 text-[var(--color-text-disabled)]">{p.count}건 평균</div>
       )}
     </div>
   );
@@ -139,13 +139,13 @@ export default function ConfidenceTrend() {
 
   if (loading) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 animate-pulse h-56" />
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6 animate-pulse h-56" />
     );
   }
 
   if (error) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-zinc-500 text-sm">
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6 text-[var(--color-text-muted)] text-sm">
         확신도 데이터를 불러오지 못했습니다.
       </div>
     );
@@ -154,12 +154,12 @@ export default function ConfidenceTrend() {
   // 아직 데이터 없음
   if (trend.length === 0) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-8 text-center">
         <div className="text-3xl mb-3">🎯</div>
-        <p className="text-zinc-500 text-sm">
+        <p className="text-[var(--color-text-muted)] text-sm">
           매매 일지 저장 시 확신도를 입력하면 추이 차트가 표시됩니다.
         </p>
-        <p className="text-zinc-600 text-xs mt-1">
+        <p className="text-[var(--color-text-disabled)] text-xs mt-1">
           별점 1~5점으로 해당 거래의 확신도를 기록하세요.
         </p>
       </div>
@@ -185,34 +185,34 @@ export default function ConfidenceTrend() {
         cy={cy}
         r={5}
         fill={scoreDotColor(payload.avgScore)}
-        stroke="#18181b"
+        stroke="var(--color-bg-surface)"
         strokeWidth={2}
       />
     );
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-5">
+    <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5 space-y-5">
       {/* 헤더 + 요약 */}
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-white">확신도 추이</h3>
-          <p className="text-xs text-zinc-600 mt-0.5">거래별 확신도 1~5점 시계열</p>
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">확신도 추이</h3>
+          <p className="text-xs text-[var(--color-text-disabled)] mt-0.5">거래별 확신도 1~5점 시계열</p>
         </div>
         <div className="flex gap-4">
           <div className="text-right">
-            <div className="text-[10px] text-zinc-600 mb-0.5">최근 확신도</div>
-            <div className="text-lg font-bold text-white tabular-nums">
+            <div className="text-[10px] text-[var(--color-text-disabled)] mb-0.5">최근 확신도</div>
+            <div className="text-lg font-bold text-[var(--color-text-primary)] tabular-nums">
               {latestScore.toFixed(1)}
-              <span className="text-xs text-zinc-500 font-normal ml-0.5">/5</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-normal ml-0.5">/5</span>
             </div>
             <ScorePill score={latestScore} />
           </div>
           <div className="text-right">
-            <div className="text-[10px] text-zinc-600 mb-0.5">전체 평균</div>
-            <div className="text-lg font-bold text-zinc-300 tabular-nums">
+            <div className="text-[10px] text-[var(--color-text-disabled)] mb-0.5">전체 평균</div>
+            <div className="text-lg font-bold text-[var(--color-text-primary)] tabular-nums">
               {overallAvg.toFixed(1)}
-              <span className="text-xs text-zinc-500 font-normal ml-0.5">/5</span>
+              <span className="text-xs text-[var(--color-text-muted)] font-normal ml-0.5">/5</span>
             </div>
             <ScorePill score={overallAvg} />
           </div>
@@ -227,7 +227,7 @@ export default function ConfidenceTrend() {
         >
           <XAxis
             dataKey="date"
-            tick={{ fill: "#52525b", fontSize: 10 }}
+            tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v: string) => v.slice(5)} // MM-DD만 표시
@@ -235,7 +235,7 @@ export default function ConfidenceTrend() {
           <YAxis
             domain={[0, 5.2]}
             ticks={[1, 2, 3, 4, 5]}
-            tick={{ fill: "#52525b", fontSize: 10 }}
+            tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
             axisLine={false}
             tickLine={false}
             width={24}
@@ -244,17 +244,17 @@ export default function ConfidenceTrend() {
           {/* 기준선 3점 */}
           <ReferenceLine
             y={3}
-            stroke="#3f3f46"
+            stroke="var(--color-border-strong)"
             strokeDasharray="4 4"
-            label={{ value: "기준", fill: "#52525b", fontSize: 9, position: "right" }}
+            label={{ value: "기준", fill: "var(--color-text-secondary)", fontSize: 9, position: "right" }}
           />
           <Line
             type="monotone"
             dataKey="avgScore"
-            stroke="#8b5cf6"
+            stroke="var(--color-brand-green)"
             strokeWidth={2.5}
             dot={<CustomDot />}
-            activeDot={{ r: 7, fill: "#8b5cf6", stroke: "#18181b", strokeWidth: 2 }}
+            activeDot={{ r: 7, fill: "var(--color-brand-green)", stroke: "var(--color-bg-surface)", strokeWidth: 2 }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -262,25 +262,25 @@ export default function ConfidenceTrend() {
       {/* 최근 기록 리스트 */}
       {raw.length > 0 && (
         <div>
-          <div className="text-[10px] text-zinc-600 uppercase tracking-wider mb-2">
+          <div className="text-[10px] text-[var(--color-text-disabled)] uppercase tracking-wider mb-2">
             최근 확신도 기록
           </div>
           <div className="space-y-1.5">
             {[...raw].reverse().slice(0, 5).map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center gap-3 text-xs py-1.5 border-b border-zinc-800/50 last:border-0"
+                className="flex items-center gap-3 text-xs py-1.5 border-b border-[var(--color-border-default)]/50 last:border-0"
               >
-                <span className="text-zinc-600 w-20 shrink-0 tabular-nums">
+                <span className="text-[var(--color-text-disabled)] w-20 shrink-0 tabular-nums">
                   {entry.tradedAt.slice(0, 10)}
                 </span>
-                <span className="text-zinc-400 font-mono w-16 shrink-0">
+                <span className="text-[var(--color-text-secondary)] font-mono w-16 shrink-0">
                   {entry.ticker ?? "—"}
                 </span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
                     entry.action === "BUY"
-                      ? "bg-emerald-500/10 text-emerald-400"
+                      ? "bg-emerald-500/10 text-[var(--color-brand-green)]"
                       : "bg-red-500/10 text-red-400"
                   }`}
                 >
@@ -302,7 +302,7 @@ export default function ConfidenceTrend() {
                       />
                     ))}
                   </div>
-                  <span className="text-zinc-400 font-bold">
+                  <span className="text-[var(--color-text-secondary)] font-bold">
                     {entry.confidenceScore}점
                   </span>
                 </div>

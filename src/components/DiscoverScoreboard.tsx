@@ -39,20 +39,20 @@ interface StockScore {
 // ── Color utilities ────────────────────────────────────────────────────────────
 const gradeColor: Record<string, string> = {
   A: "text-[var(--color-brand-green)] bg-emerald-500/10 border-emerald-500/30",
-  B: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+  B: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
   C: "text-amber-400 bg-amber-500/10 border-amber-500/30",
   D: "text-red-400 bg-red-500/10 border-red-500/30",
 };
 
 const gradeRingColor: Record<string, string> = {
-  A: "#10b981",
+  A: "var(--color-brand-green)",
   B: "#3b82f6",
-  C: "#f59e0b",
+  C: "var(--color-warn-500)",
   D: "#ef4444",
 };
 
 const marketBadge: Record<string, string> = {
-  KR: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  KR: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
   US: "bg-emerald-500/10 text-[var(--color-brand-green)] border border-emerald-500/20",
 };
 
@@ -152,7 +152,7 @@ export default function DiscoverScoreboard() {
         {[
           { label: "전체 종목", value: `${stocks.length}개`, color: "text-[var(--color-text-primary)]" },
           { label: "A등급", value: `${stocks.filter((s) => s.grade === "A").length}개`, color: "text-[var(--color-brand-green)]" },
-          { label: "B등급", value: `${stocks.filter((s) => s.grade === "B").length}개`, color: "text-blue-400" },
+          { label: "B등급", value: `${stocks.filter((s) => s.grade === "B").length}개`, color: "text-emerald-400" },
           {
             label: "평균 스코어",
             value: stocks.length > 0
@@ -185,7 +185,7 @@ export default function DiscoverScoreboard() {
           {/* Radar */}
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
-              <PolarGrid stroke="#27272a" />
+              <PolarGrid stroke="var(--color-border-default)" />
               <PolarAngleAxis
                 dataKey="subject"
                 tick={{ fill: "var(--color-text-secondary)", fontSize: 11 }}
@@ -193,8 +193,8 @@ export default function DiscoverScoreboard() {
               <Radar
                 name={selected.name}
                 dataKey="score"
-                stroke={gradeRingColor[selected.grade] ?? "#8b5cf6"}
-                fill={gradeRingColor[selected.grade] ?? "#8b5cf6"}
+                stroke={gradeRingColor[selected.grade] ?? "var(--color-brand-green)"}
+                fill={gradeRingColor[selected.grade] ?? "var(--color-brand-green)"}
                 fillOpacity={0.18}
                 strokeWidth={2}
               />
@@ -321,8 +321,8 @@ export default function DiscoverScoreboard() {
               .sort((a, b) => (a.pbr ?? 99) - (b.pbr ?? 99));
             const top = byPbr[0];
             return (
-              <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
-                <div className="text-blue-400 font-semibold mb-1">💎 최저 PBR</div>
+              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+                <div className="text-emerald-400 font-semibold mb-1">💎 최저 PBR</div>
                 <div className="text-[var(--color-text-primary)] font-bold">{top?.name ?? "데이터 없음"}</div>
                 <div className="text-[var(--color-text-muted)] mt-0.5">
                   {top?.pbr != null ? `PBR ${top.pbr.toFixed(2)}x` : "N/A"}

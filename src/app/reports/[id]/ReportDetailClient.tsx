@@ -265,7 +265,7 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
               <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">주가 추이 (최근 30일)</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <LineChart data={priceData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
                   <XAxis
                     dataKey="date"
                     tick={{ fill: "#71717a", fontSize: 10 }}
@@ -278,14 +278,14 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
                     width={55}
                   />
                   <Tooltip
-                    contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", borderRadius: 8 }}
-                    labelStyle={{ color: "#a1a1aa" }}
+                    contentStyle={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border-strong)", borderRadius: 8 }}
+                    labelStyle={{ color: "var(--color-text-secondary)" }}
                     formatter={(v) => [v != null ? Number(v).toLocaleString() : "N/A", "종가"]}
                   />
                   <Line
                     type="monotone"
                     dataKey="close"
-                    stroke="#8b5cf6"
+                    stroke="var(--color-brand-green)"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -300,16 +300,16 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
               <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">재무 추이 (억원)</h3>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart data={finData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" />
                   <XAxis dataKey="period" tick={{ fill: "#71717a", fontSize: 10 }} />
                   <YAxis tick={{ fill: "#71717a", fontSize: 10 }} tickFormatter={(v) => `${v}`} width={45} />
                   <Tooltip
-                    contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", borderRadius: 8 }}
+                    contentStyle={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border-strong)", borderRadius: 8 }}
                     formatter={(v) => [v != null ? `${Number(v)}억` : "N/A"]}
                   />
-                  <Legend wrapperStyle={{ fontSize: 11, color: "#a1a1aa" }} />
-                  <Bar dataKey="매출" fill="#6366f1" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="영업이익" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
+                  <Legend wrapperStyle={{ fontSize: 11, color: "var(--color-text-secondary)" }} />
+                  <Bar dataKey="매출" fill="var(--color-brand-blue)" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="영업이익" fill="var(--color-brand-green)" radius={[3, 3, 0, 0]} />
                   <Bar dataKey="순이익" fill="#a78bfa" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
