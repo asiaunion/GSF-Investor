@@ -79,12 +79,12 @@ export default async function DisclosuresPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">공시 타임라인</h1>
-          <p className="text-zinc-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-text-primary">공시 타임라인</h1>
+          <p className="text-text-muted text-sm mt-1">
             DART · SEC EDGAR 최신 공시 — 최대 200건
           </p>
         </div>

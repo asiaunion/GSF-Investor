@@ -263,14 +263,14 @@ export default async function HomePage() {
   const { contribData, sectorData, ...data } = rawData;
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-text-primary flex items-center gap-3">
               포트폴리오 대시보드
               {unresolvedCount > 0 && (
                 <Link
@@ -282,7 +282,7 @@ export default async function HomePage() {
                 </Link>
               )}
             </h1>
-            <p className="text-zinc-500 text-sm mt-1">
+            <p className="text-text-muted text-sm mt-1">
               기준일: {data.summary.fxDate ?? "—"}&nbsp;·&nbsp; USD/KRW {data.summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
             </p>
           </div>
@@ -306,15 +306,15 @@ function DashboardSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
       {/* Hero skeleton */}
-      <div className="h-36 bg-zinc-900 rounded-2xl" />
+      <div className="h-36 bg-bg-surface rounded-2xl" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-28 bg-zinc-900 rounded-2xl" />
+          <div key={i} className="h-28 bg-bg-surface rounded-2xl" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="h-72 bg-zinc-900 rounded-2xl" />
-        <div className="h-72 bg-zinc-900 rounded-2xl" />
+        <div className="h-72 bg-bg-surface rounded-2xl" />
+        <div className="h-72 bg-bg-surface rounded-2xl" />
       </div>
     </div>
   );

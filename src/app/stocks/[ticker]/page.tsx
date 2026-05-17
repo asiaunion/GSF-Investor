@@ -176,30 +176,30 @@ export default async function StockDetailPage({ params }: PageProps) {
       : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-zinc-600 mb-6">
-          <a href="/stocks" className="hover:text-zinc-400 transition-colors">관심종목</a>
+        <div className="flex items-center gap-2 text-xs text-text-muted mb-6">
+          <a href="/stocks" className="hover:text-text-secondary transition-colors">관심종목</a>
           <span>›</span>
-          <span className="text-zinc-400">{stock.name}</span>
+          <span className="text-text-secondary">{stock.name}</span>
         </div>
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-white">{stock.name}</h1>
+              <h1 className="text-2xl font-bold text-text-primary">{stock.name}</h1>
               <span className={`text-[10px] font-medium px-2 py-1 rounded border ${categoryColor}`}>
                 {stock.category}
               </span>
-              <span className="text-[10px] font-medium px-2 py-1 rounded border bg-zinc-800 text-zinc-400 border-zinc-700">
+              <span className="text-[10px] font-medium px-2 py-1 rounded border bg-bg-elevated text-text-secondary border-border-default">
                 {stock.market === "KR" ? "한국" : "미국"} · {stock.ticker}
               </span>
             </div>
-            {stock.broker && <p className="text-zinc-600 text-xs mt-1">{stock.broker}</p>}
+            {stock.broker && <p className="text-text-muted text-xs mt-1">{stock.broker}</p>}
           </div>
 
           {stock.yahooTicker && (
@@ -207,7 +207,7 @@ export default async function StockDetailPage({ params }: PageProps) {
               href={`https://finance.yahoo.com/quote/${stock.yahooTicker}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 text-xs transition-all"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-default text-text-muted hover:text-text-secondary hover:border-zinc-600 text-xs transition-all"
             >
               Yahoo Finance ↗
             </a>

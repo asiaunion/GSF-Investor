@@ -235,7 +235,7 @@ export default function DiscoverScoreboard() {
                   onClick={() => setFilterGrade(g)}
                   className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
                     filterGrade === g
-                      ? "text-white"
+                      ? "text-text-primary"
                       : "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   }`}
                 >
@@ -245,7 +245,7 @@ export default function DiscoverScoreboard() {
             </div>
           </div>
 
-          <div className="divide-y divide-zinc-800/50">
+          <div className="divide-y divide-border-default/50">
             {filtered.map((stock, i) => (
               <div
                 key={stock.stockId}

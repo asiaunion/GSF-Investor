@@ -46,8 +46,8 @@ export default function JournalFormToggle() {
         onClick={() => setOpen((v) => !v)}
         className={`w-full sm:w-auto flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
           open && !isMobile
-            ? "bg-zinc-700 text-zinc-300 border border-zinc-600"
-            : "bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500"
+            ? "bg-bg-elevated text-text-secondary border border-zinc-600"
+            : "bg-emerald-600 hover:bg-emerald-500 text-text-primary border border-emerald-500"
         }`}
       >
         {open && !isMobile ? (
@@ -71,8 +71,8 @@ export default function JournalFormToggle() {
 
       {/* ── 데스크탑: 인라인 패널 ── */}
       {open && !isMobile && (
-        <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <h2 className="text-base font-semibold text-white mb-5">새 매매 일지</h2>
+        <div className="mt-4 bg-bg-surface border border-border-default rounded-2xl p-6">
+          <h2 className="text-base font-semibold text-text-primary mb-5">새 매매 일지</h2>
           <JournalForm onSuccess={handleClose} />
         </div>
       )}
@@ -100,18 +100,18 @@ export default function JournalFormToggle() {
             aria-modal="true"
             aria-label="새 매매 일지"
           >
-            <div className="bg-zinc-900 border-t border-zinc-700 rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="bg-bg-surface border-t border-border-default rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
               {/* 드래그 핸들 */}
               <div className="flex justify-center pt-3 pb-1 shrink-0">
                 <div className="w-10 h-1 bg-zinc-600 rounded-full" />
               </div>
 
               {/* 헤더 */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-800 shrink-0">
-                <h2 className="text-base font-semibold text-white">새 매매 일지</h2>
+              <div className="flex items-center justify-between px-5 py-3 border-b border-border-default shrink-0">
+                <h2 className="text-base font-semibold text-text-primary">새 매매 일지</h2>
                 <button
                   onClick={handleClose}
-                  className="w-7 h-7 flex items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-bg-elevated text-text-secondary hover:text-text-primary hover:bg-bg-elevated transition-colors"
                   aria-label="닫기"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

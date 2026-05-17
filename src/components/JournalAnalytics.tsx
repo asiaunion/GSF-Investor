@@ -342,7 +342,7 @@ export default function JournalAnalytics() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/40">
+              <tbody className="divide-y divide-border-default/40">
                 {realizedTrades.map((t) => (
                   <tr key={t.id} className="hover:bg-[var(--color-bg-elevated)]/20 transition-colors">
                     <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">{t.tradedAt}</td>

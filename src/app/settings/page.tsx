@@ -83,12 +83,12 @@ export default async function SettingsPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">⚙️ 설정</h1>
-          <p className="text-sm text-zinc-500 mt-1">관심종목 · 대출 관리 및 식별자 설정</p>
+          <h1 className="text-2xl font-bold text-text-primary">⚙️ 설정</h1>
+          <p className="text-sm text-text-muted mt-1">관심종목 · 대출 관리 및 식별자 설정</p>
         </div>
         <SettingsClient stocks={stocks} loans={loans} />
       </div>

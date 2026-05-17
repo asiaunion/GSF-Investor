@@ -256,7 +256,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
             className={`text-xs px-4 py-2 rounded-lg border font-semibold transition-colors ${
               showAddForm
                 ? "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
-                : "bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500"
+                : "bg-emerald-600 border-emerald-500 text-text-primary hover:bg-emerald-500"
             }`}
           >
             {showAddForm ? "✕ 닫기" : "+ 신규 종목 추가"}
@@ -369,7 +369,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                 id="btn-submit-add-stock"
                 onClick={handleAddStock}
                 disabled={addSaving || !addForm.ticker || !addForm.name}
-                className="px-6 py-2 text-xs font-medium text-white hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+                className="px-6 py-2 text-xs font-medium text-text-primary hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
               >
                 {addSaving ? "추가 중..." : "종목 추가"}
               </button>
@@ -377,7 +377,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           </div>
         )}
 
-        <ul className="divide-y divide-zinc-800/60">
+        <ul className="divide-y divide-border-default/60">
           {stocks.map((stock) => {
             const isExpanded = expandedId === stock.id;
             const isToggling = togglingId === stock.id;
@@ -518,7 +518,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
 
                     {/* 메타 정보 및 액션 버튼 */}
                     <div className="flex items-center justify-between pt-4 mt-2 border-t border-[var(--color-border-default)]/50">
-                      <p className="text-xs text-zinc-700">
+                      <p className="text-xs text-text-disabled">
                         추가일: {new Date(stock.addedAt).toLocaleDateString("ko-KR")} · ID: {stock.id}
                       </p>
                       <div className="flex gap-2">
@@ -531,7 +531,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                         <button
                           onClick={handleSaveForm}
                           disabled={saving}
-                          className="px-6 py-2 text-xs font-medium text-white hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+                          className="px-6 py-2 text-xs font-medium text-text-primary hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
                         >
                           {saving ? "저장 중..." : "저장"}
                         </button>
@@ -663,7 +663,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
               <button
                 onClick={handleAddLoan}
                 disabled={loanSaving}
-                className="px-6 py-2 text-xs font-medium text-white hover:bg-orange-500 rounded-lg transition-colors disabled:opacity-50"
+                className="px-6 py-2 text-xs font-medium text-text-primary hover:bg-orange-500 rounded-lg transition-colors disabled:opacity-50"
               >
                 {loanSaving ? "저장 중..." : "대출 등록"}
               </button>
@@ -675,10 +675,10 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
         {loans.length === 0 && !showLoanForm ? (
           <div className="px-6 py-10 text-center">
             <p className="text-[var(--color-text-disabled)] text-sm">등록된 대출이 없습니다</p>
-            <p className="text-zinc-700 text-xs mt-1">주식담보대출이 있다면 위 버튼으로 추가하세요</p>
+            <p className="text-text-disabled text-xs mt-1">주식담보대출이 있다면 위 버튼으로 추가하세요</p>
           </div>
         ) : (
-          <ul className="divide-y divide-zinc-800/60">
+          <ul className="divide-y divide-border-default/60">
             {loans.map((loan) => {
               const annual = loan.loanAmount * loan.interestRate / 100;
               const monthly = annual / 12;

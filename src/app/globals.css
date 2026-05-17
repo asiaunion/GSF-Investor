@@ -150,8 +150,9 @@
     --adaptive-violet-400:  #7C3AED; /* violet-600 */
   }
 
-  .dark {
-    /* ── Dark Mode (Minimalist Tonal Slate) ── */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* ── Dark Mode (Minimalist Tonal Slate) ── */
     --bg-base:        #161719;
     --bg-surface:     #1C1D21;
     --bg-elevated:    #24252A;
@@ -206,6 +207,7 @@
     --adaptive-emerald-400: #34D399;
     --adaptive-blue-400:    #60A5FA;
     --adaptive-violet-400:  #A78BFA;
+    }
   }
 }
 

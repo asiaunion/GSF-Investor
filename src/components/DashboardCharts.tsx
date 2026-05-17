@@ -34,8 +34,8 @@ export function ReturnBarChart({ data }: { data: ReturnBarData[] }) {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
-      <div className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm shadow-lg">
-        <p className="text-white font-semibold">{d.name}</p>
+      <div className="bg-bg-elevated border border-border-default rounded-xl px-3 py-2 text-sm shadow-lg">
+        <p className="text-text-primary font-semibold">{d.name}</p>
         <p className={d.returnRate >= 0 ? "text-emerald-400" : "text-red-400"}>
           {d.returnRate >= 0 ? "+" : ""}
           {d.returnRate.toFixed(2)}%
@@ -102,10 +102,10 @@ export function CoreSatelliteDonut({ data }: { data: DonutData[] }) {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
-      <div className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm shadow-lg">
-        <p className="text-white font-semibold">{d.name}</p>
-        <p className="text-zinc-300">{formatKRW(d.valueKRW)}</p>
-        <p className="text-zinc-400">{d.pct.toFixed(1)}%</p>
+      <div className="bg-bg-elevated border border-border-default rounded-xl px-3 py-2 text-sm shadow-lg">
+        <p className="text-text-primary font-semibold">{d.name}</p>
+        <p className="text-text-secondary">{formatKRW(d.valueKRW)}</p>
+        <p className="text-text-secondary">{d.pct.toFixed(1)}%</p>
       </div>
     );
   };
@@ -205,17 +205,17 @@ export function WeightedContributionChart({ data }: { data: ContribData[] }) {
     const d = payload[0].payload;
     const pnlPos = d.pnlKRW >= 0;
     return (
-      <div className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-xs shadow-lg min-w-[140px]">
-        <p className="text-white font-semibold mb-1.5">{d.name} <span className="text-zinc-500">({d.ticker})</span></p>
-        <div className="space-y-1 text-zinc-400">
-          <div>비중: <span className="text-zinc-200 font-medium">{d.weightPct.toFixed(1)}%</span></div>
+      <div className="bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-xs shadow-lg min-w-[140px]">
+        <p className="text-text-primary font-semibold mb-1.5">{d.name} <span className="text-text-muted">({d.ticker})</span></p>
+        <div className="space-y-1 text-text-secondary">
+          <div>비중: <span className="text-text-primary font-medium">{d.weightPct.toFixed(1)}%</span></div>
           <div>
             평가손익:{" "}
             <span className={`font-medium ${pnlPos ? "text-emerald-400" : "text-red-400"}`}>
               {pnlPos ? "+" : ""}{formatKRW(d.pnlKRW)}
             </span>
           </div>
-          <div>카테고리: <span className="text-zinc-300">{d.category}</span></div>
+          <div>카테고리: <span className="text-text-secondary">{d.category}</span></div>
         </div>
       </div>
     );
@@ -282,10 +282,10 @@ export function SectorDonut({ data }: { data: SectorData[] }) {
     if (!active || !payload?.length) return null;
     const d = payload[0].payload;
     return (
-      <div className="bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-sm shadow-lg">
-        <p className="text-white font-semibold">{d.sector}</p>
-        <p className="text-zinc-300">{formatKRW(d.valueKRW)}</p>
-        <p className="text-zinc-400">{d.pct.toFixed(1)}%</p>
+      <div className="bg-bg-elevated border border-border-default rounded-xl px-3 py-2 text-sm shadow-lg">
+        <p className="text-text-primary font-semibold">{d.sector}</p>
+        <p className="text-text-secondary">{formatKRW(d.valueKRW)}</p>
+        <p className="text-text-secondary">{d.pct.toFixed(1)}%</p>
       </div>
     );
   };

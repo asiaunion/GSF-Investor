@@ -49,3 +49,4 @@ list_models.ts
 query.ts
 test_db.ts
 tmp/
+.env*.local

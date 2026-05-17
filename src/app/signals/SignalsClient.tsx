@@ -219,13 +219,13 @@ function SignalCard({
                       setShowResolveForm(false);
                     }}
                     disabled={isResolving}
-                    className="px-4 py-1.5 text-white text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                    className="px-4 py-1.5 text-text-primary text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
                     {isResolving ? "처리 중..." : "확인 완료"}
                   </button>
                   <button
                     onClick={() => setShowResolveForm(false)}
-                    className="px-4 py-1.5 bg-[var(--color-bg-elevated)] hover:bg-zinc-700 text-[var(--color-text-secondary)] text-xs font-medium rounded-lg transition-colors"
+                    className="px-4 py-1.5 bg-[var(--color-bg-elevated)] hover:bg-bg-elevated text-[var(--color-text-secondary)] text-xs font-medium rounded-lg transition-colors"
                   >
                     취소
                   </button>

@@ -46,22 +46,22 @@ export default async function JournalDetailPage({
   if (!row) notFound();
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       {/* 네비게이션 */}
-      <nav className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur sticky top-0 z-10">
+      <nav className="border-b border-border-default bg-bg-surface/50 backdrop-blur sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
-          <Link href="/" className="text-zinc-600 hover:text-zinc-400 transition-colors">
+          <Link href="/" className="text-text-muted hover:text-text-secondary transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
               <polyline points="16 7 22 7 22 13" />
             </svg>
           </Link>
-          <span className="text-zinc-700">/</span>
-          <Link href="/journal" className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors">
+          <span className="text-text-disabled">/</span>
+          <Link href="/journal" className="text-sm text-text-muted hover:text-text-secondary transition-colors">
             매매 일지
           </Link>
-          <span className="text-zinc-700">/</span>
-          <span className="text-sm text-white font-medium">
+          <span className="text-text-disabled">/</span>
+          <span className="text-sm text-text-primary font-medium">
             {row.ticker} — {row.tradedAt}
           </span>
         </div>

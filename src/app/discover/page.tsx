@@ -41,12 +41,12 @@ export default async function DiscoverPage() {
   const stocks = await fetchStocks();
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white">종목 발굴</h1>
-          <p className="text-zinc-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-text-primary">종목 발굴</h1>
+          <p className="text-text-muted text-sm mt-1">
             관심종목 체크리스트 · AI 스코어보드로 투자 기회를 발굴하세요
           </p>
         </div>

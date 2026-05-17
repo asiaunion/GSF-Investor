@@ -18,8 +18,8 @@ export default async function RootLayout({
 }) {
   const session = await auth();
   return (
-    <html lang="ko" className="dark">
-      <body className={`${inter.className} bg-zinc-950 text-zinc-100 antialiased`}>
+    <html lang="ko">
+      <body className={`${inter.className} bg-bg-base text-text-primary antialiased`}>
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>
     </html>

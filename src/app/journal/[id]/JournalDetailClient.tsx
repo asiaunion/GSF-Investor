@@ -88,7 +88,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
       ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/30"
       : initial.action === "SELL"
       ? "text-red-400 bg-red-500/10 border-red-500/30"
-      : "text-zinc-400 bg-zinc-700/30 border-zinc-600/30";
+      : "text-text-secondary bg-bg-elevated/30 border-zinc-600/30";
 
   return (
     <div className="space-y-6">
@@ -99,21 +99,21 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
       )}
 
       {/* 헤더 카드 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+      <div className="bg-bg-surface border border-border-default rounded-2xl p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className="text-xl font-bold font-mono text-white">{initial.ticker}</span>
+              <span className="text-xl font-bold font-mono text-text-primary">{initial.ticker}</span>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border ${actionColor}`}>
                 {initial.action}
               </span>
               {initial.emotionTag && !editing && (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs border ${emotionColors[initial.emotionTag] ?? "text-zinc-400 bg-zinc-700/30 border-zinc-600/30"}`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs border ${emotionColors[initial.emotionTag] ?? "text-text-secondary bg-bg-elevated/30 border-zinc-600/30"}`}>
                   {initial.emotionTag}
                 </span>
               )}
             </div>
-            <p className="text-zinc-500 text-sm">{initial.name}</p>
+            <p className="text-text-muted text-sm">{initial.name}</p>
           </div>
           <div className="flex gap-2 items-center">
             {!editing ? (
@@ -123,14 +123,14 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                     <span className="text-xs text-red-400 mr-1">정말 삭제할까요?</span>
                     <button
                       onClick={() => setConfirmDelete(false)}
-                      className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-sm rounded-xl transition-colors"
+                      className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-xl transition-colors"
                     >
                       취소
                     </button>
                     <button
                       onClick={handleDeleteConfirmed}
                       disabled={deleting}
-                      className="px-3 py-2 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      className="px-3 py-2 bg-red-600 hover:bg-red-500 text-text-primary text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
                     >
                       {deleting ? "삭제 중..." : "확인"}
                     </button>
@@ -139,7 +139,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                   <>
                     <button
                       onClick={() => setEditing(true)}
-                      className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-sm rounded-xl transition-colors"
+                      className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-xl transition-colors"
                     >
                       편집
                     </button>
@@ -156,14 +156,14 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
               <>
                 <button
                   onClick={() => setEditing(false)}
-                  className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 text-sm rounded-xl transition-colors"
+                  className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-xl transition-colors"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-text-primary text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
                 >
                   {saving ? "저장 중..." : "저장"}
                 </button>
@@ -182,10 +182,10 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                   type="date"
                   value={form.tradedAt}
                   onChange={set("tradedAt")}
-                  className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-500/60 w-full"
+                  className="bg-bg-elevated border border-border-default rounded-lg px-2 py-1 text-sm text-text-primary focus:outline-none focus:border-emerald-500/60 w-full"
                 />
               ) : (
-                <span className="text-white text-sm">{initial.tradedAt}</span>
+                <span className="text-text-primary text-sm">{initial.tradedAt}</span>
               ),
             },
             {
@@ -196,10 +196,10 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                   min="1"
                   value={form.quantity}
                   onChange={set("quantity")}
-                  className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-500/60 w-full"
+                  className="bg-bg-elevated border border-border-default rounded-lg px-2 py-1 text-sm text-text-primary focus:outline-none focus:border-emerald-500/60 w-full"
                 />
               ) : (
-                <span className="text-white text-sm">{initial.quantity.toLocaleString()}주</span>
+                <span className="text-text-primary text-sm">{initial.quantity.toLocaleString()}주</span>
               ),
             },
             {
@@ -211,10 +211,10 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                   step="any"
                   value={form.price}
                   onChange={set("price")}
-                  className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:border-emerald-500/60 w-full"
+                  className="bg-bg-elevated border border-border-default rounded-lg px-2 py-1 text-sm text-text-primary focus:outline-none focus:border-emerald-500/60 w-full"
                 />
               ) : (
-                <span className="text-white text-sm">₩{initial.price.toLocaleString()}</span>
+                <span className="text-text-primary text-sm">₩{initial.price.toLocaleString()}</span>
               ),
             },
             {
@@ -226,8 +226,8 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
               ),
             },
           ].map(({ label, value }) => (
-            <div key={label} className="bg-zinc-800/40 rounded-xl p-3">
-              <p className="text-xs text-zinc-500 mb-1.5">{label}</p>
+            <div key={label} className="bg-bg-elevated/40 rounded-xl p-3">
+              <p className="text-xs text-text-muted mb-1.5">{label}</p>
               {value}
             </div>
           ))}
@@ -235,25 +235,25 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
       </div>
 
       {/* 테제 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">투자 테제</h2>
+      <div className="bg-bg-surface border border-border-default rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider">투자 테제</h2>
         {editing ? (
           <textarea
             rows={4}
             value={form.thesis}
             onChange={set("thesis")}
             required
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors resize-none"
+            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-emerald-500/60 transition-colors resize-none"
           />
         ) : (
-          <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">{initial.thesis}</p>
+          <p className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap">{initial.thesis}</p>
         )}
       </div>
 
       {/* 감정 태그 (편집 시) */}
       {editing && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">감정 태그</h2>
+        <div className="bg-bg-surface border border-border-default rounded-2xl p-6">
+          <h2 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider">감정 태그</h2>
           <div className="flex flex-wrap gap-2">
             {EMOTIONS.map((e) => (
               <button
@@ -268,7 +268,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                   form.emotionTag === e
                     ? emotionColors[e]
-                    : "bg-zinc-800 border-zinc-700 text-zinc-500 hover:border-zinc-600"
+                    : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600"
                 }`}
               >
                 {e}
@@ -279,20 +279,20 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
       )}
 
       {/* 회고 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-zinc-400 mb-3 uppercase tracking-wider">회고</h2>
+      <div className="bg-bg-surface border border-border-default rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider">회고</h2>
         {editing ? (
           <textarea
             rows={4}
             value={form.retrospective}
             onChange={set("retrospective")}
             placeholder="이 거래에 대한 회고를 기록하세요..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors resize-none"
+            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors resize-none"
           />
         ) : initial.retrospective ? (
-          <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">{initial.retrospective}</p>
+          <p className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap">{initial.retrospective}</p>
         ) : (
-          <p className="text-zinc-600 text-sm italic">아직 회고가 없습니다. 편집 버튼을 눌러 추가하세요.</p>
+          <p className="text-text-muted text-sm italic">아직 회고가 없습니다. 편집 버튼을 눌러 추가하세요.</p>
         )}
       </div>
     </div>

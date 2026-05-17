@@ -69,20 +69,20 @@ export default async function SignalsPage() {
   const unresolvedCount = signals.filter((s) => s.isResolved === 0 && s.severity === "HIGH").length;
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-text-primary flex items-center gap-3">
               시그널 타임라인
               {unresolvedCount > 0 && (
-                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse">
+                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-500 text-text-primary text-xs font-bold animate-pulse">
                   {unresolvedCount}
                 </span>
               )}
             </h1>
-            <p className="text-zinc-500 text-sm mt-1">
+            <p className="text-text-muted text-sm mt-1">
               HIGH 우선 정렬 · 미확인 시그널 먼저 표시
             </p>
           </div>

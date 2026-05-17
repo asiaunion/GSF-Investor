@@ -25,11 +25,11 @@ export default function DisclosuresClient({ disclosures, tickers }: Props) {
       {/* 필터 바 */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500">종목</span>
+          <span className="text-xs text-text-muted">종목</span>
           <select
             value={filterTicker}
             onChange={(e) => setFilterTicker(e.target.value)}
-            className="bg-zinc-900 border border-zinc-700 text-zinc-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 transition-colors"
+            className="bg-bg-surface border border-border-default text-text-primary text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 transition-colors"
           >
             <option value="ALL">전체</option>
             {tickers.map((t) => (
@@ -39,7 +39,7 @@ export default function DisclosuresClient({ disclosures, tickers }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-500">소스</span>
+          <span className="text-xs text-text-muted">소스</span>
           <div className="flex gap-1">
             {["ALL", "DART", "SEC"].map((src) => (
               <button
@@ -48,7 +48,7 @@ export default function DisclosuresClient({ disclosures, tickers }: Props) {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   filterSource === src
                     ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                    : "bg-zinc-900 text-zinc-400 border border-zinc-700 hover:border-zinc-500"
+                    : "bg-bg-surface text-text-secondary border border-border-default hover:border-zinc-500"
                 }`}
               >
                 {src}
@@ -57,7 +57,7 @@ export default function DisclosuresClient({ disclosures, tickers }: Props) {
           </div>
         </div>
 
-        <span className="ml-auto text-xs text-zinc-600">
+        <span className="ml-auto text-xs text-text-muted">
           {filtered.length}건
         </span>
       </div>
@@ -97,7 +97,7 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
     : "—";
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-colors">
+    <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden hover:border-border-default transition-colors">
       <div className="px-5 py-4">
         <div className="flex items-start gap-3">
           {/* 소스 배지 */}
@@ -110,15 +110,15 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
           {/* 내용 */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs text-zinc-500">{marketBadge}</span>
-              <span className="text-xs font-semibold text-zinc-300">
+              <span className="text-xs text-text-muted">{marketBadge}</span>
+              <span className="text-xs font-semibold text-text-secondary">
                 {d.ticker}
               </span>
-              <span className="text-xs text-zinc-600">·</span>
-              <span className="text-xs text-zinc-500">{filedLabel}</span>
+              <span className="text-xs text-text-muted">·</span>
+              <span className="text-xs text-text-muted">{filedLabel}</span>
             </div>
 
-            <p className="text-sm text-white font-medium leading-snug line-clamp-2">
+            <p className="text-sm text-text-primary font-medium leading-snug line-clamp-2">
               {d.title}
             </p>
 
@@ -126,11 +126,11 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
             {d.summaryAi && (
               <div className="mt-2">
                 {expanded ? (
-                  <div className="text-xs text-zinc-400 leading-relaxed bg-zinc-800/50 rounded-lg p-3 mt-1">
+                  <div className="text-xs text-text-secondary leading-relaxed bg-bg-elevated/50 rounded-lg p-3 mt-1">
                     {d.summaryAi}
                   </div>
                 ) : (
-                  <p className="text-xs text-zinc-500 line-clamp-1">
+                  <p className="text-xs text-text-muted line-clamp-1">
                     AI: {d.summaryAi}
                   </p>
                 )}
@@ -150,7 +150,7 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
               href={d.rawUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0 mt-0.5 text-xs text-zinc-500 hover:text-emerald-400 transition-colors flex items-center gap-1"
+              className="shrink-0 mt-0.5 text-xs text-text-muted hover:text-emerald-400 transition-colors flex items-center gap-1"
             >
               <svg
                 width="12"
@@ -177,8 +177,8 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
 
 function EmptyState() {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-8 py-16 text-center">
-      <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+    <div className="bg-bg-surface border border-border-default rounded-2xl px-8 py-16 text-center">
+      <div className="w-12 h-12 rounded-full bg-bg-elevated flex items-center justify-center mx-auto mb-4">
         <svg
           width="20"
           height="20"
@@ -193,8 +193,8 @@ function EmptyState() {
           <polyline points="14 2 14 8 20 8" />
         </svg>
       </div>
-      <p className="text-zinc-400 font-medium text-sm">수집된 공시가 없습니다</p>
-      <p className="text-zinc-600 text-xs mt-1">
+      <p className="text-text-secondary font-medium text-sm">수집된 공시가 없습니다</p>
+      <p className="text-text-muted text-xs mt-1">
         daily_dart.py / daily_sec.py 크론잡을 확인하세요
       </p>
     </div>

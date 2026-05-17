@@ -18,7 +18,7 @@ export default function DiscoverTabs({ stocks }: { stocks: StockWithChecklist[] 
   return (
     <div className="space-y-6">
       {/* 탭 선택 */}
-      <div className="flex gap-1 bg-zinc-900 border border-zinc-800 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-bg-surface border border-border-default rounded-xl p-1 w-fit">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -26,8 +26,8 @@ export default function DiscoverTabs({ stocks }: { stocks: StockWithChecklist[] 
             onClick={() => setTab(t.id)}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
               tab === t.id
-                ? "bg-violet-600 text-white shadow-sm"
-                : "text-zinc-400 hover:text-white"
+                ? "bg-violet-600 text-text-primary shadow-sm"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
             {t.label}

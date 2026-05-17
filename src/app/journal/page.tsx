@@ -40,15 +40,15 @@ export default async function JournalPage() {
   const sellCount = rows.filter((r) => r.action === "SELL").length;
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">매매 일지</h1>
-            <p className="text-zinc-500 text-sm mt-1">
+            <h1 className="text-2xl font-bold text-text-primary">매매 일지</h1>
+            <p className="text-text-muted text-sm mt-1">
               총 {rows.length}건 · 매수 {buyCount}건 · 매도 {sellCount}건
             </p>
           </div>

@@ -39,7 +39,7 @@ export default function Navbar({ email }: NavbarProps) {
   }, [pathname]); // pathname 변경 시 재조회
 
   return (
-    <nav className="border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50">
+    <nav className="border-b border-border-default bg-bg-surface/60 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
@@ -58,7 +58,7 @@ export default function Navbar({ email }: NavbarProps) {
               <polyline points="16 7 22 7 22 13" />
             </svg>
           </div>
-          <span className="font-semibold text-white text-sm">GSF Investor</span>
+          <span className="font-semibold text-text-primary text-sm">GSF Investor</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-3 overflow-x-auto">
           {NAV_LINKS.map((link) => {
@@ -74,13 +74,13 @@ export default function Navbar({ email }: NavbarProps) {
                 className={`relative shrink-0 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? "text-emerald-400 bg-emerald-500/10"
-                    : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    : "text-text-secondary hover:text-text-primary hover:bg-bg-elevated"
                 }`}
               >
                 {link.label}
                 {/* 시그널 배지 */}
                 {isSignals && unresolvedCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-text-primary text-[10px] font-bold flex items-center justify-center animate-pulse">
                     {unresolvedCount > 9 ? "9+" : unresolvedCount}
                   </span>
                 )}
@@ -88,7 +88,7 @@ export default function Navbar({ email }: NavbarProps) {
             );
           })}
           {email && (
-            <span className="text-xs text-zinc-600 hidden sm:block ml-2 shrink-0">
+            <span className="text-xs text-text-muted hidden sm:block ml-2 shrink-0">
               {email}
             </span>
           )}

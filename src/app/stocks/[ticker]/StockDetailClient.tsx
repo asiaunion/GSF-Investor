@@ -84,7 +84,7 @@ function fmtLarge(v: number | null, currency: string) {
 }
 
 function ReturnBadge({ value }: { value: number | null }) {
-  if (value == null) return <span className="text-zinc-600">—</span>;
+  if (value == null) return <span className="text-text-muted">—</span>;
   const pos = value >= 0;
   return (
     <span className={`font-semibold ${pos ? "text-emerald-400" : "text-red-400"}`}>
@@ -110,24 +110,24 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
   return (
     <div className="space-y-6">
       {/* Price hero */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+      <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-zinc-500 text-xs mb-1">현재가 · {overview.priceDate ?? "—"}</div>
-            <div className="text-3xl font-bold text-white tracking-tight">
+            <div className="text-text-muted text-xs mb-1">현재가 · {overview.priceDate ?? "—"}</div>
+            <div className="text-3xl font-bold text-text-primary tracking-tight">
               {fmtPrice(currentPrice, currency)}
             </div>
             {currency === "USD" && currentPrice && (
-              <div className="text-zinc-500 text-sm mt-1">
+              <div className="text-text-muted text-sm mt-1">
                 ≈ ₩{(currentPrice * usdkrw).toLocaleString("ko-KR", { maximumFractionDigits: 0 })}
               </div>
             )}
           </div>
           {portfolio && (
             <div className="text-right">
-              <div className="text-zinc-500 text-xs mb-1">보유 수익률</div>
+              <div className="text-text-muted text-xs mb-1">보유 수익률</div>
               <div className="text-xl font-bold"><ReturnBadge value={holdingReturn} /></div>
-              <div className="text-zinc-600 text-xs mt-1">
+              <div className="text-text-muted text-xs mt-1">
                 {portfolio.quantity.toLocaleString()}주 · 평균 {fmtPrice(portfolio.avgPrice, currency)}
               </div>
             </div>
@@ -148,18 +148,18 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
           { label: "배당수익률", value: dividendYield != null ? `${dividendYield.toFixed(2)}%` : "—" },
           { label: "평가금액", value: evalKRW != null ? `₩${(evalKRW / 1e8).toFixed(2)}억` : "—" },
         ].map((m) => (
-          <div key={m.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-zinc-600 text-[10px] uppercase tracking-wider">{m.label}</div>
-            <div className="text-white text-lg font-semibold mt-1">{m.value}</div>
+          <div key={m.label} className="bg-bg-surface border border-border-default rounded-xl p-4">
+            <div className="text-text-muted text-[10px] uppercase tracking-wider">{m.label}</div>
+            <div className="text-text-primary text-lg font-semibold mt-1">{m.value}</div>
           </div>
         ))}
       </div>
 
       {/* Thesis */}
       {stock.thesis && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-          <div className="text-zinc-500 text-xs uppercase tracking-wider mb-2">투자 테제</div>
-          <p className="text-zinc-300 text-sm leading-relaxed">{stock.thesis}</p>
+        <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+          <div className="text-text-muted text-xs uppercase tracking-wider mb-2">투자 테제</div>
+          <p className="text-text-secondary text-sm leading-relaxed">{stock.thesis}</p>
         </div>
       )}
     </div>
@@ -170,42 +170,42 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
 function FinancialTab({ financials, currency }: { financials: Financial[]; currency: string }) {
   return (
     <div className="space-y-6">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        <div className="text-zinc-400 text-sm font-medium mb-4">손익계산서 추이</div>
+      <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+        <div className="text-text-secondary text-sm font-medium mb-4">손익계산서 추이</div>
         <IncomeLineChart data={financials} currency={currency} />
       </div>
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        <div className="text-zinc-400 text-sm font-medium mb-4">재무상태표</div>
+      <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+        <div className="text-text-secondary text-sm font-medium mb-4">재무상태표</div>
         <BalanceSheetBarChart data={financials} currency={currency} />
       </div>
       {/* Table */}
       {financials.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="bg-bg-surface border border-border-default rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="px-4 py-3 text-left text-zinc-500 font-medium">기간</th>
-                  <th className="px-4 py-3 text-right text-zinc-500 font-medium">매출</th>
-                  <th className="px-4 py-3 text-right text-zinc-500 font-medium">영업이익</th>
-                  <th className="px-4 py-3 text-right text-zinc-500 font-medium">순이익</th>
-                  <th className="px-4 py-3 text-right text-zinc-500 font-medium">ROE</th>
-                  <th className="px-4 py-3 text-right text-zinc-500 font-medium">EPS</th>
+                <tr className="border-b border-border-default">
+                  <th className="px-4 py-3 text-left text-text-muted font-medium">기간</th>
+                  <th className="px-4 py-3 text-right text-text-muted font-medium">매출</th>
+                  <th className="px-4 py-3 text-right text-text-muted font-medium">영업이익</th>
+                  <th className="px-4 py-3 text-right text-text-muted font-medium">순이익</th>
+                  <th className="px-4 py-3 text-right text-text-muted font-medium">ROE</th>
+                  <th className="px-4 py-3 text-right text-text-muted font-medium">EPS</th>
                 </tr>
               </thead>
               <tbody>
                 {[...financials].reverse().map((f) => (
-                  <tr key={f.period} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-4 py-3 text-zinc-300 font-medium">{f.period}</td>
-                    <td className="px-4 py-3 text-right text-zinc-400">{fmtLarge(f.revenue, currency)}</td>
+                  <tr key={f.period} className="border-b border-border-default/50 hover:bg-bg-elevated/30 transition-colors">
+                    <td className="px-4 py-3 text-text-secondary font-medium">{f.period}</td>
+                    <td className="px-4 py-3 text-right text-text-secondary">{fmtLarge(f.revenue, currency)}</td>
                     <td className={`px-4 py-3 text-right font-medium ${f.opIncome != null && f.opIncome >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {fmtLarge(f.opIncome, currency)}
                     </td>
                     <td className={`px-4 py-3 text-right font-medium ${f.netIncome != null && f.netIncome >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {fmtLarge(f.netIncome, currency)}
                     </td>
-                    <td className="px-4 py-3 text-right text-zinc-400">{fmt(f.roe)}%</td>
-                    <td className="px-4 py-3 text-right text-zinc-400">{fmtPrice(f.eps, currency)}</td>
+                    <td className="px-4 py-3 text-right text-text-secondary">{fmt(f.roe)}%</td>
+                    <td className="px-4 py-3 text-right text-text-secondary">{fmtPrice(f.eps, currency)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -225,18 +225,18 @@ function DisclosuresTab({ disclosures }: { disclosures: Disclosure[] }) {
   return (
     <div className="space-y-3">
       {disclosures.map((d) => (
-        <div key={d.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors">
+        <div key={d.id} className="bg-bg-surface border border-border-default rounded-xl p-4 hover:border-border-default transition-colors">
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
               d.source === "DART"
                 ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                 : "bg-amber-500/10 text-amber-400 border-amber-500/20"
             }`}>{d.source}</span>
-            <span className="text-zinc-600 text-xs">{d.filedAt.slice(0, 10)}</span>
+            <span className="text-text-muted text-xs">{d.filedAt.slice(0, 10)}</span>
           </div>
-          <div className="text-zinc-200 text-sm font-medium leading-snug">{d.title}</div>
+          <div className="text-text-primary text-sm font-medium leading-snug">{d.title}</div>
           {d.summaryAi && (
-            <div className="mt-2 text-zinc-500 text-xs leading-relaxed line-clamp-3">
+            <div className="mt-2 text-text-muted text-xs leading-relaxed line-clamp-3">
               {d.summaryAi}
             </div>
           )}
@@ -264,13 +264,13 @@ function SignalsTab({ signals }: { signals: Signal[] }) {
   return (
     <div className="space-y-3">
       {signals.map((s) => (
-        <div key={s.id} className={`bg-zinc-900 border rounded-xl p-4 transition-colors ${
-          s.isResolved ? "border-zinc-800/50 opacity-60" : "border-zinc-800 hover:border-zinc-700"
+        <div key={s.id} className={`bg-bg-surface border rounded-xl p-4 transition-colors ${
+          s.isResolved ? "border-border-default/50 opacity-60" : "border-border-default hover:border-border-default"
         }`}>
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <SeverityDot severity={s.severity} />
-              <span className="text-zinc-300 text-xs font-medium">{s.type.replace(/_/g, " ")}</span>
+              <span className="text-text-secondary text-xs font-medium">{s.type.replace(/_/g, " ")}</span>
               <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
                 s.severity === "HIGH"
                   ? "bg-red-500/10 text-red-400 border-red-500/20"
@@ -279,11 +279,11 @@ function SignalsTab({ signals }: { signals: Signal[] }) {
                   : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               }`}>{s.severity}</span>
             </div>
-            <span className="text-zinc-600 text-xs">{s.detectedAt.slice(0, 10)}</span>
+            <span className="text-text-muted text-xs">{s.detectedAt.slice(0, 10)}</span>
           </div>
-          <div className="text-zinc-300 text-sm leading-relaxed">{s.description}</div>
+          <div className="text-text-secondary text-sm leading-relaxed">{s.description}</div>
           {s.resolvedNote && (
-            <div className="mt-2 text-zinc-600 text-xs">✓ {s.resolvedNote}</div>
+            <div className="mt-2 text-text-muted text-xs">✓ {s.resolvedNote}</div>
           )}
         </div>
       ))}
@@ -325,21 +325,21 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
   return (
     <div className="space-y-4">
       {/* Input form */}
-      <form onSubmit={handleSubmit} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-        <div className="text-zinc-400 text-xs font-medium mb-2">새 메모 작성</div>
+      <form onSubmit={handleSubmit} className="bg-bg-surface border border-border-default rounded-2xl p-4">
+        <div className="text-text-secondary text-xs font-medium mb-2">새 메모 작성</div>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="투자 메모를 작성하세요 (마크다운 지원)..."
           rows={4}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-zinc-200 text-sm placeholder:text-zinc-600 resize-none focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+          className="w-full bg-bg-elevated border border-border-default rounded-xl px-4 py-3 text-text-primary text-sm placeholder:text-text-muted resize-none focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
         />
         {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
         <div className="flex justify-end mt-2">
           <button
             type="submit"
             disabled={submitting || !text.trim()}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-white text-xs font-medium transition-all"
+            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-bg-elevated disabled:text-text-muted text-text-primary text-xs font-medium transition-all"
           >
             {submitting ? "저장 중..." : "저장"}
           </button>
@@ -351,9 +351,9 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
         <EmptyState label="메모 없음" sub="첫 번째 투자 메모를 작성해보세요" />
       ) : (
         notes.map((note) => (
-          <div key={note.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <div className="text-zinc-600 text-[10px] mb-2">{note.createdAt.slice(0, 16)}</div>
-            <div className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">{note.contentMd}</div>
+          <div key={note.id} className="bg-bg-surface border border-border-default rounded-xl p-4">
+            <div className="text-text-muted text-[10px] mb-2">{note.createdAt.slice(0, 16)}</div>
+            <div className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{note.contentMd}</div>
           </div>
         ))
       )}
@@ -364,13 +364,13 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
 function EmptyState({ label, sub }: { label: string; sub?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-2">
-      <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-zinc-600">
+      <div className="w-12 h-12 rounded-xl bg-bg-surface border border-border-default flex items-center justify-center">
+        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-text-muted">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
       </div>
-      <p className="text-zinc-500 text-sm">{label}</p>
-      {sub && <p className="text-zinc-700 text-xs">{sub}</p>}
+      <p className="text-text-muted text-sm">{label}</p>
+      {sub && <p className="text-text-disabled text-xs">{sub}</p>}
     </div>
   );
 }
@@ -411,7 +411,7 @@ export default function StockDetailClient({
             className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               activeTab === tab
                 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/25"
-                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                : "text-text-muted hover:text-text-secondary hover:bg-bg-elevated"
             }`}
           >
             {tab}

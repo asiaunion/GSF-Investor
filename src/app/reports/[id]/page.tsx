@@ -90,7 +90,7 @@ export default async function ReportDetailPage({
   if (!report) notFound();
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-bg-base">
       <Navbar email={session.user?.email} />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ReportDetailClient report={report} />

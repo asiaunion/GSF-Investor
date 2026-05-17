@@ -9,7 +9,7 @@ function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg-base flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo / Brand */}
         <div className="text-center mb-10">
@@ -29,16 +29,16 @@ function LoginContent() {
               <polyline points="16 7 22 7 22 13" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
             GSF Investor
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">개인 투자 시스템</p>
+          <p className="text-text-secondary text-sm mt-1">개인 투자 시스템</p>
         </div>
 
         {/* Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-lg font-semibold text-white mb-1">로그인</h2>
-          <p className="text-zinc-500 text-sm mb-6">
+        <div className="bg-bg-surface border border-border-default rounded-2xl p-8 shadow-2xl">
+          <h2 className="text-lg font-semibold text-text-primary mb-1">로그인</h2>
+          <p className="text-text-muted text-sm mb-6">
             Google 계정으로 안전하게 접속하세요.
           </p>
 
@@ -67,7 +67,7 @@ function LoginContent() {
             Google로 계속하기
           </button>
 
-          <p className="text-center text-xs text-zinc-600 mt-4">
+          <p className="text-center text-xs text-text-muted mt-4">
             승인된 계정만 접근 가능합니다.
           </p>
         </div>
