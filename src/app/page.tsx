@@ -54,9 +54,11 @@ async function fetchDashboardData() {
     JOIN stocks bm ON bm.ticker = '069500' AND p1.stock_id = bm.id
     JOIN prices p2 ON p2.stock_id = bm.id
       AND p2.date = (
+        -- 30일 전에 가장 가까운 가격 (기준일)
         SELECT date FROM prices
         WHERE stock_id = bm.id
-        ORDER BY date ASC LIMIT 1
+          AND date <= date((SELECT MAX(date) FROM prices WHERE stock_id = bm.id), '-30 days')
+        ORDER BY date DESC LIMIT 1
       )
     ORDER BY p1.date DESC
     LIMIT 1
@@ -221,15 +223,42 @@ async function fetchUnresolvedCount() {
   return Number(rows.rows[0]?.[0] ?? 0);
 }
 
+// ── 주식담보대출 현황 ───────────────────────────────────────────────────────────
+async function fetchLoans() {
+  const rows = await db.run(sql`
+    SELECT
+      l.id, s.ticker, l.label, l.loan_amount, l.interest_rate,
+      l.started_at, l.is_active, l.note
+    FROM stock_loans l
+    LEFT JOIN stocks s ON s.id = l.stock_id
+    WHERE l.is_active = 1
+    ORDER BY l.created_at DESC
+  `).catch(() => ({ rows: [] }));
+  return rows.rows.map((r) => ({
+    id: Number(r[0]),
+    ticker: r[1] ? String(r[1]) : null,
+    label: String(r[2]),
+    loanAmount: Number(r[3]),
+    interestRate: Number(r[4]),
+    startedAt: r[5] ? String(r[5]) : null,
+    isActive: Number(r[6]),
+    note: r[7] ? String(r[7]) : null,
+    // 파생 계산
+    annualInterest: Number(r[3]) * Number(r[4]) / 100,
+    monthlyInterest: Number(r[3]) * Number(r[4]) / 100 / 12,
+  }));
+}
+
 // ── 서버 컴포넌트 메인 ─────────────────────────────────────────────────────────
 export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [rawData, recentSignals, unresolvedCount] = await Promise.all([
+  const [rawData, recentSignals, unresolvedCount, loans] = await Promise.all([
     fetchDashboardData(),
     fetchRecentSignals(),
     fetchUnresolvedCount(),
+    fetchLoans(),
   ]);
   const { contribData, sectorData, ...data } = rawData;
 
@@ -265,6 +294,7 @@ export default async function HomePage() {
             recentSignals={recentSignals}
             contribData={contribData}
             sectorData={sectorData}
+            loans={loans}
           />
         </Suspense>
       </main>

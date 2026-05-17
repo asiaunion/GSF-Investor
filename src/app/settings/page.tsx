@@ -23,6 +23,18 @@ export type StockSetting = {
   addedAt: string;
 };
 
+export type LoanSetting = {
+  id: number;
+  stockId: number | null;
+  ticker: string | null;
+  label: string;
+  loanAmount: number;
+  interestRate: number;
+  startedAt: string;
+  isActive: number;
+  note: string;
+};
+
 export default async function SettingsPage() {
   const session = await auth();
   if (!session) redirect("/login");
@@ -50,15 +62,35 @@ export default async function SettingsPage() {
     addedAt: String(r[12]),
   }));
 
+  const loanRows = await db.run(sql`
+    SELECT l.id, l.stock_id, s.ticker, l.label, l.loan_amount, l.interest_rate,
+           l.started_at, l.is_active, l.note
+    FROM stock_loans l
+    LEFT JOIN stocks s ON s.id = l.stock_id
+    ORDER BY l.created_at DESC
+  `).catch(() => ({ rows: [] }));
+
+  const loans: LoanSetting[] = loanRows.rows.map((r) => ({
+    id: Number(r[0]),
+    stockId: r[1] ? Number(r[1]) : null,
+    ticker: r[2] ? String(r[2]) : null,
+    label: String(r[3]),
+    loanAmount: Number(r[4]),
+    interestRate: Number(r[5]),
+    startedAt: r[6] ? String(r[6]) : "",
+    isActive: Number(r[7]),
+    note: r[8] ? String(r[8]) : "",
+  }));
+
   return (
     <div className="min-h-screen bg-zinc-950">
       <Navbar email={session.user?.email} />
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-white">⚙️ 설정</h1>
-          <p className="text-sm text-zinc-500 mt-1">관심종목 관리 및 식별자 설정</p>
+          <p className="text-sm text-zinc-500 mt-1">관심종목 · 대출 관리 및 식별자 설정</p>
         </div>
-        <SettingsClient stocks={stocks} />
+        <SettingsClient stocks={stocks} loans={loans} />
       </div>
     </div>
   );

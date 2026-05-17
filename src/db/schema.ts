@@ -119,6 +119,21 @@ export const reports = sqliteTable("reports", {
   chartsJson: text("charts_json"),
 });
 
+// ── 주식담보대출 ────────────────────────────────────────────────────────────
+export const stockLoans = sqliteTable("stock_loans", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  stockId: integer("stock_id").references(() => stocks.id), // 담보 종목 (null=포트폴리오 전체)
+  label: text("label").notNull().default("주식담보대출"),
+  loanAmount: real("loan_amount").notNull(),   // 대출 원금 (KRW)
+  interestRate: real("interest_rate").notNull(), // 연이자율 (%)
+  // 파생 계산: annual_interest = loan_amount * interest_rate / 100
+  //            monthly_interest = annual_interest / 12
+  startedAt: text("started_at"),               // 대출 시작일
+  isActive: integer("is_active").default(1),
+  note: text("note"),
+  createdAt: text("created_at").default(sql`(datetime('now'))`),
+});
+
 // ── 종목 메모 (시계열 누적) ──────────────────────────────────────────────────
 export const stockNotes = sqliteTable("stock_notes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -164,3 +179,5 @@ export type NewTradeJournal = typeof tradeJournal.$inferInsert;
 export type Report = typeof reports.$inferSelect;
 export type StockNote = typeof stockNotes.$inferSelect;
 export type ExchangeRate = typeof exchangeRates.$inferSelect;
+export type StockLoan = typeof stockLoans.$inferSelect;
+export type NewStockLoan = typeof stockLoans.$inferInsert;

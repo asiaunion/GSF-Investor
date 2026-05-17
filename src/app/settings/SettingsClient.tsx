@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { StockSetting } from "./page";
+import type { StockSetting, LoanSetting } from "./page";
 
 type Props = {
   stocks: StockSetting[];
+  loans: LoanSetting[];
 };
 
 const categoryOptions = ["Core", "Satellite"];
@@ -13,13 +14,26 @@ const marketBadge: Record<string, string> = {
   US: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
 };
 
-export default function SettingsClient({ stocks: initialStocks }: Props) {
+export default function SettingsClient({ stocks: initialStocks, loans: initialLoans }: Props) {
   const [stocks, setStocks] = useState(initialStocks);
+  const [loans, setLoans] = useState(initialLoans);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<StockSetting> | null>(null);
   const [saving, setSaving] = useState(false);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // ── 신규 대출 추가 ──────────────────────────────────────────────────────────
+  const [showLoanForm, setShowLoanForm] = useState(false);
+  const [loanForm, setLoanForm] = useState({
+    label: "주식담보대출",
+    loanAmount: "",
+    interestRate: "",
+    startedAt: "",
+    note: "",
+  });
+  const [loanSaving, setLoanSaving] = useState(false);
+  const [loanError, setLoanError] = useState<string | null>(null);
 
   // ── 신규 종목 추가 ──────────────────────────────────────────────────────────
   const [showAddForm, setShowAddForm] = useState(false);
@@ -149,6 +163,56 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
     } finally {
       setAddSaving(false);
     }
+  };
+
+  // ── 대출 추가 핸들러 ────────────────────────────────────────────────────────
+  const handleAddLoan = async () => {
+    if (!loanForm.loanAmount || !loanForm.interestRate) {
+      setLoanError("대출금액과 이자율은 필수입니다");
+      return;
+    }
+    setLoanSaving(true);
+    setLoanError(null);
+    try {
+      const res = await fetch("/api/settings/loans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          label: loanForm.label,
+          loanAmount: parseFloat(loanForm.loanAmount),
+          interestRate: parseFloat(loanForm.interestRate),
+          startedAt: loanForm.startedAt || null,
+          note: loanForm.note || null,
+        }),
+      });
+      if (!res.ok) throw new Error("추가 실패");
+      setLoanForm({ label: "주식담보대출", loanAmount: "", interestRate: "", startedAt: "", note: "" });
+      setShowLoanForm(false);
+      window.location.reload();
+    } catch (e) {
+      setLoanError(String(e));
+    } finally {
+      setLoanSaving(false);
+    }
+  };
+
+  const handleDeleteLoan = async (id: number) => {
+    if (!confirm("이 대출 항목을 삭제하시겠습니까?")) return;
+    await fetch("/api/settings/loans", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    setLoans((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  const handleToggleLoan = async (loan: LoanSetting) => {
+    await fetch("/api/settings/loans", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: loan.id, isActive: loan.isActive === 0 }),
+    });
+    setLoans((prev) => prev.map((l) => l.id === loan.id ? { ...l, isActive: l.isActive === 1 ? 0 : 1 } : l));
   };
 
   return (
@@ -481,6 +545,195 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
         </ul>
       </div>
 
+      {/* ── 대출 관리 ────────────────────────────────────────────────── */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-white">💳 주식담보대출 관리</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">대출금액 · 이자율 입력 시 연간/월평균 이자 자동 계산</p>
+          </div>
+          <button
+            onClick={() => { setShowLoanForm((v) => !v); setLoanError(null); }}
+            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+              showLoanForm
+                ? "bg-zinc-800 border-zinc-700 text-zinc-400"
+                : "bg-orange-600/10 border-orange-500/30 text-orange-400 hover:bg-orange-600/20"
+            }`}
+          >
+            {showLoanForm ? "✕ 닫기" : "+ 대출 추가"}
+          </button>
+        </div>
+
+        {/* 대출 추가 폼 */}
+        {showLoanForm && (
+          <div className="px-6 py-5 bg-zinc-950/60 border-b border-zinc-800">
+            <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-4">신규 대출 등록</h3>
+            {loanError && (
+              <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+                ⚠️ {loanError}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">대출명</label>
+                <input
+                  value={loanForm.label}
+                  onChange={(e) => setLoanForm({ ...loanForm, label: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-orange-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  placeholder="주식담보대출"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">대출 시작일</label>
+                <input
+                  type="date"
+                  value={loanForm.startedAt}
+                  onChange={(e) => setLoanForm({ ...loanForm, startedAt: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-orange-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">대출금액 (KRW) <span className="text-red-400">*</span></label>
+                <input
+                  type="number"
+                  value={loanForm.loanAmount}
+                  onChange={(e) => setLoanForm({ ...loanForm, loanAmount: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-orange-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  placeholder="50000000"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">연이자율 (%) <span className="text-red-400">*</span></label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={loanForm.interestRate}
+                  onChange={(e) => setLoanForm({ ...loanForm, interestRate: e.target.value })}
+                  className="w-full bg-zinc-800 border border-zinc-700 focus:border-orange-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  placeholder="4.5"
+                />
+              </div>
+            </div>
+
+            {/* 실시간 이자 계산 미리보기 */}
+            {loanForm.loanAmount && loanForm.interestRate && (
+              <div className="mb-3 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
+                <p className="text-xs text-zinc-400 mb-1.5">📊 이자 계산 미리보기</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-xs text-zinc-600">대출원금</p>
+                    <p className="text-sm font-semibold text-orange-400 tabular-nums">
+                      {Number(loanForm.loanAmount).toLocaleString("ko-KR")}원
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-600">연간 이자</p>
+                    <p className="text-sm font-semibold text-red-400 tabular-nums">
+                      {Math.round(Number(loanForm.loanAmount) * Number(loanForm.interestRate) / 100).toLocaleString("ko-KR")}원
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-600">월평균 이자</p>
+                    <p className="text-sm font-semibold text-amber-400 tabular-nums">
+                      {Math.round(Number(loanForm.loanAmount) * Number(loanForm.interestRate) / 100 / 12).toLocaleString("ko-KR")}원
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="text-xs text-zinc-500 block mb-1">메모</label>
+              <input
+                value={loanForm.note}
+                onChange={(e) => setLoanForm({ ...loanForm, note: e.target.value })}
+                className="w-full bg-zinc-800 border border-zinc-700 focus:border-orange-500 text-white rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                placeholder="대신증권 동서 담보 (동서 2600주)"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-2 mt-3">
+              <button
+                onClick={() => setShowLoanForm(false)}
+                className="px-4 py-2 text-xs text-zinc-400 bg-zinc-800/50 hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddLoan}
+                disabled={loanSaving}
+                className="px-6 py-2 text-xs font-medium text-white bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {loanSaving ? "저장 중..." : "대출 등록"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 대출 목록 */}
+        {loans.length === 0 && !showLoanForm ? (
+          <div className="px-6 py-10 text-center">
+            <p className="text-zinc-600 text-sm">등록된 대출이 없습니다</p>
+            <p className="text-zinc-700 text-xs mt-1">주식담보대출이 있다면 위 버튼으로 추가하세요</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-zinc-800/60">
+            {loans.map((loan) => {
+              const annual = loan.loanAmount * loan.interestRate / 100;
+              const monthly = annual / 12;
+              const inactive = loan.isActive === 0;
+              return (
+                <li key={loan.id} className={`px-6 py-4 ${inactive ? "opacity-50" : ""}`}>
+                  <div className="flex items-center gap-4">
+                    {/* 대출 정보 */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold text-white">{loan.label}</span>
+                        {inactive && <span className="text-xs bg-zinc-800 text-zinc-600 px-1.5 py-0.5 rounded">비활성</span>}
+                        {loan.startedAt && <span className="text-xs text-zinc-600">시작: {loan.startedAt}</span>}
+                      </div>
+                      {loan.note && <p className="text-xs text-zinc-600 mb-1">{loan.note}</p>}
+                      {/* 이자 계산 표시 */}
+                      <div className="flex flex-wrap gap-3">
+                        <span className="text-xs text-zinc-500">
+                          원금 <span className="text-orange-400 font-medium tabular-nums">{loan.loanAmount.toLocaleString("ko-KR")}원</span>
+                        </span>
+                        <span className="text-xs text-zinc-500">
+                          연{loan.interestRate}% → 연이자 <span className="text-red-400 font-medium tabular-nums">{Math.round(annual).toLocaleString("ko-KR")}원</span>
+                        </span>
+                        <span className="text-xs text-zinc-500">
+                          월평균 <span className="text-amber-400 font-medium tabular-nums">{Math.round(monthly).toLocaleString("ko-KR")}원</span>
+                        </span>
+                      </div>
+                    </div>
+                    {/* 액션 버튼 */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleToggleLoan(loan)}
+                        className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                          inactive
+                            ? "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-emerald-400 hover:border-emerald-500/30"
+                            : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-zinc-800 hover:text-zinc-400"
+                        }`}
+                      >
+                        {inactive ? "활성화" : "비활성화"}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLoan(loan.id)}
+                        className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
       {/* ── 안내 카드 ────────────────────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
         <h2 className="text-base font-semibold text-white mb-3">💡 사용 안내</h2>
@@ -489,6 +742,7 @@ export default function SettingsClient({ stocks: initialStocks }: Props) {
           <p>• <span className="text-zinc-300 font-medium">카테고리 변경</span>: Core ↔ Satellite 전환은 즉시 대시보드 비중 차트에 반영됩니다.</p>
           <p>• <span className="text-zinc-300 font-medium">비활성화</span>: 종목 데이터는 보존하되 대시보드에서 제외됩니다. 완전 삭제가 아닙니다.</p>
           <p>• <span className="text-zinc-300 font-medium">신규 종목 추가</span>: 위 <span className="text-violet-400 font-medium">"+ 신규 종목 추가"</span> 버튼을 클릭하세요. Yahoo Ticker가 있어야 주가 자동 수집이 됩니다.</p>
+          <p>• <span className="text-zinc-300 font-medium">대출 관리</span>: 대출금액 × 연이자율 ÷ 100 = 연간이자, ÷ 12 = 월평균이자로 자동 계산됩니다.</p>
         </div>
       </div>
     </div>

@@ -66,16 +66,30 @@ interface SectorItem {
   pct: number;
 }
 
+interface LoanItem {
+  id: number;
+  ticker: string | null;
+  label: string;
+  loanAmount: number;
+  interestRate: number;
+  startedAt: string | null;
+  isActive: number;
+  note: string | null;
+  annualInterest: number;
+  monthlyInterest: number;
+}
+
 interface Props {
   data: { holdings: Holding[]; summary: Summary };
   recentSignals: RecentSignal[];
   contribData: ContribItem[];
   sectorData: SectorItem[];
+  loans: LoanItem[];
 }
 
 // ── 컴포넌트 ─────────────────────────────────────────────────────────────────
 
-export default function DashboardClient({ data, recentSignals, contribData, sectorData }: Props) {
+export default function DashboardClient({ data, recentSignals, contribData, sectorData, loans }: Props) {
   const { holdings, summary } = data;
 
   const donutData = [
@@ -351,6 +365,86 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
           </div>
         )}
       </div>
+
+      {/* ── 주식담보대출 현황 ────────────────────────────────────────────── */}
+      {(() => {
+        const totalLoan = loans.reduce((s, l) => s + l.loanAmount, 0);
+        const totalAnnual = loans.reduce((s, l) => s + l.annualInterest, 0);
+        const totalMonthly = totalAnnual / 12;
+        const ltvPct = summary.totalEvalKRW > 0 ? (totalLoan / summary.totalEvalKRW) * 100 : 0;
+        return (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-orange-400 inline-block" />
+                대출 현황 (주식담보)
+              </h2>
+              <Link
+                href="/settings"
+                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                관리 →
+              </Link>
+            </div>
+
+            {loans.length === 0 ? (
+              <div className="px-5 py-8 text-center">
+                <p className="text-zinc-600 text-sm">등록된 대출이 없습니다</p>
+                <Link href="/settings" className="text-xs text-emerald-500/70 hover:text-emerald-400 mt-2 inline-block">
+                  Settings → 대출 추가
+                </Link>
+              </div>
+            ) : (
+              <>
+                {/* 요약 스트립 */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-0 divide-x divide-zinc-800 border-b border-zinc-800">
+                  {[
+                    { label: "전체 대출원금", value: formatKRW(totalLoan), color: "text-orange-400" },
+                    { label: "연간 이자합계", value: formatKRW(Math.round(totalAnnual)), color: "text-red-400" },
+                    { label: "월평균 이자", value: formatKRW(Math.round(totalMonthly)), color: "text-amber-400" },
+                    { label: "LTV (대출/평가)", value: `${ltvPct.toFixed(1)}%`, color: ltvPct > 60 ? "text-red-400" : "text-zinc-300" },
+                  ].map((item) => (
+                    <div key={item.label} className="px-5 py-4">
+                      <p className="text-xs text-zinc-500 mb-1">{item.label}</p>
+                      <p className={`text-base font-bold tabular-nums ${item.color}`}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 대출 항목 리스트 */}
+                <div className="divide-y divide-zinc-800/50">
+                  {loans.map((loan) => (
+                    <div key={loan.id} className="px-5 py-3.5 flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-sm font-medium text-white">{loan.label}</span>
+                          {loan.ticker && (
+                            <span className="text-xs px-1.5 py-0.5 bg-zinc-800 text-zinc-400 rounded">
+                              {loan.ticker} 담보
+                            </span>
+                          )}
+                          {loan.startedAt && (
+                            <span className="text-xs text-zinc-600">시작: {loan.startedAt}</span>
+                          )}
+                        </div>
+                        {loan.note && <p className="text-xs text-zinc-600">{loan.note}</p>}
+                      </div>
+                      <div className="text-right shrink-0 space-y-0.5">
+                        <p className="text-sm font-semibold text-orange-400 tabular-nums">
+                          {formatKRW(loan.loanAmount)}
+                        </p>
+                        <p className="text-xs text-zinc-500 tabular-nums">
+                          연{loan.interestRate}% · 월{formatKRW(Math.round(loan.monthlyInterest))}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── 최근 시그널 타임라인 ─────────────────────────────────────────── */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
