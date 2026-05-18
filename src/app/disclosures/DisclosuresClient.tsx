@@ -1,6 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { inputClass, tabActive, tabInactive } from "@/lib/economist-ui";
+import {
+  EconomistEmptyState,
+  EconomistFilterRow,
+  EconomistPanel,
+  EconomistPanelBody,
+  EconomistPanelHeader,
+  EconomistStatGrid,
+} from "@/components/EconomistPage";
+import { economistCard } from "@/lib/economist-ui";
 import type { DisclosureRow } from "./page";
 
 interface Props {
@@ -20,35 +30,47 @@ export default function DisclosuresClient({ disclosures, tickers }: Props) {
     });
   }, [disclosures, filterTicker, filterSource]);
 
+  const dartCount = disclosures.filter((d) => d.source === "DART").length;
+  const secCount = disclosures.filter((d) => d.source === "SEC").length;
+
   return (
-    <div className="space-y-5">
-      {/* 필터 바 */}
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="space-y-6">
+      <EconomistStatGrid
+        items={[
+          { label: "전체 공시", value: disclosures.length },
+          { label: "DART", value: dartCount, valueClassName: "text-brand-blue" },
+          { label: "SEC", value: secCount, valueClassName: "text-brand-green" },
+          { label: "표시 중", value: filtered.length },
+        ]}
+      />
+
+      <EconomistFilterRow countLabel={`${filtered.length}건`}>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-text-muted">종목</span>
+          <span className="text-xs text-text-muted shrink-0">종목</span>
           <select
             value={filterTicker}
             onChange={(e) => setFilterTicker(e.target.value)}
-            className="bg-bg-surface border border-border-default text-text-primary text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 transition-colors"
+            className={`${inputClass} w-auto min-w-[120px]`}
           >
             <option value="ALL">전체</option>
             {tickers.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs text-text-muted">소스</span>
+          <span className="text-xs text-text-muted shrink-0">소스</span>
           <div className="flex gap-1">
             {["ALL", "DART", "SEC"].map((src) => (
               <button
                 key={src}
+                type="button"
                 onClick={() => setFilterSource(src)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  filterSource === src
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                    : "bg-bg-surface text-text-secondary border border-border-default hover:border-zinc-500"
+                className={`px-3 py-1.5 rounded-sm text-xs transition-all ${
+                  filterSource === src ? tabActive : tabInactive
                 }`}
               >
                 {src}
@@ -56,21 +78,22 @@ export default function DisclosuresClient({ disclosures, tickers }: Props) {
             ))}
           </div>
         </div>
+      </EconomistFilterRow>
 
-        <span className="ml-auto text-xs text-text-muted">
-          {filtered.length}건
-        </span>
-      </div>
-
-      {/* 공시 리스트 */}
       {filtered.length === 0 ? (
-        <EmptyState />
+        <EconomistEmptyState
+          title="표시할 공시가 없습니다"
+          description="필터를 변경하거나 daily_dart.py 실행 후 다시 확인하세요"
+        />
       ) : (
-        <div className="space-y-2">
-          {filtered.map((d) => (
-            <DisclosureCard key={d.id} disclosure={d} />
-          ))}
-        </div>
+        <EconomistPanel>
+          <EconomistPanelHeader title="공시 목록" subtitle="클릭하여 AI 요약 펼치기" />
+          <EconomistPanelBody className="space-y-2 py-4">
+            {filtered.map((d) => (
+              <DisclosureCard key={d.id} disclosure={d} />
+            ))}
+          </EconomistPanelBody>
+        </EconomistPanel>
       )}
     </div>
   );
@@ -81,122 +104,57 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
 
   const sourceColor =
     d.source === "DART"
-      ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-      : "bg-amber-500/10 text-amber-400 border-amber-500/30";
+      ? "bg-brand-blue/10 text-brand-blue border border-brand-blue/25"
+      : "bg-brand-green/10 text-brand-green border border-brand-green/25";
 
-  const marketBadge =
-    d.market === "KR"
-      ? "🇰🇷"
-      : d.market === "US"
-      ? "🇺🇸"
-      : "🌏";
+  const marketFlag = d.market === "KR" ? "🇰🇷" : d.market === "US" ? "🇺🇸" : "🌏";
 
-  // 날짜 표시
-  const filedLabel = d.filedAt
-    ? d.filedAt.slice(0, 10)
-    : "—";
+  const filedLabel = d.filedAt ? d.filedAt.slice(0, 10) : "—";
 
   return (
-    <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden hover:border-border-default transition-colors">
+    <div className={`${economistCard} overflow-hidden hover:border-brand-green/30 transition-colors`}>
       <div className="px-5 py-4">
         <div className="flex items-start gap-3">
-          {/* 소스 배지 */}
-          <span
-            className={`mt-0.5 shrink-0 text-xs font-semibold px-2 py-0.5 rounded border ${sourceColor}`}
-          >
-            {d.source}
-          </span>
-
-          {/* 내용 */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="text-xs text-text-muted">{marketBadge}</span>
-              <span className="text-xs font-semibold text-text-secondary">
-                {d.ticker}
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-xs font-semibold text-text-primary">{d.ticker}</span>
+              <span className="text-xs text-text-muted">{d.stockName}</span>
+              <span className={`text-xs px-1.5 py-0.5 rounded border font-medium ${sourceColor}`}>
+                {d.source}
               </span>
-              <span className="text-xs text-text-muted">·</span>
-              <span className="text-xs text-text-muted">{filedLabel}</span>
+              <span className="text-xs text-text-muted">{marketFlag}</span>
+              <span className="text-xs text-text-muted ml-auto">{filedLabel}</span>
             </div>
 
-            <p className="text-sm text-text-primary font-medium leading-snug line-clamp-2">
-              {d.title}
-            </p>
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="text-left w-full group"
+            >
+              <p className="text-sm text-text-primary leading-snug group-hover:text-brand-green transition-colors">
+                {d.title}
+              </p>
+            </button>
 
-            {/* AI 요약 */}
-            {d.summaryAi && (
-              <div className="mt-2">
-                {expanded ? (
-                  <div className="text-xs text-text-secondary leading-relaxed bg-bg-elevated/50 rounded-lg p-3 mt-1">
-                    {d.summaryAi}
-                  </div>
-                ) : (
-                  <p className="text-xs text-text-muted line-clamp-1">
-                    AI: {d.summaryAi}
-                  </p>
-                )}
-                <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="mt-1 text-xs text-emerald-500 hover:text-emerald-400 transition-colors"
-                >
-                  {expanded ? "접기 ↑" : "AI 요약 보기 ↓"}
-                </button>
+            {expanded && d.summaryAi && (
+              <div className="text-xs text-text-secondary leading-relaxed bg-bg-elevated/50 rounded-sm p-3 mt-3 border border-border-default/60">
+                {d.summaryAi}
               </div>
             )}
-          </div>
 
-          {/* 원문 링크 */}
-          {d.rawUrl && (
-            <a
-              href={d.rawUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="shrink-0 mt-0.5 text-xs text-text-muted hover:text-emerald-400 transition-colors flex items-center gap-1"
-            >
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            {expanded && d.rawUrl && (
+              <a
+                href={d.rawUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 text-xs text-brand-green hover:text-brand-green/80"
               >
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-              원문
-            </a>
-          )}
+                원문 보기 →
+              </a>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="bg-bg-surface border border-border-default rounded-2xl px-8 py-16 text-center">
-      <div className="w-12 h-12 rounded-full bg-bg-elevated flex items-center justify-center mx-auto mb-4">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#71717a"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-        </svg>
-      </div>
-      <p className="text-text-secondary font-medium text-sm">수집된 공시가 없습니다</p>
-      <p className="text-text-muted text-xs mt-1">
-        daily_dart.py / daily_sec.py 크론잡을 확인하세요
-      </p>
     </div>
   );
 }

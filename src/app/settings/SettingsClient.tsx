@@ -1,6 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import {
+  btnDanger,
+  btnNeutral,
+  btnPrimary,
+  btnPrimaryOutline,
+  categoryBadge,
+  marketBadge,
+} from "@/lib/economist-ui";
 import type { StockSetting, LoanSetting } from "./page";
 
 type Props = {
@@ -9,10 +17,6 @@ type Props = {
 };
 
 const categoryOptions = ["Core", "Satellite"];
-const marketBadge: Record<string, string> = {
-  KR: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
-  US: "bg-emerald-500/10 text-[var(--color-brand-green)] border border-emerald-500/20",
-};
 
 export default function SettingsClient({ stocks: initialStocks, loans: initialLoans }: Props) {
   const [stocks, setStocks] = useState(initialStocks);
@@ -226,7 +230,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           {
             label: "Core / Satellite",
             value: `${stocks.filter((s) => s.category === "Core" && s.isActive).length} / ${stocks.filter((s) => s.category === "Satellite" && s.isActive).length}`,
-            color: "text-emerald-400",
+            color: "text-brand-blue",
           },
         ].map((item) => (
           <div key={item.label} className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4">
@@ -238,7 +242,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
 
       {/* ── 오류 메시지 ────────────────────────────────────────────── */}
       {saveError && (
-        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
+        <div className="p-3 bg-loss-bg border border-loss-border rounded-lg text-sm text-loss-400">
           ⚠️ {saveError}
         </div>
       )}
@@ -253,10 +257,8 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           <button
             id="btn-add-stock"
             onClick={() => { setShowAddForm((v) => !v); setAddError(null); setAddSuccess(null); }}
-            className={`text-xs px-4 py-2 rounded-lg border font-semibold transition-colors ${
-              showAddForm
-                ? "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
-                : "bg-violet-600 border-violet-500 text-white hover:bg-violet-500"
+            className={`text-xs px-4 py-2 rounded-sm font-semibold transition-colors ${
+              showAddForm ? btnNeutral : btnPrimary
             }`}
           >
             {showAddForm ? "✕ 닫기" : "+ 신규 종목 추가"}
@@ -269,12 +271,12 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
             <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">신규 종목 추가</h3>
 
             {addError && (
-              <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+              <div className="mb-3 p-2.5 bg-loss-bg border border-loss-border rounded-lg text-xs text-loss-400">
                 ⚠️ {addError}
               </div>
             )}
             {addSuccess && (
-              <div className="mb-3 p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-xs text-[var(--color-brand-green)]">
+              <div className="mb-3 p-2.5 bg-brand-green/10 border border-brand-green/25 rounded-lg text-xs text-[var(--color-brand-green)]">
                 {addSuccess}
               </div>
             )}
@@ -282,22 +284,22 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
             {/* 필수 필드 */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
               <div>
-                <label className="text-xs text-[var(--color-text-muted)] block mb-1">티커 <span className="text-red-400">*</span></label>
+                <label className="text-xs text-[var(--color-text-muted)] block mb-1">티커 <span className="text-brand-green/70">*</span></label>
                 <input
                   id="input-add-ticker"
                   value={addForm.ticker}
                   onChange={(e) => setAddForm({ ...addForm, ticker: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 uppercase"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40 uppercase"
                   placeholder="069500"
                 />
               </div>
               <div>
-                <label className="text-xs text-[var(--color-text-muted)] block mb-1">종목명 <span className="text-red-400">*</span></label>
+                <label className="text-xs text-[var(--color-text-muted)] block mb-1">종목명 <span className="text-brand-green/70">*</span></label>
                 <input
                   id="input-add-name"
                   value={addForm.name}
                   onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                   placeholder="KODEX 200"
                 />
               </div>
@@ -307,7 +309,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                   id="input-add-yahoo"
                   value={addForm.yahooTicker}
                   onChange={(e) => setAddForm({ ...addForm, yahooTicker: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                   placeholder="069500.KS"
                 />
               </div>
@@ -315,12 +317,12 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <div>
-                <label className="text-xs text-[var(--color-text-muted)] block mb-1">시장 <span className="text-red-400">*</span></label>
+                <label className="text-xs text-[var(--color-text-muted)] block mb-1">시장 <span className="text-brand-green/70">*</span></label>
                 <select
                   id="select-add-market"
                   value={addForm.market}
                   onChange={(e) => setAddForm({ ...addForm, market: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
                 >
                   <option value="KR">KR (국내)</option>
                   <option value="US">US (미국)</option>
@@ -332,7 +334,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                   id="select-add-category"
                   value={addForm.category}
                   onChange={(e) => setAddForm({ ...addForm, category: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
                 >
                   <option value="Core">Core</option>
                   <option value="Satellite">Satellite</option>
@@ -343,7 +345,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                 <input
                   value={addForm.sector}
                   onChange={(e) => setAddForm({ ...addForm, sector: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
                   placeholder="Food & Beverage"
                 />
               </div>
@@ -352,7 +354,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                 <input
                   value={addForm.broker}
                   onChange={(e) => setAddForm({ ...addForm, broker: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
                   placeholder="대신증권"
                 />
               </div>
@@ -369,7 +371,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                 id="btn-submit-add-stock"
                 onClick={handleAddStock}
                 disabled={addSaving || !addForm.ticker || !addForm.name}
-                className="px-6 py-2 text-xs font-medium text-text-primary hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+                className={`px-6 py-2 text-xs font-medium rounded-sm transition-colors disabled:opacity-50 ${btnPrimary}`}
               >
                 {addSaving ? "추가 중..." : "종목 추가"}
               </button>
@@ -403,11 +405,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                       <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
                         {stock.market}
                       </span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        stock.category === "Core"
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-amber-500/10 text-amber-400"
-                      }`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${categoryBadge(stock.category)}`}>
                         {stock.category}
                       </span>
                       {inactive && (
@@ -424,10 +422,8 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                     id={`btn-toggle-${stock.id}`}
                     onClick={(e) => { e.stopPropagation(); toggleActive(stock); }}
                     disabled={isToggling}
-                    className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                      inactive
-                        ? "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)] hover:text-[var(--color-brand-green)] hover:border-emerald-500/30"
-                        : "bg-emerald-500/10 border-emerald-500/30 text-[var(--color-brand-green)] hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
+                    className={`shrink-0 text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                      inactive ? btnNeutral : btnPrimaryOutline
                     }`}
                   >
                     {isToggling ? "..." : inactive ? "활성화" : "비활성화"}
@@ -454,7 +450,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                           <input
                             value={editForm.yahooTicker ?? ""}
                             onChange={(e) => setEditForm({ ...editForm, yahooTicker: e.target.value })}
-                            className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                             placeholder="026960.KS"
                           />
                         </div>
@@ -463,7 +459,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                           <input
                             value={editForm.dartCorpCode ?? ""}
                             onChange={(e) => setEditForm({ ...editForm, dartCorpCode: e.target.value })}
-                            className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                             placeholder="00296060 (8자리)"
                           />
                         </div>
@@ -472,7 +468,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                           <input
                             value={editForm.secCik ?? ""}
                             onChange={(e) => setEditForm({ ...editForm, secCik: e.target.value })}
-                            className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                             placeholder="0001103982"
                           />
                         </div>
@@ -486,7 +482,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                         <select
                           value={editForm.category ?? ""}
                           onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                          className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                         >
                           {categoryOptions.map((c) => (
                             <option key={c} value={c}>{c}</option>
@@ -498,7 +494,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                         <input
                           value={editForm.broker ?? ""}
                           onChange={(e) => setEditForm({ ...editForm, broker: e.target.value })}
-                          className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                           placeholder="대신증권"
                         />
                       </div>
@@ -511,7 +507,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                         value={editForm.thesis ?? ""}
                         onChange={(e) => setEditForm({ ...editForm, thesis: e.target.value })}
                         rows={3}
-                        className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-emerald-500 text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+                        className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40 resize-none"
                         placeholder="왜 이 종목을 보유하고 있는가?"
                       />
                     </div>
@@ -531,7 +527,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                         <button
                           onClick={handleSaveForm}
                           disabled={saving}
-                          className="px-6 py-2 text-xs font-medium text-text-primary hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50"
+                          className={`px-6 py-2 text-xs font-medium rounded-sm transition-colors disabled:opacity-50 ${btnPrimary}`}
                         >
                           {saving ? "저장 중..." : "저장"}
                         </button>
@@ -554,10 +550,8 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           </div>
           <button
             onClick={() => { setShowLoanForm((v) => !v); setLoanError(null); }}
-            className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
-              showLoanForm
-                ? "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
-                : "bg-orange-600/10 border-orange-500/30 text-orange-400 hover:bg-orange-600/20"
+            className={`text-xs px-3 py-1.5 rounded-sm font-medium transition-colors ${
+              showLoanForm ? btnNeutral : btnPrimaryOutline
             }`}
           >
             {showLoanForm ? "✕ 닫기" : "+ 대출 추가"}
@@ -569,7 +563,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           <div className="px-6 py-5 bg-[var(--color-bg-base)]/60 border-b border-[var(--color-border-default)]">
             <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-4">신규 대출 등록</h3>
             {loanError && (
-              <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400">
+              <div className="mb-3 p-2.5 bg-loss-bg border border-loss-border rounded-lg text-xs text-loss-400">
                 ⚠️ {loanError}
               </div>
             )}
@@ -579,7 +573,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                 <input
                   value={loanForm.label}
                   onChange={(e) => setLoanForm({ ...loanForm, label: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-orange-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                   placeholder="주식담보대출"
                 />
               </div>
@@ -589,29 +583,29 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                   type="date"
                   value={loanForm.startedAt}
                   onChange={(e) => setLoanForm({ ...loanForm, startedAt: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-orange-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="text-xs text-[var(--color-text-muted)] block mb-1">대출금액 (KRW) <span className="text-red-400">*</span></label>
+                <label className="text-xs text-[var(--color-text-muted)] block mb-1">대출금액 (KRW) <span className="text-brand-green/70">*</span></label>
                 <input
                   type="number"
                   value={loanForm.loanAmount}
                   onChange={(e) => setLoanForm({ ...loanForm, loanAmount: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-orange-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                   placeholder="50000000"
                 />
               </div>
               <div>
-                <label className="text-xs text-[var(--color-text-muted)] block mb-1">연이자율 (%) <span className="text-red-400">*</span></label>
+                <label className="text-xs text-[var(--color-text-muted)] block mb-1">연이자율 (%) <span className="text-brand-green/70">*</span></label>
                 <input
                   type="number"
                   step="0.1"
                   value={loanForm.interestRate}
                   onChange={(e) => setLoanForm({ ...loanForm, interestRate: e.target.value })}
-                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-orange-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
+                  className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-green/40"
                   placeholder="4.5"
                 />
               </div>
@@ -619,24 +613,24 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
 
             {/* 실시간 이자 계산 미리보기 */}
             {loanForm.loanAmount && loanForm.interestRate && (
-              <div className="mb-3 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
+              <div className="mb-3 p-3 bg-brand-blue/5 border border-brand-blue/20 rounded-sm">
                 <p className="text-xs text-[var(--color-text-secondary)] mb-1.5">📊 이자 계산 미리보기</p>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <p className="text-xs text-[var(--color-text-disabled)]">대출원금</p>
-                    <p className="text-sm font-semibold text-orange-400 tabular-nums">
+                    <p className="text-sm font-semibold text-text-primary tabular-nums">
                       {Number(loanForm.loanAmount).toLocaleString("ko-KR")}원
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-[var(--color-text-disabled)]">연간 이자</p>
-                    <p className="text-sm font-semibold text-red-400 tabular-nums">
+                    <p className="text-sm font-semibold text-brand-green tabular-nums">
                       {Math.round(Number(loanForm.loanAmount) * Number(loanForm.interestRate) / 100).toLocaleString("ko-KR")}원
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-[var(--color-text-disabled)]">월평균 이자</p>
-                    <p className="text-sm font-semibold text-amber-400 tabular-nums">
+                    <p className="text-xs text-text-disabled">월평균 이자</p>
+                    <p className="text-sm font-semibold text-brand-blue tabular-nums">
                       {Math.round(Number(loanForm.loanAmount) * Number(loanForm.interestRate) / 100 / 12).toLocaleString("ko-KR")}원
                     </p>
                   </div>
@@ -649,7 +643,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
               <input
                 value={loanForm.note}
                 onChange={(e) => setLoanForm({ ...loanForm, note: e.target.value })}
-                className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-orange-500 text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
+                className="w-full bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] focus:border-brand-green text-[var(--color-text-primary)] rounded-lg px-2.5 py-1.5 text-xs focus:outline-none"
                 placeholder="대신증권 동서 담보 (동서 2600주)"
               />
             </div>
@@ -663,7 +657,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
               <button
                 onClick={handleAddLoan}
                 disabled={loanSaving}
-                className="px-6 py-2 text-xs font-medium text-text-primary hover:bg-orange-500 rounded-lg transition-colors disabled:opacity-50"
+                className={`px-6 py-2 text-xs font-medium rounded-sm transition-colors disabled:opacity-50 ${btnPrimary}`}
               >
                 {loanSaving ? "저장 중..." : "대출 등록"}
               </button>
@@ -697,13 +691,13 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                       {/* 이자 계산 표시 */}
                       <div className="flex flex-wrap gap-3">
                         <span className="text-xs text-[var(--color-text-muted)]">
-                          원금 <span className="text-orange-400 font-medium tabular-nums">{loan.loanAmount.toLocaleString("ko-KR")}원</span>
+                          원금 <span className="text-text-primary font-medium tabular-nums">{loan.loanAmount.toLocaleString("ko-KR")}원</span>
                         </span>
-                        <span className="text-xs text-[var(--color-text-muted)]">
-                          연{loan.interestRate}% → 연이자 <span className="text-red-400 font-medium tabular-nums">{Math.round(annual).toLocaleString("ko-KR")}원</span>
+                        <span className="text-xs text-text-muted">
+                          연{loan.interestRate}% → 연이자 <span className="text-brand-green font-medium tabular-nums">{Math.round(annual).toLocaleString("ko-KR")}원</span>
                         </span>
-                        <span className="text-xs text-[var(--color-text-muted)]">
-                          월평균 <span className="text-amber-400 font-medium tabular-nums">{Math.round(monthly).toLocaleString("ko-KR")}원</span>
+                        <span className="text-xs text-text-muted">
+                          월평균 <span className="text-brand-blue font-medium tabular-nums">{Math.round(monthly).toLocaleString("ko-KR")}원</span>
                         </span>
                       </div>
                     </div>
@@ -711,17 +705,15 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                     <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => handleToggleLoan(loan)}
-                        className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-                          inactive
-                            ? "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)] hover:text-[var(--color-brand-green)] hover:border-emerald-500/30"
-                            : "bg-emerald-500/10 border-emerald-500/30 text-[var(--color-brand-green)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-text-secondary)]"
+                        className={`text-xs px-3 py-1.5 rounded-sm border transition-colors ${
+                          inactive ? btnNeutral : btnPrimaryOutline
                         }`}
                       >
                         {inactive ? "활성화" : "비활성화"}
                       </button>
                       <button
                         onClick={() => handleDeleteLoan(loan.id)}
-                        className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                        className={`text-xs px-3 py-1.5 rounded-sm ${btnDanger}`}
                       >
                         삭제
                       </button>
@@ -741,7 +733,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           <p>• <span className="text-[var(--color-text-primary)] font-medium">식별자 (Yahoo/DART/SEC)</span>: 자동 데이터 수집에 사용됩니다. 정확히 입력해야 수집이 정상 동작합니다.</p>
           <p>• <span className="text-[var(--color-text-primary)] font-medium">카테고리 변경</span>: Core ↔ Satellite 전환은 즉시 대시보드 비중 차트에 반영됩니다.</p>
           <p>• <span className="text-[var(--color-text-primary)] font-medium">비활성화</span>: 종목 데이터는 보존하되 대시보드에서 제외됩니다. 완전 삭제가 아닙니다.</p>
-          <p>• <span className="text-[var(--color-text-primary)] font-medium">신규 종목 추가</span>: 위 <span className="text-emerald-400 font-medium">"+ 신규 종목 추가"</span> 버튼을 클릭하세요. Yahoo Ticker가 있어야 주가 자동 수집이 됩니다.</p>
+          <p>• <span className="text-text-primary font-medium">신규 종목 추가</span>: 위 <span className="text-brand-green font-medium">"+ 신규 종목 추가"</span> 버튼을 클릭하세요. Yahoo Ticker가 있어야 주가 자동 수집이 됩니다.</p>
           <p>• <span className="text-[var(--color-text-primary)] font-medium">대출 관리</span>: 대출금액 × 연이자율 ÷ 100 = 연간이자, ÷ 12 = 월평균이자로 자동 계산됩니다.</p>
         </div>
       </div>

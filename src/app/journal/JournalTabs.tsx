@@ -3,6 +3,14 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import JournalList from "./JournalList";
+import {
+  EconomistPanel,
+  EconomistPanelBody,
+  EconomistPanelHeader,
+  EconomistStatGrid,
+  EconomistTabBar,
+} from "@/components/EconomistPage";
+import { economistStatCard } from "@/lib/economist-ui";
 
 const JournalAnalytics = dynamic(
   () => import("@/components/JournalAnalytics"),
@@ -13,7 +21,7 @@ function AnalyticsLoading() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-bg-surface border border-border-default rounded-2xl p-6 animate-pulse h-28" />
+        <div key={i} className={`${economistStatCard} animate-pulse h-28`} />
       ))}
     </div>
   );
@@ -35,39 +43,59 @@ type JournalRow = {
   createdAt: string | null;
 };
 
-const TABS = ["일지 목록", "분석 대시보드"] as const;
-type Tab = (typeof TABS)[number];
+const TABS = [
+  { id: "list" as const, label: "일지 목록" },
+  { id: "analytics" as const, label: "분석 대시보드" },
+];
+type TabId = (typeof TABS)[number]["id"];
 
-export default function JournalTabs({ rows }: { rows: JournalRow[] }) {
-  const [activeTab, setActiveTab] = useState<Tab>("일지 목록");
+export default function JournalTabs({
+  rows,
+  buyCount,
+  sellCount,
+}: {
+  rows: JournalRow[];
+  buyCount: number;
+  sellCount: number;
+}) {
+  const [activeTab, setActiveTab] = useState<TabId>("list");
 
   return (
-    <div>
-      {/* Tab bar */}
-      <div className="flex gap-1 mb-6 border-b border-border-default pb-1">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-t-xl text-sm font-medium transition-all ${
-              activeTab === tab
-                ? "bg-bg-elevated text-text-primary border border-border-default border-b-zinc-800 -mb-px"
-                : "text-text-muted hover:text-text-secondary hover:bg-bg-elevated/50"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-6">
+      <EconomistStatGrid
+        items={[
+          { label: "전체 거래", value: rows.length },
+          { label: "매수", value: buyCount, valueClassName: "text-profit-400" },
+          { label: "매도", value: sellCount, valueClassName: "text-loss-400" },
+          {
+            label: "기타",
+            value: rows.length - buyCount - sellCount,
+          },
+        ]}
+      />
 
-      {/* Tab content */}
-      {activeTab === "일지 목록" && (
-        <div className="bg-bg-surface border border-border-default rounded-2xl p-6">
-          <JournalList rows={rows} />
-        </div>
+      <EconomistTabBar tabs={TABS} active={activeTab} onChange={setActiveTab} idPrefix="journal" />
+
+      {activeTab === "list" && (
+        <EconomistPanel>
+          <EconomistPanelHeader
+            title="매매 일지"
+            subtitle="거래 기록을 확인하고 상세 페이지로 이동하세요"
+          />
+          <EconomistPanelBody className="p-0 sm:p-6 sm:pt-4">
+            <JournalList rows={rows} />
+          </EconomistPanelBody>
+        </EconomistPanel>
       )}
 
-      {activeTab === "분석 대시보드" && <JournalAnalytics />}
+      {activeTab === "analytics" && (
+        <EconomistPanel>
+          <EconomistPanelHeader title="분석 대시보드" subtitle="감정 태그 · 실현 손익 · 카테고리별 통계" />
+          <EconomistPanelBody>
+            <JournalAnalytics />
+          </EconomistPanelBody>
+        </EconomistPanel>
+      )}
     </div>
   );
 }

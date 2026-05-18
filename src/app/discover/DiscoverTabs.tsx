@@ -3,6 +3,7 @@
 import { useState } from "react";
 import DiscoverClient from "./DiscoverClient";
 import DiscoverScoreboard from "@/components/DiscoverScoreboard";
+import { EconomistStatGrid, EconomistTabBar } from "@/components/EconomistPage";
 import type { StockWithChecklist } from "./page";
 
 const TABS = [
@@ -15,25 +16,26 @@ type TabId = (typeof TABS)[number]["id"];
 export default function DiscoverTabs({ stocks }: { stocks: StockWithChecklist[] }) {
   const [tab, setTab] = useState<TabId>("list");
 
+  const krCount = stocks.filter((s) => s.market === "KR").length;
+  const activeCount = stocks.filter((s) => s.isActive === 1).length;
+
   return (
     <div className="space-y-6">
-      {/* 탭 선택 */}
-      <div className="flex gap-1 bg-bg-surface border border-border-default rounded-xl p-1 w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            id={`tab-discover-${t.id}`}
-            onClick={() => setTab(t.id)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-              tab === t.id
-                ? "bg-violet-600 text-text-primary shadow-sm"
-                : "text-text-secondary hover:text-text-primary"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <EconomistStatGrid
+        items={[
+          { label: "관심종목", value: stocks.length },
+          { label: "활성", value: activeCount, valueClassName: "text-brand-green" },
+          { label: "KR", value: krCount, valueClassName: "text-brand-blue" },
+          { label: "US", value: stocks.length - krCount },
+        ]}
+      />
+
+      <EconomistTabBar
+        tabs={TABS}
+        active={tab}
+        onChange={setTab}
+        idPrefix="tab-discover"
+      />
 
       {/* 패널 */}
       {tab === "list" && <DiscoverClient stocks={stocks} />}

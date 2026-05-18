@@ -42,8 +42,8 @@ const mdComponents: Components = {
     <h1 className="text-xl font-bold text-[var(--color-text-primary)] mt-8 mb-4 leading-tight">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-base font-bold text-emerald-300 mt-7 mb-3 pb-2 border-b border-[var(--color-border-default)] flex items-center gap-2">
-      <span className="w-1 h-4 bg-emerald-500 rounded-full inline-block shrink-0" />
+    <h2 className="text-base font-bold text-brand-green mt-7 mb-3 pb-2 border-b border-[var(--color-border-default)] flex items-center gap-2">
+      <span className="w-1 h-4 bg-brand-green rounded-full inline-block shrink-0" />
       {children}
     </h2>
   ),
@@ -70,24 +70,24 @@ const mdComponents: Components = {
   ),
   li: ({ children }) => (
     <li className="text-sm text-[var(--color-text-primary)] leading-relaxed flex gap-2 items-start">
-      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-emerald-500/60 shrink-0" />
+      <span className="mt-2 w-1.5 h-1.5 rounded-full bg-brand-green/60 shrink-0" />
       <span>{children}</span>
     </li>
   ),
   hr: () => <hr className="border-[var(--color-border-default)] my-6" />,
   blockquote: ({ children }) => (
-    <blockquote className="my-3 pl-4 border-l-2 border-emerald-500/40 text-[var(--color-text-secondary)] text-sm italic">
+    <blockquote className="my-3 pl-4 border-l-2 border-brand-green/40 text-[var(--color-text-secondary)] text-sm italic">
       {children}
     </blockquote>
   ),
   code: ({ children, className }) => {
     const isBlock = className?.startsWith("language-");
     return isBlock ? (
-      <code className="block bg-[var(--color-bg-elevated)]/60 border border-[var(--color-border-strong)]/50 rounded-lg px-4 py-3 text-xs text-emerald-300 font-mono whitespace-pre-wrap my-3 overflow-x-auto">
+      <code className="block bg-[var(--color-bg-elevated)]/60 border border-[var(--color-border-strong)]/50 rounded-lg px-4 py-3 text-xs text-brand-green font-mono whitespace-pre-wrap my-3 overflow-x-auto">
         {children}
       </code>
     ) : (
-      <code className="bg-[var(--color-bg-elevated)] rounded px-1.5 py-0.5 text-xs text-emerald-300 font-mono">
+      <code className="bg-[var(--color-bg-elevated)] rounded px-1.5 py-0.5 text-xs text-brand-green font-mono">
         {children}
       </code>
     );
@@ -119,7 +119,7 @@ const mdComponents: Components = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors"
+      className="text-brand-green hover:text-brand-green underline underline-offset-2 transition-colors"
     >
       {children}
     </a>
@@ -141,10 +141,10 @@ function MarkdownRenderer({ content }: { content: string }) {
 function FactCheckPanel({ result }: { result: FactCheckResult }) {
   const scoreColor =
     result.errors > 0
-      ? "text-red-400 border-red-500/30 bg-red-500/10"
+      ? "text-loss-400 border-loss-border/30 bg-loss-bg"
       : result.warnings > 0
-      ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
-      : "text-[var(--color-brand-green)] border-emerald-500/30 bg-emerald-500/10";
+      ? "text-warn-400 border-warn-border/30 bg-warn-bg"
+      : "text-[var(--color-brand-green)] border-brand-green/30 bg-brand-green/10";
 
   const scoreLabel =
     result.errors > 0 ? "오류" : result.warnings > 0 ? "주의" : "검증됨";
@@ -173,12 +173,12 @@ function FactCheckPanel({ result }: { result: FactCheckResult }) {
               key={i}
               className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg border ${
                 isVerified
-                  ? "border-emerald-500/20 bg-emerald-500/5"
-                  : "border-amber-500/20 bg-amber-500/5"
+                  ? "border-brand-green/20 bg-brand-green/5"
+                  : "border-warn-border/20 bg-warn-bg/50"
               }`}
             >
               <span className={`mt-0.5 text-sm shrink-0 ${
-                isVerified ? "text-[var(--color-brand-green)]" : "text-amber-400"
+                isVerified ? "text-[var(--color-brand-green)]" : "text-warn-400"
               }`}>
                 {isVerified ? "✓" : "!"}
               </span>
@@ -241,14 +241,14 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
             </span>
             <span className={`text-xs px-2 py-0.5 rounded font-medium ${
               report.trigger === "SIGNAL_AUTO"
-                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                ? "bg-warn-bg text-warn-400 border border-warn-border/20"
+                : "bg-brand-green/10 text-brand-green border border-brand-green/20"
             }`}>
               {triggerLabel[report.trigger] ?? report.trigger}
             </span>
             <Link
               href={`/stocks/${report.ticker}`}
-              className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="text-xs text-brand-green hover:text-brand-green transition-colors"
             >
               {report.ticker} 종목 상세 →
             </Link>

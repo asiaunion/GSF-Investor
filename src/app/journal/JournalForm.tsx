@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { btnPrimary, emotionBadge, inputClass } from "@/lib/economist-ui";
 
 type Stock = {
   id: number;
@@ -16,18 +17,11 @@ type Props = {
 };
 
 const EMOTIONS = [
-  { value: "확신", label: "확신 💪", color: "emerald" },
-  { value: "계획적", label: "계획적 🎯", color: "blue" },
-  { value: "불안", label: "불안 😰", color: "amber" },
-  { value: "충동", label: "충동 ⚡", color: "red" },
+  { value: "확신", label: "확신 💪" },
+  { value: "계획적", label: "계획적 🎯" },
+  { value: "불안", label: "불안 😰" },
+  { value: "충동", label: "충동 ⚡" },
 ];
-
-const emotionColors: Record<string, string> = {
-  확신: "border-emerald-500/60 bg-emerald-500/10 text-emerald-300",
-  계획적: "border-blue-500/60 bg-blue-500/10 text-blue-300",
-  불안: "border-amber-500/60 bg-amber-500/10 text-amber-300",
-  충동: "border-red-500/60 bg-red-500/10 text-red-300",
-};
 
 export default function JournalForm({ onSuccess }: Props) {
   const router = useRouter();
@@ -116,7 +110,7 @@ export default function JournalForm({ onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm">
+        <div className="bg-loss-bg border border-loss-border/30 rounded-xl px-4 py-3 text-loss-400 text-sm">
           {error}
         </div>
       )}
@@ -129,7 +123,7 @@ export default function JournalForm({ onSuccess }: Props) {
             required
             value={form.stockId}
             onChange={set("stockId")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-emerald-500/60 transition-colors"
+            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-green/60 transition-colors"
           >
             <option value="">종목 선택...</option>
             {stocks.map((s) => (
@@ -146,7 +140,7 @@ export default function JournalForm({ onSuccess }: Props) {
             required
             value={form.tradedAt}
             onChange={set("tradedAt")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-emerald-500/60 transition-colors"
+            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-green/60 transition-colors"
           />
         </div>
       </div>
@@ -163,8 +157,8 @@ export default function JournalForm({ onSuccess }: Props) {
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                 form.action === a
                   ? a === "BUY"
-                    ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-300"
-                    : "bg-red-500/20 border-red-500/60 text-red-300"
+                    ? "bg-profit-bg border-profit-border text-profit-400"
+                    : "bg-loss-bg border-loss-border text-loss-400"
                   : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600"
               }`}
             >
@@ -185,7 +179,7 @@ export default function JournalForm({ onSuccess }: Props) {
             placeholder="0"
             value={form.quantity}
             onChange={set("quantity")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors"
           />
         </div>
         <div className="space-y-1.5">
@@ -198,7 +192,7 @@ export default function JournalForm({ onSuccess }: Props) {
             placeholder="0"
             value={form.price}
             onChange={set("price")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors"
           />
         </div>
       </div>
@@ -214,7 +208,7 @@ export default function JournalForm({ onSuccess }: Props) {
             <>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-text-muted">융자 이자 차감</span>
-                <span className="text-sm font-semibold text-red-400">
+                <span className="text-sm font-semibold text-loss-400">
                   -₩{Number(form.loanInterest).toLocaleString("ko-KR")}
                 </span>
               </div>
@@ -222,7 +216,7 @@ export default function JournalForm({ onSuccess }: Props) {
                 <span className="text-xs text-text-secondary font-medium">순 수익</span>
                 <span className={`text-sm font-bold ${
                   (Number(form.quantity) * Number(form.price)) - Number(form.loanInterest) >= 0
-                    ? "text-emerald-400" : "text-red-400"
+                    ? "text-brand-green" : "text-loss-400"
                 }`}>
                   ₩{((Number(form.quantity) * Number(form.price)) - Number(form.loanInterest)).toLocaleString("ko-KR")}
                 </span>
@@ -243,7 +237,7 @@ export default function JournalForm({ onSuccess }: Props) {
           placeholder="예: 몬델리즈 지분 매각 시그널 포착. 내재가치 대비 40% 할인 구간 진입. 배당 수익률 3.2% 안전마진 확보..."
           value={form.thesis}
           onChange={set("thesis")}
-          className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors resize-none"
+          className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
         />
       </div>
 
@@ -262,8 +256,8 @@ export default function JournalForm({ onSuccess }: Props) {
                 }))
               }
               className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                form.emotionTag === e.value
-                  ? emotionColors[e.value]
+                  form.emotionTag === e.value
+                    ? emotionBadge[e.value]
                   : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600"
               }`}
             >
@@ -283,11 +277,11 @@ export default function JournalForm({ onSuccess }: Props) {
           {[1, 2, 3, 4, 5].map((score) => {
             const isActive = form.confidenceScore >= score;
             const color =
-              score <= 1 ? "text-red-400 border-red-500/50 bg-red-500/10"
-              : score <= 2 ? "text-amber-400 border-amber-500/50 bg-amber-500/10"
+              score <= 1 ? "text-loss-400 border-loss-border/50 bg-loss-bg"
+              : score <= 2 ? "text-warn-400 border-warn-border/50 bg-warn-bg"
               : score <= 3 ? "text-yellow-400 border-yellow-500/50 bg-yellow-500/10"
-              : score <= 4 ? "text-blue-400 border-blue-500/50 bg-blue-500/10"
-              : "text-emerald-400 border-emerald-500/50 bg-emerald-500/10";
+              : score <= 4 ? "text-brand-blue border-brand-blue/50 bg-brand-blue/10"
+              : "text-brand-green border-brand-green/50 bg-brand-green/10";
             return (
               <button
                 key={score}
@@ -337,7 +331,7 @@ export default function JournalForm({ onSuccess }: Props) {
               placeholder="0"
               value={form.loanInterest}
               onChange={set("loanInterest")}
-              className="w-full bg-bg-elevated border border-border-default rounded-xl pl-7 pr-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-amber-500/60 transition-colors"
+              className="w-full bg-bg-elevated border border-border-default rounded-xl pl-7 pr-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-warn-border/60 transition-colors"
             />
           </div>
           <p className="text-[11px] text-text-muted">
@@ -356,14 +350,14 @@ export default function JournalForm({ onSuccess }: Props) {
           placeholder="나중에 추가할 수 있습니다..."
           value={form.retrospective}
           onChange={set("retrospective")}
-          className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors resize-none"
+          className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-bg-elevated disabled:text-text-muted text-text-primary font-semibold py-3 rounded-xl transition-colors text-sm"
+        className="w-full bg-brand-green hover:bg-brand-green/85 disabled:bg-bg-elevated disabled:text-text-muted text-text-primary font-semibold py-3 rounded-xl transition-colors text-sm"
       >
         {loading ? "저장 중..." : "매매 일지 저장"}
       </button>

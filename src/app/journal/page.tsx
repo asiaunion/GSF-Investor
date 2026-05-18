@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { tradeJournal, stocks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import Navbar from "@/components/Navbar";
-import JournalList from "./JournalList";
+import AppPageLayout from "@/components/AppPageLayout";
 import JournalFormToggle from "./JournalFormToggle";
 import JournalTabs from "./JournalTabs";
 
@@ -40,24 +39,13 @@ export default async function JournalPage() {
   const sellCount = rows.filter((r) => r.action === "SELL").length;
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session.user?.email} />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 헤더 */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">매매 일지</h1>
-            <p className="text-text-muted text-sm mt-1">
-              총 {rows.length}건 · 매수 {buyCount}건 · 매도 {sellCount}건
-            </p>
-          </div>
-          <JournalFormToggle />
-        </div>
-
-        {/* 탭 패널 (일지 목록 | 분석 대시보드) */}
-        <JournalTabs rows={rows} />
-      </main>
-    </div>
+    <AppPageLayout
+      email={session.user?.email}
+      title="매매 일지"
+      subtitle={`총 ${rows.length}건 · 매수 ${buyCount}건 · 매도 ${sellCount}건`}
+      headerExtra={<JournalFormToggle />}
+    >
+      <JournalTabs rows={rows} buyCount={buyCount} sellCount={sellCount} />
+    </AppPageLayout>
   );
 }

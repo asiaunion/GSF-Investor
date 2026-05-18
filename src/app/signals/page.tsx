@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
-import Navbar from "@/components/Navbar";
+import AppPageLayout from "@/components/AppPageLayout";
 import SignalsClient from "./SignalsClient";
 
 export const dynamic = "force-dynamic";
@@ -36,13 +36,13 @@ async function fetchSignals(): Promise<SignalRow[]> {
     FROM signals sg
     JOIN stocks s ON s.id = sg.stock_id
     ORDER BY
-      sg.is_resolved ASC,          -- 미확인 먼저
+      sg.is_resolved ASC,
       CASE sg.severity
         WHEN 'HIGH' THEN 1
         WHEN 'MEDIUM' THEN 2
         WHEN 'LOW' THEN 3
         ELSE 4
-      END ASC,                      -- HIGH 우선
+      END ASC,
       sg.detected_at DESC
     LIMIT 500
   `);
@@ -69,26 +69,21 @@ export default async function SignalsPage() {
   const unresolvedCount = signals.filter((s) => s.isResolved === 0 && s.severity === "HIGH").length;
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session.user?.email} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary flex items-center gap-3">
-              시그널 타임라인
-              {unresolvedCount > 0 && (
-                <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-500 text-text-primary text-xs font-bold animate-pulse">
-                  {unresolvedCount}
-                </span>
-              )}
-            </h1>
-            <p className="text-text-muted text-sm mt-1">
-              HIGH 우선 정렬 · 미확인 시그널 먼저 표시
-            </p>
-          </div>
-        </div>
-        <SignalsClient signals={signals} />
-      </main>
-    </div>
+    <AppPageLayout
+      email={session.user?.email}
+      title={
+        <span className="flex items-center gap-3 flex-wrap">
+          시그널 타임라인
+          {unresolvedCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-7 h-7 px-1.5 rounded-sm bg-loss-bg border border-loss-border text-loss-400 text-xs font-bold">
+              {unresolvedCount}
+            </span>
+          )}
+        </span>
+      }
+      subtitle="HIGH 우선 정렬 · 미확인 시그널 먼저 표시"
+    >
+      <SignalsClient signals={signals} />
+    </AppPageLayout>
   );
 }

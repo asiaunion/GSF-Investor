@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { emotionBadge, linkMuted, tradeActionBadge } from "@/lib/economist-ui";
 
 type JournalRow = {
   id: number;
@@ -18,26 +19,12 @@ type JournalRow = {
   createdAt: string | null;
 };
 
-const actionStyle: Record<string, string> = {
-  BUY: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-  SELL: "text-red-400 bg-red-500/10 border-red-500/20",
-  INIT: "text-text-secondary bg-bg-elevated/30 border-zinc-600/30",
-};
-
-const emotionStyle: Record<string, string> = {
-  확신: "text-emerald-400 bg-emerald-500/10",
-  계획적: "text-blue-400 bg-blue-500/10",
-  불안: "text-amber-400 bg-amber-500/10",
-  충동: "text-red-400 bg-red-500/10",
-};
-
 export default function JournalList({ rows }: { rows: JournalRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="text-center py-16 text-text-muted">
-        <div className="text-4xl mb-3">📋</div>
-        <p className="text-sm">아직 매매 일지가 없습니다.</p>
-        <p className="text-xs mt-1">위 폼에서 첫 번째 거래를 기록해 보세요.</p>
+      <div className="text-center py-16">
+        <p className="text-text-secondary font-medium text-sm">아직 매매 일지가 없습니다</p>
+        <p className="text-text-muted text-xs mt-1">위 버튼에서 첫 번째 거래를 기록해 보세요</p>
       </div>
     );
   }
@@ -68,7 +55,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
                   </div>
                 </td>
                 <td className="py-3 pr-4">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${actionStyle[row.action] ?? "text-text-secondary"}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${tradeActionBadge[row.action] ?? "text-text-secondary bg-bg-elevated border border-border-default"}`}>
                     {row.action}
                   </span>
                 </td>
@@ -83,7 +70,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
                 </td>
                 <td className="py-3 pr-4">
                   {row.emotionTag && (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs ${emotionStyle[row.emotionTag] ?? "text-text-secondary bg-bg-elevated/30"}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs ${emotionBadge[row.emotionTag] ?? "text-text-secondary bg-bg-elevated/30"}`}>
                       {row.emotionTag}
                     </span>
                   )}
@@ -91,7 +78,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
                 <td className="py-3 text-right">
                   <Link
                     href={`/journal/${row.id}`}
-                    className="text-xs text-text-muted hover:text-emerald-400 transition-colors"
+                    className="text-xs text-text-muted hover:text-brand-green transition-colors"
                   >
                     상세 →
                   </Link>
@@ -114,7 +101,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
                     <span className="text-text-primary font-mono font-semibold text-sm">{row.ticker}</span>
                     <span className="text-text-muted text-xs ml-2">{row.tradedAt}</span>
                   </div>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${actionStyle[row.action] ?? "text-text-secondary"}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${tradeActionBadge[row.action] ?? "text-text-secondary bg-bg-elevated border border-border-default"}`}>
                     {row.action}
                   </span>
                 </div>
@@ -126,7 +113,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
                 </div>
                 {row.emotionTag && (
                   <div className="mt-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs ${emotionStyle[row.emotionTag] ?? "text-text-secondary bg-bg-elevated/30"}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs ${emotionBadge[row.emotionTag] ?? "text-text-secondary bg-bg-elevated/30"}`}>
                       {row.emotionTag}
                     </span>
                   </div>

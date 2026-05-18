@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
-import Navbar from "@/components/Navbar";
+import AppPageLayout from "@/components/AppPageLayout";
 import ReportsClient from "./ReportsClient";
 
 export const dynamic = "force-dynamic";
@@ -68,17 +68,12 @@ export default async function ReportsPage() {
   const [reports, stocks] = await Promise.all([fetchReports(), fetchStocks()]);
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session.user?.email} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-text-primary">AI 분석 보고서</h1>
-          <p className="text-text-muted text-sm mt-1">
-            Gemini AI 기반 종목 분석 — 스트리밍 생성 지원
-          </p>
-        </div>
-        <ReportsClient reports={reports} stocks={stocks} />
-      </main>
-    </div>
+    <AppPageLayout
+      email={session.user?.email}
+      title="AI 분석 보고서"
+      subtitle="Gemini AI 기반 종목 분석 — 스트리밍 생성 지원"
+    >
+      <ReportsClient reports={reports} stocks={stocks} />
+    </AppPageLayout>
   );
 }

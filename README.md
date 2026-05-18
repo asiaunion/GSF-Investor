@@ -31,6 +31,24 @@ npm run db:migrate
 npm run dev
 ```
 
+## 디자인 로컬 검증 (Turso / Google OAuth 없이)
+
+Economist UI 전 페이지를 이 워크스페이스에서 바로 볼 수 있습니다.
+
+```bash
+cp .env.example .env.local   # 최초 1회
+npm run db:dev:setup         # local.db + 데모 데이터
+npm run dev:preview          # http://localhost:3000
+```
+
+브라우저에서 **로그인 → 「디자인 프리뷰 (로그인 없이)」** 클릭 후 모든 메뉴를 탐색하세요.
+
+```bash
+npm run design:capture       # screenshots/verify/*.png 자동 캡처
+```
+
+> `.env.local`에 `VERCEL=1`이 있어도 `next dev`에서는 `local.db`를 사용합니다.
+
 ## DB 명령어
 
 ```bash

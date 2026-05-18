@@ -1,6 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import {
+  btnPrimary,
+  economistCard,
+  inputClass,
+  linkMuted,
+} from "@/lib/economist-ui";
+import {
+  EconomistAlert,
+  EconomistPanel,
+  EconomistPanelBody,
+  EconomistPanelHeader,
+  EconomistStatGrid,
+} from "@/components/EconomistPage";
 import type { ReportRow, StockOption } from "./page";
 
 /**
@@ -71,7 +84,7 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
       {/* 헤더 행 */}
       <div className="flex items-start gap-4 px-6 py-4">
         {/* 종목 배지 */}
-        <div className="shrink-0 w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-bold">
+        <div className="shrink-0 w-10 h-10 rounded-sm bg-brand-green/10 border border-brand-green/25 flex items-center justify-center text-brand-green text-xs font-bold">
           {report.ticker.slice(0, 4)}
         </div>
 
@@ -83,8 +96,8 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
             <span
               className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                 report.trigger === "SIGNAL_AUTO"
-                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                  ? "bg-brand-blue/10 text-brand-blue border border-brand-blue/25"
+                  : "bg-brand-green/10 text-brand-green border border-brand-green/25"
               }`}
             >
               {triggerLabel[report.trigger] ?? report.trigger}
@@ -106,7 +119,7 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
             <ul className="mt-2 space-y-0.5">
               {summaryLines.map((line, i) => (
                 <li key={i} className="flex items-start gap-1.5 text-xs text-[var(--color-text-primary)] leading-relaxed">
-                  <span className="text-emerald-500 mt-0.5 shrink-0 text-[10px]">▸</span>
+                  <span className="text-brand-green mt-0.5 shrink-0 text-[10px]">▸</span>
                   <span>{line}</span>
                 </li>
               ))}
@@ -121,10 +134,10 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
         {/* 토글 버튼 */}
         <button
           onClick={handleToggle}
-          className="shrink-0 mt-1 flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors px-2 py-1 rounded-md hover:bg-emerald-500/10 whitespace-nowrap"
+          className={`shrink-0 mt-1 flex items-center gap-1 text-xs px-2 py-1 rounded-sm whitespace-nowrap ${linkMuted} hover:bg-brand-green/10`}
         >
           {loading ? (
-            <span className="w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin inline-block" />
+            <span className="w-3 h-3 border-2 border-brand-green/30 border-t-brand-green rounded-full animate-spin inline-block" />
           ) : (
             <span
               className="inline-block transition-transform duration-200"
@@ -140,7 +153,7 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
       {/* 전문 패널 */}
       {open && (
         <div className="px-6 pb-5 pt-0">
-          <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4 max-h-[600px] overflow-y-auto">
+          <div className={`${economistCard} p-4 max-h-[600px] overflow-y-auto`}>
             <pre
               className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed"
               
@@ -241,20 +254,32 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
 
   const selectedStock = stocks.find((s) => s.id === selectedStockId);
 
+  const signalAutoCount = reports.filter((r) => r.trigger === "SIGNAL_AUTO").length;
+
   return (
     <div className="space-y-6">
-      {/* ── 보고서 생성 카드 ──────────────────────────────────────────────── */}
-      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-6">
-        <h2 className="text-base font-semibold text-[var(--color-text-primary)] mb-4 flex items-center gap-2">
-          <span className="text-emerald-400">✦</span> 새 보고서 생성
-        </h2>
+      <EconomistStatGrid
+        items={[
+          { label: "저장된 보고서", value: reports.length },
+          { label: "시그널 자동", value: signalAutoCount, valueClassName: "text-brand-blue" },
+          { label: "수동 생성", value: reports.length - signalAutoCount },
+          { label: "등록 종목", value: stocks.length },
+        ]}
+      />
 
+      <EconomistPanel>
+        <EconomistPanelHeader
+          title="새 보고서 생성"
+          subtitle="Gemini 2.5 Flash · 스트리밍 생성 후 자동 저장"
+          trailing={<span className="text-brand-green text-sm font-semibold">✦</span>}
+        />
+        <EconomistPanelBody>
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <select
             id="select-stock-report"
             value={selectedStockId}
             onChange={(e) => setSelectedStockId(Number(e.target.value))}
-            className="flex-1 bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] text-[var(--color-text-primary)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className={`flex-1 ${inputClass}`}
             disabled={generating}
           >
             {stocks.map((s) => (
@@ -268,7 +293,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             id="btn-generate-report"
             onClick={handleGenerate}
             disabled={generating || !selectedStockId}
-            className="px-5 py-2 bg-violet-600 hover:bg-violet-500 disabled:bg-[var(--color-bg-elevated)] disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+            className={`px-5 py-2 text-sm font-semibold rounded-sm transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${btnPrimary}`}
           >
             {generating ? (
               <>
@@ -294,7 +319,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             </div>
             <div
               ref={streamRef}
-              className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4 max-h-[520px] overflow-y-auto"
+              className={`${economistCard} p-4 max-h-[520px] overflow-y-auto`}
             >
               <pre
                 className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed"
@@ -302,35 +327,28 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
               >
                 {streamText}
                 {generating && !streamDone && (
-                  <span className="inline-block w-2 h-4 bg-emerald-400 ml-0.5 animate-pulse align-middle" />
+                  <span className="inline-block w-2 h-4 bg-brand-green ml-0.5 animate-pulse align-middle" />
                 )}
               </pre>
             </div>
           </div>
         )}
 
-        {error && (
-          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400">
-            ⚠️ {error}
-          </div>
-        )}
-      </div>
+        {error && <EconomistAlert variant="error">⚠️ {error}</EconomistAlert>}
+        </EconomistPanelBody>
+      </EconomistPanel>
 
-      {/* ── 보고서 목록 (아코디언) ─────────────────────────────────────────── */}
-      <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm">
-        <div className="px-6 py-4 border-b border-[var(--color-border-default)] flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
-            저장된 보고서 ({reports.length}건)
-          </h2>
-          <span className="text-xs text-[var(--color-text-muted)]">▶ 전문 보기 클릭으로 펼치기</span>
-        </div>
+      <EconomistPanel>
+        <EconomistPanelHeader
+          title={`저장된 보고서 (${reports.length}건)`}
+          subtitle="▶ 전문 보기 클릭으로 펼치기"
+        />
 
         {reports.length === 0 ? (
-          <div className="py-16 text-center text-[var(--color-text-muted)] text-sm">
-            <p className="text-3xl mb-3">📋</p>
-            <p>아직 생성된 보고서가 없습니다.</p>
-            <p className="mt-1 text-xs">위에서 종목을 선택하고 AI 분석을 시작하세요.</p>
-          </div>
+          <EconomistPanelBody className="py-16 text-center">
+            <p className="text-text-secondary font-medium text-sm">아직 생성된 보고서가 없습니다</p>
+            <p className="text-text-muted text-xs mt-1">위에서 종목을 선택하고 AI 분석을 시작하세요</p>
+          </EconomistPanelBody>
         ) : (
           <ul>
             {reports.map((report) => (
@@ -338,7 +356,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             ))}
           </ul>
         )}
-      </div>
+      </EconomistPanel>
     </div>
   );
 }

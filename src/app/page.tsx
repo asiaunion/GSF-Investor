@@ -1,17 +1,16 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { Suspense } from "react";
 import DashboardClient from "./DashboardClient";
-import Navbar from "@/components/Navbar";
-import Link from "next/link";
+import AppPageLayout from "@/components/AppPageLayout";
 
 export const dynamic = "force-dynamic";
 
 // ── 데이터 페칭 (Server Side) ─────────────────────────────────────────────────
 async function fetchDashboardData() {
-  // v_portfolio + stocks JOIN → stock_id 확보
   const portfolioRows = await db.run(sql`
     SELECT
       s.id AS stock_id,
@@ -28,7 +27,6 @@ async function fetchDashboardData() {
     JOIN stocks s ON s.ticker = vp.ticker
   `);
 
-  // 최신 종가
   const latestPricesRows = await db.run(sql`
     SELECT p.stock_id, p.close_price, p.currency, p.date
     FROM prices p
@@ -37,14 +35,11 @@ async function fetchDashboardData() {
     ) latest ON p.stock_id = latest.stock_id AND p.date = latest.max_date
   `);
 
-  // 최신 환율
   const fxRow = await db.run(sql`
     SELECT rate, date FROM exchange_rates WHERE pair = 'USDKRW'
     ORDER BY date DESC LIMIT 1
   `);
 
-  // ── Phase A: 벤치마크 Alpha (KODEX 200 ETF: 069500.KS) ────────────────────
-  // 가장 최근 가격 + 30일 전 가격으로 벤치마크 수익률 계산
   const benchmarkRows = await db.run(sql`
     SELECT
       p1.close_price AS latest_price,
@@ -54,7 +49,6 @@ async function fetchDashboardData() {
     JOIN stocks bm ON bm.ticker = '069500' AND p1.stock_id = bm.id
     JOIN prices p2 ON p2.stock_id = bm.id
       AND p2.date = (
-        -- 30일 전에 가장 가까운 가격 (기준일)
         SELECT date FROM prices
         WHERE stock_id = bm.id
           AND date <= date((SELECT MAX(date) FROM prices WHERE stock_id = bm.id), '-30 days')
@@ -76,7 +70,6 @@ async function fetchDashboardData() {
   const usdKrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
   const fxDate = fxRow.rows.length > 0 ? String(fxRow.rows[0][1]) : null;
 
-  // 벤치마크 수익률 계산
   let benchmarkReturn: number | null = null;
   if (benchmarkRows.rows.length > 0) {
     const latestPrice = Number(benchmarkRows.rows[0][0]);
@@ -86,7 +79,6 @@ async function fetchDashboardData() {
     }
   }
 
-  // 컬럼 인덱스: stock_id(0), ticker(1), name(2), market(3), category(4), broker(5), quantity(6), avg_price(7), currency(8), sector(9)
   const holdings = portfolioRows.rows.map((row) => {
     const stockId = Number(row[0]);
     const ticker = String(row[1]);
@@ -139,10 +131,8 @@ async function fetchDashboardData() {
   const coreKRW = holdings.filter((h) => h.category === "Core").reduce((s, h) => s + h.evalAmountKRW, 0);
   const satelliteKRW = holdings.filter((h) => h.category === "Satellite").reduce((s, h) => s + h.evalAmountKRW, 0);
 
-  // Alpha = 포트폴리오 수익률 - 벤치마크 수익률
   const alpha = benchmarkReturn !== null ? totalReturnRate - benchmarkReturn : null;
 
-  // ── B-1: Weighted Contribution 차트 데이터 ──────────────────────────────────
   const contribData = holdings.map((h) => ({
     ticker: h.ticker,
     name: h.name,
@@ -152,7 +142,6 @@ async function fetchDashboardData() {
     sector: h.sector,
   }));
 
-  // ── B-2: Sector 집중도 ──────────────────────────────────────────────────────
   const sectorMap = new Map<string, number>();
   for (const h of holdings) {
     const s = h.sector || "기타";
@@ -184,7 +173,6 @@ async function fetchDashboardData() {
   };
 }
 
-// ── 최근 시그널 (최신 5건, HIGH 우선) ─────────────────────────────────────────
 async function fetchRecentSignals() {
   const rows = await db.run(sql`
     SELECT
@@ -223,7 +211,6 @@ async function fetchUnresolvedCount() {
   return Number(rows.rows[0]?.[0] ?? 0);
 }
 
-// ── 주식담보대출 현황 ───────────────────────────────────────────────────────────
 async function fetchLoans() {
   const rows = await db.run(sql`
     SELECT
@@ -243,13 +230,11 @@ async function fetchLoans() {
     startedAt: r[5] ? String(r[5]) : null,
     isActive: Number(r[6]),
     note: r[7] ? String(r[7]) : null,
-    // 파생 계산
     annualInterest: Number(r[3]) * Number(r[4]) / 100,
     monthlyInterest: Number(r[3]) * Number(r[4]) / 100 / 12,
   }));
 }
 
-// ── 서버 컴포넌트 메인 ─────────────────────────────────────────────────────────
 export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
@@ -263,59 +248,52 @@ export default async function HomePage() {
   const { contribData, sectorData, ...data } = rawData;
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session.user?.email} />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary flex items-center gap-3">
-              포트폴리오 대시보드
-              {unresolvedCount > 0 && (
-                <Link
-                  href="/signals"
-                  className="inline-flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-red-500/25 transition-colors animate-pulse"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
-                  미확인 시그널 {unresolvedCount}건
-                </Link>
-              )}
-            </h1>
-            <p className="text-text-muted text-sm mt-1">
-              기준일: {data.summary.fxDate ?? "—"}&nbsp;·&nbsp; USD/KRW {data.summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
-            </p>
-          </div>
-        </div>
-
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardClient
-            data={data}
-            recentSignals={recentSignals}
-            contribData={contribData}
-            sectorData={sectorData}
-            loans={loans}
-          />
-        </Suspense>
-      </main>
-    </div>
+    <AppPageLayout
+      wide
+      email={session.user?.email}
+      title={
+        <span className="flex items-center gap-2 flex-wrap">
+          포트폴리오 대시보드
+          {unresolvedCount > 0 && (
+            <Link
+              href="/signals"
+              className="inline-flex items-center gap-1.5 bg-loss-bg border border-loss-border text-loss-400 text-xs font-semibold px-2.5 py-1 rounded-sm hover:bg-loss-bg/80 transition-colors"
+            >
+              미확인 시그널 {unresolvedCount}건
+            </Link>
+          )}
+        </span>
+      }
+      subtitle={
+        <>
+          기준일: {data.summary.fxDate ?? "—"} · USD/KRW{" "}
+          {data.summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
+        </>
+      }
+    >
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardClient
+          data={data}
+          recentSignals={recentSignals}
+          contribData={contribData}
+          sectorData={sectorData}
+          loans={loans}
+        />
+      </Suspense>
+    </AppPageLayout>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="animate-pulse space-y-4">
-      {/* Hero skeleton */}
-      <div className="h-36 bg-bg-surface rounded-2xl" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="animate-pulse space-y-3">
+      <div className="h-16 card-economist" />
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-28 bg-bg-surface rounded-2xl" />
+          <div key={i} className="h-28 card-economist" />
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="h-72 bg-bg-surface rounded-2xl" />
-        <div className="h-72 bg-bg-surface rounded-2xl" />
-      </div>
+      <div className="h-44 card-economist" />
     </div>
   );
 }

@@ -76,10 +76,10 @@ const emotionColors: Record<string, string> = {
   충동: "#ef4444",
 };
 const emotionBgStyles: Record<string, string> = {
-  확신: "text-[var(--color-brand-green)] bg-emerald-500/10 border-emerald-500/20",
-  계획적: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-  불안: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-  충동: "text-red-400 bg-red-500/10 border-red-500/20",
+  확신: "text-[var(--color-brand-green)] bg-brand-green/10 border-brand-green/20",
+  계획적: "text-brand-green bg-brand-green/10 border-brand-green/20",
+  불안: "text-warn-400 bg-warn-bg border-warn-border/20",
+  충동: "text-loss-400 bg-loss-bg border-loss-border/20",
 };
 
 function fmtPnl(v: number, currency: string | null = "KRW") {
@@ -101,7 +101,7 @@ function CustomBarTooltip({ active, payload }: { active?: boolean; payload?: { p
         <span className="font-bold text-[var(--color-text-primary)]">{stat.tag}</span>
       </div>
       <div className="space-y-1 text-[var(--color-text-secondary)]">
-        <div>평균 수익률: <span className={value >= 0 ? "text-[var(--color-brand-green)] font-bold" : "text-red-400 font-bold"}>{value >= 0 ? "+" : ""}{value.toFixed(2)}%</span></div>
+        <div>평균 수익률: <span className={value >= 0 ? "text-[var(--color-brand-green)] font-bold" : "text-loss-400 font-bold"}>{value >= 0 ? "+" : ""}{value.toFixed(2)}%</span></div>
         <div>SELL 건수: <span className="text-[var(--color-text-primary)]">{stat.sellCount}건</span></div>
         <div>승률: <span className="text-[var(--color-text-primary)]">{stat.sellCount > 0 ? ((stat.winCount / stat.sellCount) * 100).toFixed(0) : "—"}%</span></div>
       </div>
@@ -188,7 +188,7 @@ export default function JournalAnalytics() {
               : "—",
             color: (summary.totalNetPnl ?? 0) >= 0
               ? "text-[var(--color-brand-green)]"
-              : "text-red-400",
+              : "text-loss-400",
             sub: summary.totalLoanInterest > 0
               ? `이자 ${fmtPnl(-summary.totalLoanInterest)} 차감`
               : undefined,
@@ -196,7 +196,7 @@ export default function JournalAnalytics() {
           {
             label: "승률",
             value: summary.winRate != null ? `${summary.winRate.toFixed(1)}%` : "—",
-            color: (summary.winRate ?? 0) >= 50 ? "text-[var(--color-brand-green)]" : "text-red-400",
+            color: (summary.winRate ?? 0) >= 50 ? "text-[var(--color-brand-green)]" : "text-loss-400",
             sub: undefined,
           },
           {
@@ -218,7 +218,7 @@ export default function JournalAnalytics() {
             <div className="text-[var(--color-text-disabled)] text-[10px] uppercase tracking-wider mb-1.5">{card.label}</div>
             <div className={`text-lg font-bold tabular-nums ${card.color}`}>{card.value}</div>
             {card.sub && (
-              <div className="text-[10px] text-red-400/70 mt-0.5">{card.sub}</div>
+              <div className="text-[10px] text-loss-400/70 mt-0.5">{card.sub}</div>
             )}
           </div>
         ))}
@@ -292,7 +292,7 @@ export default function JournalAnalytics() {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[var(--color-text-muted)]">평균 수익률</span>
                         <span
-                          className={`font-bold ${(stat.avgReturnPct ?? 0) >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}
+                          className={`font-bold ${(stat.avgReturnPct ?? 0) >= 0 ? "text-[var(--color-brand-green)]" : "text-loss-400"}`}
                         >
                           {stat.avgReturnPct != null
                             ? `${stat.avgReturnPct >= 0 ? "+" : ""}${stat.avgReturnPct.toFixed(2)}%`
@@ -302,7 +302,7 @@ export default function JournalAnalytics() {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[var(--color-text-muted)]">실현 손익</span>
                         <span
-                          className={`font-medium ${stat.totalRealizedPnl >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}
+                          className={`font-medium ${stat.totalRealizedPnl >= 0 ? "text-[var(--color-brand-green)]" : "text-loss-400"}`}
                         >
                           {fmtPnl(stat.totalRealizedPnl)}
                         </span>
@@ -312,7 +312,7 @@ export default function JournalAnalytics() {
                         <span className="text-[var(--color-text-primary)]">
                           <span className="text-[var(--color-brand-green)]">{stat.winCount}W</span>
                           <span className="text-[var(--color-text-disabled)] mx-1">·</span>
-                          <span className="text-red-400">{stat.lossCount}L</span>
+                          <span className="text-loss-400">{stat.lossCount}L</span>
                         </span>
                       </div>
                     </>
@@ -365,14 +365,14 @@ export default function JournalAnalytics() {
                       {fmtPnl(t.realizedPnl)}
                     </td>
                     <td className={`px-4 py-3 tabular-nums ${
-                      t.loanInterest > 0 ? "text-red-400" : "text-[var(--color-text-disabled)]"
+                      t.loanInterest > 0 ? "text-loss-400" : "text-[var(--color-text-disabled)]"
                     }`}>
                       {t.loanInterest > 0 ? `-₩${Math.round(t.loanInterest).toLocaleString("ko-KR")}` : "—"}
                     </td>
-                    <td className={`px-4 py-3 font-bold tabular-nums ${t.netPnl >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 font-bold tabular-nums ${t.netPnl >= 0 ? "text-[var(--color-brand-green)]" : "text-loss-400"}`}>
                       {fmtPnl(t.netPnl)}
                     </td>
-                    <td className={`px-4 py-3 font-bold tabular-nums ${t.returnPct >= 0 ? "text-[var(--color-brand-green)]" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 font-bold tabular-nums ${t.returnPct >= 0 ? "text-[var(--color-brand-green)]" : "text-loss-400"}`}>
                       {t.returnPct >= 0 ? "+" : ""}{t.returnPct.toFixed(2)}%
                     </td>
                     <td className="px-4 py-3">

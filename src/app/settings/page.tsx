@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import SettingsClient from "./SettingsClient";
-import Navbar from "@/components/Navbar";
+import AppPageLayout from "@/components/AppPageLayout";
 
 export const dynamic = "force-dynamic";
 
@@ -83,15 +83,12 @@ export default async function SettingsPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session.user?.email} />
-      <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">⚙️ 설정</h1>
-          <p className="text-sm text-text-muted mt-1">관심종목 · 대출 관리 및 식별자 설정</p>
-        </div>
-        <SettingsClient stocks={stocks} loans={loans} />
-      </div>
-    </div>
+    <AppPageLayout
+      email={session.user?.email}
+      title="⚙️ 설정"
+      subtitle="관심종목 · 대출 관리 및 식별자 설정"
+    >
+      <SettingsClient stocks={stocks} loans={loans} />
+    </AppPageLayout>
   );
 }

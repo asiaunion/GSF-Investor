@@ -18,7 +18,14 @@ export default async function RootLayout({
 }) {
   const session = await auth();
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${inter.className} bg-bg-base text-text-primary antialiased`}>
         <SessionProvider session={session}>{children}</SessionProvider>
       </body>

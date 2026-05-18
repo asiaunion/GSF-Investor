@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { gradeBadge, linkMuted, marketBadge } from "@/lib/economist-ui";
 
 // Recharts — SSR 방지
 const RadarChart = dynamic(() => import("recharts").then((m) => m.RadarChart), { ssr: false });
@@ -36,24 +37,11 @@ interface StockScore {
   debtRatio: number | null;
 }
 
-// ── Color utilities ────────────────────────────────────────────────────────────
-const gradeColor: Record<string, string> = {
-  A: "text-[var(--color-brand-green)] bg-emerald-500/10 border-emerald-500/30",
-  B: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  C: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-  D: "text-red-400 bg-red-500/10 border-red-500/30",
-};
-
 const gradeRingColor: Record<string, string> = {
   A: "var(--color-brand-green)",
-  B: "#3b82f6",
+  B: "var(--color-brand-blue)",
   C: "var(--color-warn-500)",
-  D: "#ef4444",
-};
-
-const marketBadge: Record<string, string> = {
-  KR: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-  US: "bg-emerald-500/10 text-[var(--color-brand-green)] border border-emerald-500/20",
+  D: "var(--color-loss-500)",
 };
 
 // ── Radar Tooltip ─────────────────────────────────────────────────────────────
@@ -64,7 +52,7 @@ function RadarTooltip({ active, payload }: { active?: boolean; payload?: { paylo
     <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-strong)] rounded-xl px-3 py-2 text-xs shadow-xl">
       <div className="font-bold text-[var(--color-text-primary)] mb-1">{item.label}</div>
       <div className="text-[var(--color-text-secondary)]">
-        점수: <span className="text-emerald-400 font-bold">{item.score}</span>
+        점수: <span className="text-brand-green font-bold">{item.score}</span>
       </div>
       <div className="text-[var(--color-text-secondary)]">
         실제값: <span className="text-[var(--color-text-primary)]">{item.raw}</span>
@@ -152,13 +140,13 @@ export default function DiscoverScoreboard() {
         {[
           { label: "전체 종목", value: `${stocks.length}개`, color: "text-[var(--color-text-primary)]" },
           { label: "A등급", value: `${stocks.filter((s) => s.grade === "A").length}개`, color: "text-[var(--color-brand-green)]" },
-          { label: "B등급", value: `${stocks.filter((s) => s.grade === "B").length}개`, color: "text-emerald-400" },
+          { label: "B등급", value: `${stocks.filter((s) => s.grade === "B").length}개`, color: "text-brand-green" },
           {
             label: "평균 스코어",
             value: stocks.length > 0
               ? `${Math.round(stocks.reduce((s, x) => s + x.totalScore, 0) / stocks.length)}점`
               : "—",
-            color: "text-emerald-400",
+            color: "text-brand-green",
           },
         ].map((card) => (
           <div key={card.label} className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-4">
@@ -177,7 +165,7 @@ export default function DiscoverScoreboard() {
               <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{selected.name}</h3>
               <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{selected.ticker} · {selected.market}</p>
             </div>
-            <div className={`px-2.5 py-1 rounded-lg border text-sm font-bold ${gradeColor[selected.grade] ?? ""}`}>
+            <div className={`px-2.5 py-1 rounded-lg border text-sm font-bold ${gradeBadge[selected.grade] ?? ""}`}>
               {selected.grade}
             </div>
           </div>
@@ -209,9 +197,9 @@ export default function DiscoverScoreboard() {
                 key={c.label}
                 className={`flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg border ${
                   c.pass === true
-                    ? "bg-emerald-500/5 border-emerald-500/20 text-[var(--color-brand-green)]"
+                    ? "bg-brand-green/5 border-brand-green/20 text-[var(--color-brand-green)]"
                     : c.pass === false
-                    ? "bg-red-500/5 border-red-500/20 text-red-400"
+                    ? "bg-loss-bg border-loss-border text-loss-400"
                     : "bg-[var(--color-bg-elevated)]/50 border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
                 }`}
               >
@@ -275,7 +263,7 @@ export default function DiscoverScoreboard() {
                 </div>
 
                 {/* 등급 배지 */}
-                <div className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold ${gradeColor[stock.grade] ?? ""}`}>
+                <div className={`shrink-0 w-8 h-8 rounded-full border flex items-center justify-center text-sm font-bold ${gradeBadge[stock.grade] ?? ""}`}>
                   {stock.grade}
                 </div>
 
@@ -283,7 +271,7 @@ export default function DiscoverScoreboard() {
                 <Link
                   href={`/stocks/${stock.ticker}`}
                   onClick={(e) => e.stopPropagation()}
-                  className="shrink-0 text-xs text-[var(--color-text-disabled)] hover:text-emerald-400 transition-colors"
+                  className="shrink-0 text-xs text-[var(--color-text-disabled)] hover:text-brand-green transition-colors"
                 >
                   →
                 </Link>
@@ -302,11 +290,11 @@ export default function DiscoverScoreboard() {
       {/* ── AI 패턴 요약 ─────────────────────────────────────────────────────── */}
       <div className="bg-[var(--color-bg-surface)] border-t-4 border-t-[var(--color-brand-green)] border-b border-x border-[var(--color-border-default)] rounded-sm shadow-sm p-5">
         <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center gap-2">
-          <span className="text-emerald-400">✦</span> AI 패턴 요약
+          <span className="text-brand-green">✦</span> AI 패턴 요약
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           {/* 최고 스코어 */}
-          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
+          <div className="bg-brand-green/5 border border-brand-green/20 rounded-xl p-4">
             <div className="text-[var(--color-brand-green)] font-semibold mb-1">🏆 최고 점수 종목</div>
             <div className="text-[var(--color-text-primary)] font-bold">{stocks[0]?.name ?? "—"}</div>
             <div className="text-[var(--color-text-muted)] mt-0.5">
@@ -321,8 +309,8 @@ export default function DiscoverScoreboard() {
               .sort((a, b) => (a.pbr ?? 99) - (b.pbr ?? 99));
             const top = byPbr[0];
             return (
-              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-                <div className="text-emerald-400 font-semibold mb-1">💎 최저 PBR</div>
+              <div className="bg-brand-green/5 border border-brand-green/20 rounded-xl p-4">
+                <div className="text-brand-green font-semibold mb-1">💎 최저 PBR</div>
                 <div className="text-[var(--color-text-primary)] font-bold">{top?.name ?? "데이터 없음"}</div>
                 <div className="text-[var(--color-text-muted)] mt-0.5">
                   {top?.pbr != null ? `PBR ${top.pbr.toFixed(2)}x` : "N/A"}
@@ -338,8 +326,8 @@ export default function DiscoverScoreboard() {
               .sort((a, b) => (a.per ?? 999) - (b.per ?? 999));
             const top = byPer[0];
             return (
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4">
-                <div className="text-amber-400 font-semibold mb-1">📈 최저 PER</div>
+              <div className="bg-brand-blue/5 border border-brand-blue/20 rounded-sm p-4">
+                <div className="text-brand-blue font-semibold mb-1">📈 최저 PER</div>
                 <div className="text-[var(--color-text-primary)] font-bold">{top?.name ?? "데이터 없음"}</div>
                 <div className="text-[var(--color-text-muted)] mt-0.5">
                   {top?.per != null ? `PER ${top.per.toFixed(1)}x` : "N/A"}

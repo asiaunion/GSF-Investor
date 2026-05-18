@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
+import AppPageLayout from "@/components/AppPageLayout";
+import { economistCard, marketBadge, tabActive, tabInactive } from "@/lib/economist-ui";
 import { useSession } from "next-auth/react";
 
 interface StockItem {
@@ -27,10 +28,10 @@ function ReturnBadge({ value }: { value: number | null }) {
   const positive = value >= 0;
   return (
     <span
-      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+      className={`text-xs font-semibold px-2 py-0.5 rounded-sm ${
         positive
-          ? "bg-emerald-500/15 text-emerald-400"
-          : "bg-red-500/15 text-red-400"
+          ? "bg-profit-bg text-profit-400 border border-profit-border"
+          : "bg-loss-bg text-loss-400 border border-loss-border"
       }`}
     >
       {positive ? "+" : ""}
@@ -41,13 +42,7 @@ function ReturnBadge({ value }: { value: number | null }) {
 
 function MarketBadge({ market }: { market: string }) {
   return (
-    <span
-      className={`text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider ${
-        market === "KR"
-          ? "bg-blue-500/15 text-blue-400 border border-blue-500/20"
-          : "bg-amber-500/15 text-amber-400 border border-amber-500/20"
-      }`}
-    >
+    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm uppercase tracking-wider ${marketBadge[market] ?? marketBadge.US}`}>
       {market}
     </span>
   );
@@ -56,10 +51,10 @@ function MarketBadge({ market }: { market: string }) {
 function CategoryBadge({ category }: { category: string }) {
   return (
     <span
-      className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
+      className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm border ${
         category === "Core"
-          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-          : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+          ? "bg-brand-green/10 text-brand-green border-brand-green/25"
+          : "bg-brand-blue/10 text-brand-blue border-brand-blue/30"
       }`}
     >
       {category}
@@ -87,70 +82,59 @@ export default function StocksPage() {
   const filtered = filter === "ALL" ? stocks : stocks.filter((s) => s.category === filter);
   const totalEval = stocks.reduce((sum, s) => sum + (s.evalAmountKRW ?? 0), 0);
 
-  return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session?.user?.email} />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">관심종목</h1>
-            <p className="text-text-muted text-sm mt-1">
-              총 {stocks.length}개 종목 · 총 평가금액{" "}
-              <span className="text-text-secondary font-medium">
-                {totalEval > 0
-                  ? `₩${(totalEval / 1_0000_0000).toFixed(2)}억`
-                  : "—"}
-              </span>
-            </p>
-          </div>
-
-          {/* Filter tabs */}
-          <div className="flex gap-1 bg-bg-surface rounded-xl p-1 border border-border-default">
-            {(["ALL", "Core", "Satellite"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  filter === f
-                    ? "bg-emerald-500/20 text-emerald-400 shadow-sm"
-                    : "text-text-muted hover:text-text-secondary"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-48 bg-bg-surface rounded-2xl border border-border-default animate-pulse"
-              />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-bg-surface border border-border-default flex items-center justify-center">
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-text-muted">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
-              </svg>
-            </div>
-            <p className="text-text-muted text-sm">종목이 없습니다</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((stock) => (
-              <StockCard key={stock.id} stock={stock} usdkrw={usdkrw} />
-            ))}
-          </div>
-        )}
-      </main>
+  const filterTabs = (
+    <div className="flex gap-1 bg-bg-surface rounded-sm p-1 border border-border-default shrink-0">
+      {(["ALL", "Core", "Satellite"] as const).map((f) => (
+        <button
+          key={f}
+          type="button"
+          onClick={() => setFilter(f)}
+          className={`px-3 py-1.5 rounded-sm text-xs transition-all ${filter === f ? tabActive : tabInactive}`}
+        >
+          {f}
+        </button>
+      ))}
     </div>
+  );
+
+  return (
+    <AppPageLayout
+      wide
+      email={session?.user?.email}
+      title="관심종목"
+      subtitle={
+        <>
+          총 {stocks.length}개 종목 · 총 평가금액{" "}
+          <span className="text-text-secondary font-medium">
+            {totalEval > 0 ? `₩${(totalEval / 1_0000_0000).toFixed(2)}억` : "—"}
+          </span>
+        </>
+      }
+      headerExtra={filterTabs}
+    >
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={`h-48 ${economistCard} animate-pulse`} />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-24 gap-3">
+          <div className="w-16 h-16 rounded-sm bg-bg-surface border border-border-default flex items-center justify-center">
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-text-muted">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+            </svg>
+          </div>
+          <p className="text-text-muted text-sm">종목이 없습니다</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((stock) => (
+            <StockCard key={stock.id} stock={stock} usdkrw={usdkrw} />
+          ))}
+        </div>
+      )}
+    </AppPageLayout>
   );
 }
 
@@ -166,8 +150,7 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
 
   return (
     <Link href={`/stocks/${stock.ticker}`} className="group block">
-      <div className="bg-bg-surface border border-border-default rounded-2xl p-5 h-full hover:border-zinc-600 hover:bg-bg-surface/80 transition-all duration-200 hover:shadow-lg hover:shadow-black/30">
-        {/* Top row: name + badges */}
+      <div className={`${economistCard} p-5 h-full hover:border-brand-green/40 transition-all duration-200`}>
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -179,7 +162,6 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
           <CategoryBadge category={stock.category} />
         </div>
 
-        {/* Price + Return */}
         <div className="flex items-end justify-between mt-4">
           <div>
             <div className="text-text-primary text-xl font-bold tracking-tight">{priceStr}</div>
@@ -195,7 +177,6 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
           <ReturnBadge value={stock.holdingReturn} />
         </div>
 
-        {/* Holding info */}
         {isHolding && (
           <div className="mt-3 pt-3 border-t border-border-default grid grid-cols-2 gap-2">
             <div>
@@ -215,14 +196,12 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
           </div>
         )}
 
-        {/* Thesis snippet */}
         {stock.thesis && (
           <div className="mt-3 text-text-muted text-xs line-clamp-2 leading-relaxed">
             {stock.thesis}
           </div>
         )}
 
-        {/* Hover arrow */}
         <div className="mt-3 flex justify-end">
           <svg
             width="14"
@@ -231,7 +210,7 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
             stroke="currentColor"
             strokeWidth="2"
             viewBox="0 0 24 24"
-            className="text-text-disabled group-hover:text-emerald-500 transition-colors"
+            className="text-text-disabled group-hover:text-brand-green transition-colors"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
           </svg>

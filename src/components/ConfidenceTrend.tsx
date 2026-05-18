@@ -280,8 +280,8 @@ export default function ConfidenceTrend() {
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
                     entry.action === "BUY"
-                      ? "bg-emerald-500/10 text-[var(--color-brand-green)]"
-                      : "bg-red-500/10 text-red-400"
+                      ? "bg-brand-green/10 text-[var(--color-brand-green)]"
+                      : "bg-loss-bg text-loss-400"
                   }`}
                 >
                   {entry.action}

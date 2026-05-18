@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
-import Navbar from "@/components/Navbar";
+import AppPageLayout from "@/components/AppPageLayout";
 import DisclosuresClient from "./DisclosuresClient";
 
 export const dynamic = "force-dynamic";
@@ -79,17 +79,12 @@ export default async function DisclosuresPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-bg-base">
-      <Navbar email={session.user?.email} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-text-primary">공시 타임라인</h1>
-          <p className="text-text-muted text-sm mt-1">
-            DART · SEC EDGAR 최신 공시 — 최대 200건
-          </p>
-        </div>
-        <DisclosuresClient disclosures={disclosures} tickers={tickers} />
-      </main>
-    </div>
+    <AppPageLayout
+      email={session.user?.email}
+      title="공시 타임라인"
+      subtitle="DART · SEC EDGAR 최신 공시 — 최대 200건"
+    >
+      <DisclosuresClient disclosures={disclosures} tickers={tickers} />
+    </AppPageLayout>
   );
 }
