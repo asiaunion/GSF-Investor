@@ -256,7 +256,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
             className={`text-xs px-4 py-2 rounded-lg border font-semibold transition-colors ${
               showAddForm
                 ? "bg-[var(--color-bg-elevated)] border-[var(--color-border-strong)] text-[var(--color-text-secondary)]"
-                : "bg-emerald-600 border-emerald-500 text-text-primary hover:bg-emerald-500"
+                : "bg-violet-600 border-violet-500 text-white hover:bg-violet-500"
             }`}
           >
             {showAddForm ? "✕ 닫기" : "+ 신규 종목 추가"}

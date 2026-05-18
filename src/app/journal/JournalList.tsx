@@ -91,7 +91,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
                 <td className="py-3 text-right">
                   <Link
                     href={`/journal/${row.id}`}
-                    className="text-xs text-text-muted hover:text-emerald-400 transition-colors opacity-0 group-hover:opacity-100"
+                    className="text-xs text-text-muted hover:text-emerald-400 transition-colors"
                   >
                     상세 →
                   </Link>

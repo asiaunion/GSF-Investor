@@ -42,22 +42,9 @@ export default function Navbar({ email }: NavbarProps) {
     <nav className="border-b border-border-default bg-bg-surface/60 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-emerald-400"
-            >
-              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-              <polyline points="16 7 22 7 22 13" />
-            </svg>
-          </div>
+          <Link href="/" className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center transition-colors hover:bg-emerald-500/25">
+            <span className="text-emerald-400 font-extrabold text-base font-serif">G</span>
+          </Link>
           <span className="font-semibold text-text-primary text-sm">GSF Investor</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-3 overflow-x-auto">

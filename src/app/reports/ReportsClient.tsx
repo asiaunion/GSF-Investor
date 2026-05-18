@@ -268,7 +268,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             id="btn-generate-report"
             onClick={handleGenerate}
             disabled={generating || !selectedStockId}
-            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-[var(--color-bg-elevated)] disabled:cursor-not-allowed text-text-primary text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+            className="px-5 py-2 bg-violet-600 hover:bg-violet-500 disabled:bg-[var(--color-bg-elevated)] disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
           >
             {generating ? (
               <>

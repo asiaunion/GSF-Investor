@@ -349,7 +349,7 @@ export default function DiscoverClient({ stocks: initialStocks }: Props) {
                     <Link
                       href={`/stocks/${stock.ticker}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="shrink-0 text-xs text-text-muted hover:text-violet-400 transition-colors"
+                      className="shrink-0 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-brand-green)] transition-colors"
                     >
                       →
                     </Link>
