@@ -7,6 +7,7 @@ import type { Components } from "react-markdown";
 import dynamic from "next/dynamic";
 import type { ReportDetail } from "./page";
 import type { FactCheckResult } from "@/lib/gemini";
+import { AiReportDisclaimer } from "@/components/AiReportDisclaimer";
 
 // recharts — SSR 비활성화 (recharts는 window 객체 사용)
 const LineChart   = dynamic(() => import("recharts").then((m) => m.LineChart),         { ssr: false });
@@ -221,6 +222,10 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
 
   return (
     <div className="space-y-6">
+      <AiReportDisclaimer
+        generatedAt={report.generatedAt}
+        dataAsOf={chartsData?.financials?.[0]?.period ?? null}
+      />
       {/* ── 헤더 ────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>

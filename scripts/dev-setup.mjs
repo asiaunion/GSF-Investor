@@ -13,32 +13,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DB_PATH = path.join(ROOT, "local.db");
 const DB_URL = `file:${DB_PATH}`;
 
-const V_PORTFOLIO = `
-CREATE VIEW v_portfolio AS
-WITH positions AS (
-  SELECT
-    stock_id,
-    SUM(CASE WHEN action IN ('BUY', 'INIT') THEN quantity ELSE -quantity END) AS quantity,
-    SUM(CASE WHEN action IN ('BUY', 'INIT') THEN quantity * price ELSE 0 END) AS total_cost,
-    SUM(CASE WHEN action IN ('BUY', 'INIT') THEN quantity ELSE 0 END) AS total_bought,
-    MAX(currency) AS currency
-  FROM trade_journal
-  GROUP BY stock_id
-  HAVING quantity > 0
-)
-SELECT
-  s.ticker,
-  s.name,
-  s.market,
-  s.category,
-  s.broker,
-  p.quantity,
-  ROUND(p.total_cost / p.total_bought, 0) AS avg_price,
-  p.currency
-FROM positions p
-JOIN stocks s ON s.id = p.stock_id
-WHERE s.is_active = 1
-`;
+import { V_PORTFOLIO_SQL } from "./db-views.mjs";
 
 function run(cmd, env = {}) {
   execSync(cmd, {
@@ -97,14 +72,19 @@ async function seed() {
 
     `INSERT INTO reports (stock_id, trigger, content_md) VALUES
       (1, 'MANUAL', '# 현대차 분석\\n\\n## 요약\\n- 전동화 전환 가속\\n- 밸류에이션 중립\\n\\n## 리스크\\n- 환율·금리')`,
+
+    `INSERT INTO signal_rules (name, type, severity, condition_json, is_active) VALUES
+      ('주간 급등', 'PRICE_SURGE', 'LOW', '{"metric":"weekly_return_pct","operator":"gt","threshold":5}', 1),
+      ('주간 급락', 'PRICE_DROP', 'LOW', '{"metric":"weekly_return_pct","operator":"lt","threshold":-5}', 1),
+      ('월간 급등', 'PRICE_SURGE', 'MEDIUM', '{"metric":"monthly_return_pct","operator":"gt","threshold":15}', 1),
+      ('부채비율 급등', 'DEBT_SPIKE', 'MEDIUM', '{"metric":"debt_ratio_change_pp","operator":"gt","threshold":20}', 1)`,
   ];
 
   for (const sql of statements) {
     await client.execute(sql);
   }
 
-  await client.execute("DROP VIEW IF EXISTS v_portfolio");
-  await client.execute(V_PORTFOLIO);
+  await client.execute(V_PORTFOLIO_SQL);
 
   client.close();
   console.log("\n✅ Local DB ready:", DB_PATH);

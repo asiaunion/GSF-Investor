@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { discoverAddSchema, validationErrorResponse } from "@/lib/validations";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,9 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
+  const parsed = discoverAddSchema.safeParse(await req.json());
+  if (!parsed.success) return validationErrorResponse(parsed.error);
+
   const {
     ticker,
     yahooTicker,
@@ -22,14 +25,10 @@ export async function POST(req: NextRequest) {
     secCik,
     name,
     market,
-    category = "Core",
+    category,
     broker,
     thesis,
-  } = body;
-
-  if (!ticker || !name || !market) {
-    return NextResponse.json({ error: "ticker, name, market 필수" }, { status: 400 });
-  }
+  } = parsed.data;
 
   // 중복 확인
   const existing = await db.run(sql`

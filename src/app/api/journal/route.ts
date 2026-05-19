@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { tradeJournal, stocks } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { journalCreateSchema, validationErrorResponse } from "@/lib/validations";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -38,45 +39,39 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await req.json();
+  const parsed = journalCreateSchema.safeParse(await req.json());
+  if (!parsed.success) return validationErrorResponse(parsed.error);
+
   const {
     stockId,
     tradedAt,
     action,
     quantity,
     price,
-    currency = "KRW",
+    currency,
     thesis,
-    category = "Core",
+    category,
     emotionTag,
     confidenceScore,
     loanInterest,
     retrospective,
-  } = body;
-
-  // 필수 필드 검증
-  if (!stockId || !tradedAt || !action || !quantity || !price || !thesis) {
-    return NextResponse.json({ error: "필수 필드 누락" }, { status: 400 });
-  }
-  if (!["BUY", "SELL", "INIT"].includes(action)) {
-    return NextResponse.json({ error: "action은 BUY/SELL/INIT 중 하나" }, { status: 400 });
-  }
+  } = parsed.data;
 
   const [inserted] = await db
     .insert(tradeJournal)
     .values({
-      stockId: Number(stockId),
+      stockId,
       tradedAt,
       action,
-      quantity: Number(quantity),
-      price: Number(price),
+      quantity,
+      price,
       currency,
       thesis,
       category,
-      emotionTag: emotionTag || null,
-      confidenceScore: confidenceScore ? Number(confidenceScore) : null,
-      loanInterest: loanInterest ? Number(loanInterest) : null,
-      retrospective: retrospective || null,
+      emotionTag: emotionTag ?? null,
+      confidenceScore: confidenceScore ?? null,
+      loanInterest: loanInterest ?? null,
+      retrospective: retrospective ?? null,
     })
     .returning();
 

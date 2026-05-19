@@ -98,6 +98,21 @@ export const severityConfig = {
 
 export const linkMuted = "text-brand-green hover:text-brand-green/80 transition-colors";
 
+export const textareaClass = `${inputClass} resize-none`;
+
+export const selectClass = inputClass;
+
+export const btnPrimarySm =
+  "px-4 py-2 rounded-sm text-xs font-medium text-white bg-brand-green border border-brand-green hover:bg-brand-green/85 disabled:bg-bg-elevated disabled:text-text-muted disabled:border-border-default transition-colors";
+
+export const economistPanelBody = "p-5";
+
+/** P&amp;L positive / negative text (no neon emerald/red) */
+export function pnlTextClass(value: number | null | undefined): string {
+  if (value == null || value === 0) return "text-text-muted";
+  return value > 0 ? "text-profit-400" : "text-loss-400";
+}
+
 /** 설정 탭 인라인 폼·리스트 행 액션 */
 export const panelInlineForm =
   "px-6 py-5 bg-bg-base/60 border-b border-border-default";

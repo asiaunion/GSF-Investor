@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { PnlMethodHint } from "@/components/PnlMethodHint";
+import {
+  btnPrimarySm,
+  economistCard,
+  linkMuted,
+  marketBadge,
+  pnlTextClass,
+  severityConfig,
+  tabActive,
+  tabInactive,
+  textareaClass,
+} from "@/lib/economist-ui";
 
 const PriceAreaChart = dynamic(
   () => import("@/components/StockCharts").then((m) => m.PriceAreaChart),
@@ -87,17 +99,20 @@ function ReturnBadge({ value }: { value: number | null }) {
   if (value == null) return <span className="text-text-muted">—</span>;
   const pos = value >= 0;
   return (
-    <span className={`font-semibold ${pos ? "text-emerald-400" : "text-red-400"}`}>
+    <span className={`font-semibold ${pnlTextClass(value)}`}>
       {pos ? "+" : ""}{value.toFixed(2)}%
     </span>
   );
 }
 
 function SeverityDot({ severity }: { severity: string }) {
-  const map: Record<string, string> = {
-    HIGH: "bg-red-500", MEDIUM: "bg-amber-500", LOW: "bg-emerald-500",
-  };
-  return <span className={`inline-block w-2 h-2 rounded-full ${map[severity] ?? "bg-zinc-500"}`} />;
+  const cfg = severityConfig[severity as keyof typeof severityConfig];
+  return (
+    <span
+      className={`inline-block w-2 h-2 rounded-full shrink-0 ${cfg?.dot ?? "bg-text-muted"}`}
+      aria-label={severity}
+    />
+  );
 }
 
 // ── Tab: Overview ────────────────────────────────────────────────────────────
@@ -110,7 +125,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
   return (
     <div className="space-y-6">
       {/* Price hero */}
-      <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+      <div className={`${economistCard} p-5`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-text-muted text-xs mb-1">현재가 · {overview.priceDate ?? "—"}</div>
@@ -125,7 +140,9 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
           </div>
           {portfolio && (
             <div className="text-right">
-              <div className="text-text-muted text-xs mb-1">보유 수익률</div>
+              <div className="text-text-muted text-xs mb-1 flex items-center justify-end gap-1">
+                보유 수익률 <PnlMethodHint method="weighted_avg" />
+              </div>
               <div className="text-xl font-bold"><ReturnBadge value={holdingReturn} /></div>
               <div className="text-text-muted text-xs mt-1">
                 {portfolio.quantity.toLocaleString()}주 · 평균 {fmtPrice(portfolio.avgPrice, currency)}
@@ -148,7 +165,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
           { label: "배당수익률", value: dividendYield != null ? `${dividendYield.toFixed(2)}%` : "—" },
           { label: "평가금액", value: evalKRW != null ? `₩${(evalKRW / 1e8).toFixed(2)}억` : "—" },
         ].map((m) => (
-          <div key={m.label} className="bg-bg-surface border border-border-default rounded-xl p-4">
+          <div key={m.label} className={`${economistCard} p-4`}>
             <div className="text-text-muted text-[10px] uppercase tracking-wider">{m.label}</div>
             <div className="text-text-primary text-lg font-semibold mt-1">{m.value}</div>
           </div>
@@ -157,7 +174,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
 
       {/* Thesis */}
       {stock.thesis && (
-        <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+        <div className={`${economistCard} p-5`}>
           <div className="text-text-muted text-xs uppercase tracking-wider mb-2">투자 테제</div>
           <p className="text-text-secondary text-sm leading-relaxed">{stock.thesis}</p>
         </div>
@@ -170,17 +187,17 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
 function FinancialTab({ financials, currency }: { financials: Financial[]; currency: string }) {
   return (
     <div className="space-y-6">
-      <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+      <div className={`${economistCard} p-5`}>
         <div className="text-text-secondary text-sm font-medium mb-4">손익계산서 추이</div>
         <IncomeLineChart data={financials} currency={currency} />
       </div>
-      <div className="bg-bg-surface border border-border-default rounded-2xl p-5">
+      <div className={`${economistCard} p-5`}>
         <div className="text-text-secondary text-sm font-medium mb-4">재무상태표</div>
         <BalanceSheetBarChart data={financials} currency={currency} />
       </div>
       {/* Table */}
       {financials.length > 0 && (
-        <div className="bg-bg-surface border border-border-default rounded-2xl overflow-hidden">
+        <div className={`${economistCard} overflow-hidden`}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -198,10 +215,10 @@ function FinancialTab({ financials, currency }: { financials: Financial[]; curre
                   <tr key={f.period} className="border-b border-border-default/50 hover:bg-bg-elevated/30 transition-colors">
                     <td className="px-4 py-3 text-text-secondary font-medium">{f.period}</td>
                     <td className="px-4 py-3 text-right text-text-secondary">{fmtLarge(f.revenue, currency)}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${f.opIncome != null && f.opIncome >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 text-right font-medium ${f.opIncome != null && f.opIncome >= 0 ? "text-profit-400" : "text-loss-400"}`}>
                       {fmtLarge(f.opIncome, currency)}
                     </td>
-                    <td className={`px-4 py-3 text-right font-medium ${f.netIncome != null && f.netIncome >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-4 py-3 text-right font-medium ${f.netIncome != null && f.netIncome >= 0 ? "text-profit-400" : "text-loss-400"}`}>
                       {fmtLarge(f.netIncome, currency)}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">{fmt(f.roe)}%</td>
@@ -225,12 +242,10 @@ function DisclosuresTab({ disclosures }: { disclosures: Disclosure[] }) {
   return (
     <div className="space-y-3">
       {disclosures.map((d) => (
-        <div key={d.id} className="bg-bg-surface border border-border-default rounded-xl p-4 hover:border-border-default transition-colors">
+        <div key={d.id} className={`${economistCard} p-4 hover:border-border-strong transition-colors`}>
           <div className="flex items-center justify-between gap-2 mb-2">
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
-              d.source === "DART"
-                ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm border ${
+              d.source === "DART" ? marketBadge.KR : "bg-warn-bg text-warn-400 border-warn-border"
             }`}>{d.source}</span>
             <span className="text-text-muted text-xs">{d.filedAt.slice(0, 10)}</span>
           </div>
@@ -245,7 +260,7 @@ function DisclosuresTab({ disclosures }: { disclosures: Disclosure[] }) {
               href={d.rawUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-emerald-500 hover:text-emerald-400 text-xs transition-colors"
+              className={`inline-flex items-center gap-1 mt-2 text-xs ${linkMuted}`}
             >
               원문 보기 →
             </a>
@@ -264,20 +279,14 @@ function SignalsTab({ signals }: { signals: Signal[] }) {
   return (
     <div className="space-y-3">
       {signals.map((s) => (
-        <div key={s.id} className={`bg-bg-surface border rounded-xl p-4 transition-colors ${
-          s.isResolved ? "border-border-default/50 opacity-60" : "border-border-default hover:border-border-default"
-        }`}>
+        <div key={s.id} className={`${economistCard} p-4 transition-colors ${s.isResolved ? "opacity-60" : ""}`}>
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <SeverityDot severity={s.severity} />
               <span className="text-text-secondary text-xs font-medium">{s.type.replace(/_/g, " ")}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                s.severity === "HIGH"
-                  ? "bg-red-500/10 text-red-400 border-red-500/20"
-                  : s.severity === "MEDIUM"
-                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              }`}>{s.severity}</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border ${severityConfig[s.severity as keyof typeof severityConfig]?.badge ?? ""}`}>
+                {s.severity}
+              </span>
             </div>
             <span className="text-text-muted text-xs">{s.detectedAt.slice(0, 10)}</span>
           </div>
@@ -325,21 +334,21 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
   return (
     <div className="space-y-4">
       {/* Input form */}
-      <form onSubmit={handleSubmit} className="bg-bg-surface border border-border-default rounded-2xl p-4">
+      <form onSubmit={handleSubmit} className={`${economistCard} p-4`}>
         <div className="text-text-secondary text-xs font-medium mb-2">새 메모 작성</div>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="투자 메모를 작성하세요 (마크다운 지원)..."
           rows={4}
-          className="w-full bg-bg-elevated border border-border-default rounded-xl px-4 py-3 text-text-primary text-sm placeholder:text-text-muted resize-none focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+          className={textareaClass}
         />
-        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+        {error && <p className="text-loss-400 text-xs mt-1">{error}</p>}
         <div className="flex justify-end mt-2">
           <button
             type="submit"
             disabled={submitting || !text.trim()}
-            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-bg-elevated disabled:text-text-muted text-text-primary text-xs font-medium transition-all"
+            className={btnPrimarySm}
           >
             {submitting ? "저장 중..." : "저장"}
           </button>
@@ -351,7 +360,7 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
         <EmptyState label="메모 없음" sub="첫 번째 투자 메모를 작성해보세요" />
       ) : (
         notes.map((note) => (
-          <div key={note.id} className="bg-bg-surface border border-border-default rounded-xl p-4">
+          <div key={note.id} className={`${economistCard} p-4`}>
             <div className="text-text-muted text-[10px] mb-2">{note.createdAt.slice(0, 16)}</div>
             <div className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{note.contentMd}</div>
           </div>
@@ -364,7 +373,7 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
 function EmptyState({ label, sub }: { label: string; sub?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-2">
-      <div className="w-12 h-12 rounded-xl bg-bg-surface border border-border-default flex items-center justify-center">
+      <div className={`w-12 h-12 rounded-sm ${economistCard} flex items-center justify-center`}>
         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-text-muted">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>
@@ -408,10 +417,8 @@ export default function StockDetailClient({
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              activeTab === tab
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/25"
-                : "text-text-muted hover:text-text-secondary hover:bg-bg-elevated"
+            className={`flex-shrink-0 px-4 py-2 rounded-sm text-sm transition-all border ${
+              activeTab === tab ? tabActive : `${tabInactive} border-transparent`
             }`}
           >
             {tab}

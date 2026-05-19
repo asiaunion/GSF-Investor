@@ -1,8 +1,22 @@
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { tradeJournal, stocks } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import {
+  dailyReturns,
+  maxDrawdownPct,
+  periodReturnPct,
+  sharpeRatio,
+  volatilityAnnualized,
+} from "@/lib/performance-metrics";
+import {
+  aggregateEmotionStats,
+  computeFifoRealizedTrades,
+  type TradeRow,
+} from "@/lib/fifo";
+
+const EMOTIONS = ["확신", "계획적", "불안", "충동"];
 
 /**
  * FIFO 방식으로 BUY/INIT 매칭 → SELL 실현 손익 계산
@@ -12,7 +26,6 @@ export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  // 전체 trade_journal 로드 (시간순)
   const rows = await db
     .select({
       id: tradeJournal.id,
@@ -32,148 +45,72 @@ export async function GET() {
     .leftJoin(stocks, eq(tradeJournal.stockId, stocks.id))
     .orderBy(asc(tradeJournal.tradedAt));
 
-  // ── 1. FIFO 실현 손익 계산 ─────────────────────────────────────────────────
-  // stockId → FIFO 큐 [{qty, price}]
-  const fifoQueues: Record<number, { qty: number; price: number; emotion: string | null }[]> = {};
+  const tradeRows: TradeRow[] = rows
+    .filter((r) => r.stockId != null)
+    .map((r) => ({
+      id: r.id,
+      stockId: r.stockId!,
+      tradedAt: r.tradedAt,
+      action: r.action as TradeRow["action"],
+      quantity: r.quantity,
+      price: r.price,
+      currency: r.currency,
+      emotionTag: r.emotionTag,
+      loanInterest: r.loanInterest,
+    }));
 
-  interface RealizedTrade {
-    id: number;
-    ticker: string | null;
-    name: string | null;
-    tradedAt: string;
-    quantity: number;
-    sellPrice: number;
-    avgBuyPrice: number;
-    realizedPnl: number;    // 실현 손익 (세전, 이자 미차감)
-    loanInterest: number;   // 매도 시점 누적 융자 이자
-    netPnl: number;         // 순손익 = realizedPnl - loanInterest
-    returnPct: number;      // 수익률 (이자 반영)
-    returnPctGross: number; // 수익률 (이자 미반영)
-    currency: string | null;
-    emotionTag: string | null;
-  }
+  const fifoRealized = computeFifoRealizedTrades(tradeRows);
+  const stockLookup = new Map(
+    rows.filter((r) => r.stockId).map((r) => [r.stockId!, { ticker: r.ticker, name: r.name }])
+  );
 
-  const realizedTrades: RealizedTrade[] = [];
-
-  for (const row of rows) {
-    if (!row.stockId) continue;
-    const sid = row.stockId;
-    if (!fifoQueues[sid]) fifoQueues[sid] = [];
-
-    if (row.action === "BUY" || row.action === "INIT") {
-      fifoQueues[sid].push({ qty: row.quantity, price: row.price, emotion: row.emotionTag });
-    } else if (row.action === "SELL") {
-      let remaining = row.quantity;
-      let totalCost = 0;
-      let matchedQty = 0;
-
-      while (remaining > 0 && fifoQueues[sid].length > 0) {
-        const head = fifoQueues[sid][0];
-        const take = Math.min(head.qty, remaining);
-        totalCost += take * head.price;
-        matchedQty += take;
-        remaining -= take;
-        head.qty -= take;
-        if (head.qty === 0) fifoQueues[sid].shift();
-      }
-
-      if (matchedQty > 0) {
-        const avgBuyPrice = totalCost / matchedQty;
-        const sellRevenue = row.quantity * row.price;
-        const buyCost = matchedQty * avgBuyPrice;
-        const realizedPnl = sellRevenue - buyCost;
-        const interest = row.loanInterest ? Number(row.loanInterest) : 0;
-        const netPnl = realizedPnl - interest;
-        const returnPct = buyCost > 0 ? (netPnl / buyCost) * 100 : 0;
-        const returnPctGross = buyCost > 0 ? (realizedPnl / buyCost) * 100 : 0;
-
-        realizedTrades.push({
-          id: row.id,
-          ticker: row.ticker,
-          name: row.name,
-          tradedAt: row.tradedAt,
-          quantity: row.quantity,
-          sellPrice: row.price,
-          avgBuyPrice,
-          realizedPnl,
-          loanInterest: interest,
-          netPnl,
-          returnPct,
-          returnPctGross,
-          currency: row.currency,
-          emotionTag: row.emotionTag,
-        });
-      }
-    }
-  }
-
-  // ── 2. 감정 태그별 집계 ────────────────────────────────────────────────────
-  const EMOTIONS = ["확신", "계획적", "불안", "충동"];
-
-  interface EmotionStat {
-    tag: string;
-    count: number;         // 총 거래 건수 (BUY+SELL+INIT)
-    buyCount: number;
-    sellCount: number;
-    totalRealizedPnl: number;  // 해당 감정 SELL의 실현 손익 합계
-    avgReturnPct: number | null; // 평균 수익률
-    winCount: number;      // 수익 거래 수
-    lossCount: number;     // 손실 거래 수
-  }
-
-  const emotionMap: Record<string, EmotionStat> = {};
-  for (const tag of EMOTIONS) {
-    emotionMap[tag] = {
-      tag,
-      count: 0,
-      buyCount: 0,
-      sellCount: 0,
-      totalRealizedPnl: 0,
-      avgReturnPct: null,
-      winCount: 0,
-      lossCount: 0,
+  const realizedTrades = fifoRealized.map((t) => {
+    const meta = stockLookup.get(t.stockId);
+    return {
+      ...t,
+      ticker: meta?.ticker ?? null,
+      name: meta?.name ?? null,
     };
-  }
+  });
 
-  for (const row of rows) {
-    if (!row.emotionTag || !emotionMap[row.emotionTag]) continue;
-    const stat = emotionMap[row.emotionTag];
-    stat.count++;
-    if (row.action === "BUY" || row.action === "INIT") stat.buyCount++;
-    if (row.action === "SELL") stat.sellCount++;
-  }
-
-  // SELL 기반 실현 손익 집계
-  const sellReturnsByEmotion: Record<string, number[]> = {};
-  for (const trade of realizedTrades) {
-    if (!trade.emotionTag) continue;
-    if (!sellReturnsByEmotion[trade.emotionTag]) sellReturnsByEmotion[trade.emotionTag] = [];
-    sellReturnsByEmotion[trade.emotionTag].push(trade.returnPct);
-    if (emotionMap[trade.emotionTag]) {
-      emotionMap[trade.emotionTag].totalRealizedPnl += trade.realizedPnl;
-      if (trade.realizedPnl > 0) emotionMap[trade.emotionTag].winCount++;
-      else emotionMap[trade.emotionTag].lossCount++;
-    }
-  }
-
-  for (const [tag, returns] of Object.entries(sellReturnsByEmotion)) {
-    if (emotionMap[tag] && returns.length > 0) {
-      emotionMap[tag].avgReturnPct = returns.reduce((a, b) => a + b, 0) / returns.length;
-    }
-  }
-
+  const emotionMap = aggregateEmotionStats(tradeRows, fifoRealized, EMOTIONS);
   const emotionStats = EMOTIONS.map((t) => emotionMap[t]).filter((s) => s.count > 0);
 
-  // ── 3. 전체 요약 ──────────────────────────────────────────────────────────
   const totalRealizedPnl = realizedTrades.reduce((s, t) => s + t.realizedPnl, 0);
   const totalLoanInterest = realizedTrades.reduce((s, t) => s + t.loanInterest, 0);
   const totalNetPnl = realizedTrades.reduce((s, t) => s + t.netPnl, 0);
   const winTrades = realizedTrades.filter((t) => t.netPnl > 0).length;
   const totalSells = realizedTrades.length;
 
-  // ── 4. 카테고리별 집계 ────────────────────────────────────────────────────
   const coreRows = rows.filter((r) => r.category === "Core");
   const satelliteRows = rows.filter((r) => r.category === "Satellite");
+
+  let benchmarkPerformance: {
+    ticker: string;
+    periodReturnPct: number | null;
+    volatilityPct: number | null;
+    maxDrawdownPct: number | null;
+    sharpe: number | null;
+  } | null = null;
+
+  const benchPriceRows = await db.run(sql`
+    SELECT p.close_price FROM prices p
+    JOIN stocks s ON s.id = p.stock_id
+    WHERE s.ticker = '069500'
+    ORDER BY p.date ASC
+    LIMIT 252
+  `);
+  if (benchPriceRows.rows.length >= 2) {
+    const closes = benchPriceRows.rows.map((r) => Number(r[0]));
+    const rets = dailyReturns(closes);
+    benchmarkPerformance = {
+      ticker: "069500",
+      periodReturnPct: periodReturnPct(closes),
+      volatilityPct: volatilityAnnualized(rets),
+      maxDrawdownPct: maxDrawdownPct(closes),
+      sharpe: sharpeRatio(rets),
+    };
+  }
 
   return NextResponse.json({
     summary: {
@@ -188,10 +125,11 @@ export async function GET() {
       lossTrades: totalSells - winTrades,
     },
     emotionStats,
-    realizedTrades: realizedTrades.slice(-20).reverse(), // 최신 20건
+    realizedTrades: realizedTrades.slice(-20).reverse(),
     categoryBreakdown: {
       core: coreRows.filter((r) => r.action !== "INIT").length,
       satellite: satelliteRows.filter((r) => r.action !== "INIT").length,
     },
+    benchmarkPerformance,
   });
 }

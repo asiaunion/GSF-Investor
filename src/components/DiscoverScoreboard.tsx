@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { gradeBadge, linkMuted, marketBadge } from "@/lib/economist-ui";
+import { gradeBadge, linkMuted, marketBadge, tabActive, tabInactive } from "@/lib/economist-ui";
+import { SCREENING_PRESETS, type ScreeningPresetId } from "@/lib/screening-presets";
 
 // Recharts — SSR 방지
 const RadarChart = dynamic(() => import("recharts").then((m) => m.RadarChart), { ssr: false });
@@ -86,20 +87,24 @@ export default function DiscoverScoreboard() {
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [filterGrade, setFilterGrade] = useState<string>("ALL");
+  const [preset, setPreset] = useState<ScreeningPresetId>("balanced");
+  const [presetLabel, setPresetLabel] = useState("균형");
 
   useEffect(() => {
-    fetch("/api/discover/all-scores")
+    setLoading(true);
+    fetch(`/api/discover/all-scores?preset=${preset}`)
       .then((r) => {
         if (!r.ok) throw new Error("API 오류");
         return r.json();
       })
       .then((d) => {
         setStocks(d.stocks ?? []);
+        setPresetLabel(d.presetLabel ?? SCREENING_PRESETS[preset].label);
         if (d.stocks?.length > 0) setSelectedId(d.stocks[0].stockId);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [preset]);
 
   if (loading) {
     return (
@@ -135,6 +140,22 @@ export default function DiscoverScoreboard() {
 
   return (
     <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-text-muted mr-1">스크리닝 프리셋 · {presetLabel}</span>
+        {(Object.keys(SCREENING_PRESETS) as ScreeningPresetId[]).map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setPreset(id)}
+            className={`px-3 py-1.5 rounded-sm text-xs border transition-all ${
+              preset === id ? tabActive : `${tabInactive} border-transparent`
+            }`}
+          >
+            {SCREENING_PRESETS[id].label}
+          </button>
+        ))}
+      </div>
+
       {/* ── 헤더 통계 ────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[

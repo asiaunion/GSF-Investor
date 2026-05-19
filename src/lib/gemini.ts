@@ -46,6 +46,9 @@ export function factCheckReport(
 
   // 검증 대상 수치 목록
   const targets: { label: string; value: number | null; unit: string }[] = [
+    { label: `매출 (${latest.period})`, value: latest.revenue, unit: "원" },
+    { label: `영업이익 (${latest.period})`, value: latest.opIncome, unit: "원" },
+    { label: `순이익 (${latest.period})`, value: latest.netIncome, unit: "원" },
     { label: `EPS (${latest.period})`, value: latest.eps, unit: "원" },
     { label: `BPS (${latest.period})`, value: latest.bps, unit: "원" },
     { label: `ROE (${latest.period})`, value: latest.roe, unit: "%" },

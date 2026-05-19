@@ -9,6 +9,7 @@ import {
   formatKRW,
 } from "@/components/DashboardCharts";
 import Link from "next/link";
+import { PnlMethodHint } from "@/components/PnlMethodHint";
 import { economistCard, severityConfig } from "@/lib/economist-ui";
 
 // ── 타입 ─────────────────────────────────────────────────────────────────────
@@ -128,6 +129,7 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
           <HeroMetric
             emphasis
             label="총 수익률"
+            labelExtra={<PnlMethodHint method="weighted_avg" />}
             value={`${isPositive ? "+" : ""}${summary.totalReturnRate.toFixed(2)}%`}
             sub={`수익 ${isPositive ? "+" : ""}${formatKRW(pnl)}`}
             valueClass={isPositive ? "text-profit-400" : "text-loss-400"}
@@ -345,12 +347,14 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
 
 function HeroMetric({
   label,
+  labelExtra,
   value,
   sub,
   valueClass = "text-text-primary",
   emphasis = false,
 }: {
   label: string;
+  labelExtra?: ReactNode;
   value: string;
   sub: string;
   valueClass?: string;
@@ -358,7 +362,10 @@ function HeroMetric({
 }) {
   return (
     <div className="lg:px-2 min-w-0">
-      <p className={`${emphasis ? "text-xs" : "text-[11px]"} text-text-muted leading-none mb-0.5`}>{label}</p>
+      <p className={`${emphasis ? "text-xs" : "text-[11px]"} text-text-muted leading-none mb-0.5 flex items-center gap-1 flex-wrap`}>
+        {label}
+        {labelExtra}
+      </p>
       <p
         className={`${emphasis ? "text-lg sm:text-xl" : "text-base"} font-bold tabular-nums leading-tight truncate ${valueClass}`}
       >

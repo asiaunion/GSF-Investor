@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm test
+
+      - run: npm run build
+        env:
+          TURSO_DATABASE_URL: file:./ci-build.db
+          TURSO_AUTH_TOKEN: ""
+          AUTH_SECRET: ci-build-secret-min-32-chars-long
+          AUTH_URL: http://localhost:3000

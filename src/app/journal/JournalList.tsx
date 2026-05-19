@@ -95,7 +95,7 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
           const total = (row.quantity * row.price).toLocaleString("ko-KR");
           return (
             <Link key={row.id} href={`/journal/${row.id}`}>
-              <div className="bg-bg-elevated/40 border border-border-default/50 rounded-xl p-4 hover:border-zinc-600 transition-colors">
+              <div className="bg-bg-elevated/40 border border-border-default/50 rounded-sm p-4 hover:border-zinc-600 transition-colors">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <span className="text-text-primary font-mono font-semibold text-sm">{row.ticker}</span>

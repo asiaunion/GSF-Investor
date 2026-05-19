@@ -87,7 +87,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
   return (
     <div className="space-y-6">
       {error && (
-        <div className="bg-loss-bg border border-loss-border/30 rounded-xl px-4 py-3 text-loss-400 text-sm">
+        <div className="bg-loss-bg border border-loss-border/30 rounded-sm px-4 py-3 text-loss-400 text-sm">
           {error}
         </div>
       )}
@@ -117,14 +117,14 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                     <span className="text-xs text-loss-400 mr-1">정말 삭제할까요?</span>
                     <button
                       onClick={() => setConfirmDelete(false)}
-                      className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-xl transition-colors"
+                      className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-sm transition-colors"
                     >
                       취소
                     </button>
                     <button
                       onClick={handleDeleteConfirmed}
                       disabled={deleting}
-                      className="px-3 py-2 bg-loss-500 hover:bg-loss-400 text-text-primary text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                      className="px-3 py-2 bg-loss-500 hover:bg-loss-400 text-text-primary text-sm font-semibold rounded-sm transition-colors disabled:opacity-50"
                     >
                       {deleting ? "삭제 중..." : "확인"}
                     </button>
@@ -133,13 +133,13 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                   <>
                     <button
                       onClick={() => setEditing(true)}
-                      className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-xl transition-colors"
+                      className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-sm transition-colors"
                     >
                       편집
                     </button>
                     <button
                       onClick={() => setConfirmDelete(true)}
-                      className="px-3 py-2 bg-loss-bg hover:bg-loss-400/20 border border-loss-border/30 text-loss-400 text-sm rounded-xl transition-colors"
+                      className="px-3 py-2 bg-loss-bg hover:bg-loss-400/20 border border-loss-border/30 text-loss-400 text-sm rounded-sm transition-colors"
                     >
                       삭제
                     </button>
@@ -150,14 +150,14 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
               <>
                 <button
                   onClick={() => setEditing(false)}
-                  className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-xl transition-colors"
+                  className="px-3 py-2 bg-bg-elevated hover:bg-bg-elevated border border-border-default text-text-secondary text-sm rounded-sm transition-colors"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-3 py-2 bg-brand-green hover:bg-brand-green/85 text-text-primary text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                  className="px-3 py-2 bg-brand-green hover:bg-brand-green/85 text-text-primary text-sm font-semibold rounded-sm transition-colors disabled:opacity-50"
                 >
                   {saving ? "저장 중..." : "저장"}
                 </button>
@@ -220,7 +220,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
               ),
             },
           ].map(({ label, value }) => (
-            <div key={label} className="bg-bg-elevated/40 rounded-xl p-3">
+            <div key={label} className="bg-bg-elevated/40 rounded-sm p-3">
               <p className="text-xs text-text-muted mb-1.5">{label}</p>
               {value}
             </div>
@@ -237,7 +237,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
             value={form.thesis}
             onChange={set("thesis")}
             required
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
+            className="w-full bg-bg-elevated border border-border-default rounded-sm px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
           />
         ) : (
           <p className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap">{initial.thesis}</p>
@@ -281,7 +281,7 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
             value={form.retrospective}
             onChange={set("retrospective")}
             placeholder="이 거래에 대한 회고를 기록하세요..."
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
+            className="w-full bg-bg-elevated border border-border-default rounded-sm px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
           />
         ) : initial.retrospective ? (
           <p className="text-text-primary text-sm leading-relaxed whitespace-pre-wrap">{initial.retrospective}</p>

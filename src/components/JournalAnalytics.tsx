@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { PnlMethodHint } from "@/components/PnlMethodHint";
 
 const ConfidenceTrend = dynamic(
   () => import("./ConfidenceTrend"),
@@ -66,6 +67,13 @@ interface AnalyticsData {
   emotionStats: EmotionStat[];
   realizedTrades: RealizedTrade[];
   categoryBreakdown: { core: number; satellite: number };
+  benchmarkPerformance?: {
+    ticker: string;
+    periodReturnPct: number | null;
+    volatilityPct: number | null;
+    maxDrawdownPct: number | null;
+    sharpe: number | null;
+  } | null;
 }
 
 // ── Color maps ────────────────────────────────────────────────────────────────
@@ -145,7 +153,7 @@ export default function JournalAnalytics() {
     );
   }
 
-  const { summary, emotionStats, realizedTrades, categoryBreakdown } = data;
+  const { summary, emotionStats, realizedTrades, categoryBreakdown, benchmarkPerformance } = data;
 
   // 차트 데이터 (avgReturnPct가 있는 감정만)
   const chartData = emotionStats
@@ -177,6 +185,11 @@ export default function JournalAnalytics() {
       {/* ── 손익 분석 탭 ─────────────────────────────────────────────────────── */}
       {subTab === "손익 분석" && (
       <div className="space-y-5">
+
+      <div className="flex items-center gap-2 text-xs text-text-muted">
+        <span className="font-medium text-text-secondary">실현 손익 요약</span>
+        <PnlMethodHint method="fifo" />
+      </div>
 
       {/* ── 전체 요약 카드 ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -223,6 +236,28 @@ export default function JournalAnalytics() {
           </div>
         ))}
       </div>
+      {benchmarkPerformance && (
+        <div className="bg-bg-surface border-t-4 border-t-brand-green border border-border-default rounded-sm shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-text-primary mb-2">
+            벤치마크 성과 ({benchmarkPerformance.ticker})
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            {[
+              { label: "기간 수익률", value: benchmarkPerformance.periodReturnPct, suffix: "%" },
+              { label: "연환산 변동성", value: benchmarkPerformance.volatilityPct, suffix: "%" },
+              { label: "MDD", value: benchmarkPerformance.maxDrawdownPct, suffix: "%" },
+              { label: "샤프(근사)", value: benchmarkPerformance.sharpe, suffix: "" },
+            ].map((m) => (
+              <div key={m.label}>
+                <div className="text-text-muted">{m.label}</div>
+                <div className="font-bold text-text-primary tabular-nums">
+                  {m.value != null ? `${m.value.toFixed(2)}${m.suffix}` : "—"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── 감정별 수익률 차트 ──────────────────────────────────────────────── */}
       {chartData.length > 0 ? (

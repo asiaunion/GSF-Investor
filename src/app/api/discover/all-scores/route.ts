@@ -1,19 +1,34 @@
 import { auth } from "@/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import {
+  scoreDebtRatio,
+  scoreDividendYears,
+  scorePbr,
+  scorePer,
+  SCREENING_PRESETS,
+  type ScreeningPresetId,
+} from "@/lib/screening-presets";
 
 export const dynamic = "force-dynamic";
 
+const PRESET_IDS = Object.keys(SCREENING_PRESETS) as ScreeningPresetId[];
+
 /**
- * GET /api/discover/all-scores
+ * GET /api/discover/all-scores?preset=balanced|value|growth|dividend
  *
  * 모든 관심종목에 대해 체크리스트를 일괄 계산.
  * 각 종목의 6개 지표 점수와 레이더 차트용 데이터를 반환.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const rawPreset = req.nextUrl.searchParams.get("preset") ?? "balanced";
+  const preset: ScreeningPresetId = PRESET_IDS.includes(rawPreset as ScreeningPresetId)
+    ? (rawPreset as ScreeningPresetId)
+    : "balanced";
 
   // 1. 모든 활성 종목
   const stockRows = await db.run(sql`
@@ -116,11 +131,12 @@ export async function GET() {
 
     // ── 체크리스트 → 스코어 ────────────────────────────────────────────────
     // 6개 항목, 각 1점. radar용으로 0~100 스케일 변환
+    const th = SCREENING_PRESETS[preset].thresholds;
     const checks = [
-      { label: "PBR", score: pbr != null ? (pbr < 1.5 ? 100 : pbr < 2.5 ? 50 : 0) : 0, raw: pbr != null ? `${pbr.toFixed(2)}x` : "N/A", pass: pbr != null ? pbr < 1.5 : null },
-      { label: "PER", score: per != null ? (per < 15 ? 100 : per < 20 ? 60 : 0) : 0, raw: per != null ? `${per.toFixed(1)}x` : "N/A", pass: per != null ? per < 20 : null },
-      { label: "부채비율", score: debtRatio != null ? (debtRatio < 30 ? 100 : debtRatio < 50 ? 60 : 0) : 0, raw: debtRatio != null ? `${debtRatio.toFixed(1)}%` : "N/A", pass: debtRatio != null ? debtRatio < 50 : null },
-      { label: "배당", score: dividendYearsCount >= 5 ? 100 : dividendContinuity ? 60 : dividendYearsCount > 0 ? 20 : 0, raw: `${dividendYearsCount}년`, pass: dividendContinuity },
+      { label: "PBR", score: scorePbr(pbr, preset), raw: pbr != null ? `${pbr.toFixed(2)}x` : "N/A", pass: pbr != null ? pbr <= th.pbrMax : null },
+      { label: "PER", score: scorePer(per, preset), raw: per != null ? `${per.toFixed(1)}x` : "N/A", pass: per != null ? per <= th.perMax : null },
+      { label: "부채비율", score: scoreDebtRatio(debtRatio, preset), raw: debtRatio != null ? `${debtRatio.toFixed(1)}%` : "N/A", pass: debtRatio != null ? debtRatio <= th.debtRatioMax : null },
+      { label: "배당", score: scoreDividendYears(dividendYearsCount, preset), raw: `${dividendYearsCount}년`, pass: dividendYearsCount >= th.minDividendYears },
       { label: "내부자", score: hasInsiderBuy ? 100 : 0, raw: hasInsiderBuy ? "감지" : "없음", pass: hasInsiderBuy },
       { label: "공시", score: hasDisclosure ? 100 : 0, raw: hasDisclosure ? `${discCount}건` : "없음", pass: hasDisclosure },
     ];
@@ -149,5 +165,9 @@ export async function GET() {
   // 스코어 내림차순 정렬
   results.sort((a, b) => b.totalScore - a.totalScore);
 
-  return NextResponse.json({ stocks: results });
+  return NextResponse.json({
+    preset,
+    presetLabel: SCREENING_PRESETS[preset].label,
+    stocks: results,
+  });
 }

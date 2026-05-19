@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { btnPrimary, emotionBadge, inputClass } from "@/lib/economist-ui";
+import { btnPrimary, emotionBadge, inputClass, selectClass, textareaClass } from "@/lib/economist-ui";
 
 type Stock = {
   id: number;
@@ -110,7 +110,7 @@ export default function JournalForm({ onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="bg-loss-bg border border-loss-border/30 rounded-xl px-4 py-3 text-loss-400 text-sm">
+        <div className="bg-loss-bg border border-loss-border/30 rounded-sm px-4 py-3 text-loss-400 text-sm">
           {error}
         </div>
       )}
@@ -123,7 +123,7 @@ export default function JournalForm({ onSuccess }: Props) {
             required
             value={form.stockId}
             onChange={set("stockId")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-green/60 transition-colors"
+            className={selectClass}
           >
             <option value="">종목 선택...</option>
             {stocks.map((s) => (
@@ -140,7 +140,7 @@ export default function JournalForm({ onSuccess }: Props) {
             required
             value={form.tradedAt}
             onChange={set("tradedAt")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-green/60 transition-colors"
+            className={inputClass}
           />
         </div>
       </div>
@@ -154,7 +154,7 @@ export default function JournalForm({ onSuccess }: Props) {
               key={a}
               type="button"
               onClick={() => setForm((prev) => ({ ...prev, action: a }))}
-              className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+              className={`flex-1 py-2.5 rounded-sm text-sm font-semibold border transition-all ${
                 form.action === a
                   ? a === "BUY"
                     ? "bg-profit-bg border-profit-border text-profit-400"
@@ -179,7 +179,7 @@ export default function JournalForm({ onSuccess }: Props) {
             placeholder="0"
             value={form.quantity}
             onChange={set("quantity")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors"
+            className={inputClass}
           />
         </div>
         <div className="space-y-1.5">
@@ -192,14 +192,14 @@ export default function JournalForm({ onSuccess }: Props) {
             placeholder="0"
             value={form.price}
             onChange={set("price")}
-            className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors"
+            className={inputClass}
           />
         </div>
       </div>
 
       {/* 거래 총액 미리보기 */}
       {totalAmount && (
-        <div className="bg-bg-elevated/50 border border-border-default/50 rounded-xl px-4 py-3 space-y-1.5">
+        <div className="bg-bg-elevated/50 border border-border-default/50 rounded-sm px-4 py-3 space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-text-muted">거래 총액</span>
             <span className="text-sm font-bold text-text-primary">₩{totalAmount}</span>
@@ -237,7 +237,7 @@ export default function JournalForm({ onSuccess }: Props) {
           placeholder="예: 몬델리즈 지분 매각 시그널 포착. 내재가치 대비 40% 할인 구간 진입. 배당 수익률 3.2% 안전마진 확보..."
           value={form.thesis}
           onChange={set("thesis")}
-          className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
+          className={textareaClass}
         />
       </div>
 
@@ -292,7 +292,7 @@ export default function JournalForm({ onSuccess }: Props) {
                     confidenceScore: prev.confidenceScore === score ? 0 : score,
                   }))
                 }
-                className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-all ${
+                className={`flex-1 py-2 rounded-sm text-sm font-bold border transition-all ${
                   isActive
                     ? color
                     : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600"
@@ -331,7 +331,7 @@ export default function JournalForm({ onSuccess }: Props) {
               placeholder="0"
               value={form.loanInterest}
               onChange={set("loanInterest")}
-              className="w-full bg-bg-elevated border border-border-default rounded-xl pl-7 pr-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-warn-border/60 transition-colors"
+              className={`${inputClass} pl-7`}
             />
           </div>
           <p className="text-[11px] text-text-muted">
@@ -350,14 +350,14 @@ export default function JournalForm({ onSuccess }: Props) {
           placeholder="나중에 추가할 수 있습니다..."
           value={form.retrospective}
           onChange={set("retrospective")}
-          className="w-full bg-bg-elevated border border-border-default rounded-xl px-3 py-2.5 text-sm text-text-primary placeholder-zinc-600 focus:outline-none focus:border-brand-green/60 transition-colors resize-none"
+          className={textareaClass}
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-brand-green hover:bg-brand-green/85 disabled:bg-bg-elevated disabled:text-text-muted text-text-primary font-semibold py-3 rounded-xl transition-colors text-sm"
+        className={`w-full ${btnPrimary} disabled:bg-bg-elevated disabled:text-text-muted font-semibold py-3 rounded-sm transition-colors text-sm`}
       >
         {loading ? "저장 중..." : "매매 일지 저장"}
       </button>
