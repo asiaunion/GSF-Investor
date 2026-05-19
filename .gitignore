@@ -50,3 +50,8 @@ query.ts
 test_db.ts
 tmp/
 .env*.local
+
+# design capture (regenerate via npm run design:capture)
+screenshots/GSF-Investor*/
+screenshots/png/
+screenshots/*.html
