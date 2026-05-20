@@ -6,7 +6,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // 공개 경로
-  const publicPaths = ["/login", "/api/auth"];
+  const publicPaths = ["/login", "/api/auth", "/api/cron"];
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
 
   if (!isLoggedIn && !isPublic) {

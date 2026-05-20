@@ -19,14 +19,25 @@
 
 **주의:** 실제 Google 시트가 아닌 **Portfolio 앱 내장 mock** 기준입니다. 실제 시트와 맞추려면 `GSHEETS_CSV_URL` 또는 `GCP_*` 설정 후 import 재실행하거나 `/wealth`에서 수정하세요.
 
-## 사용자 후속 (필수)
+## 배포 (2026-05-20)
 
-1. [ ] Vercel Production 배포 (최신 `gsf-investor` 코드)
-2. [ ] Vercel env: `CRON_SECRET` 추가 (Portfolio에서 이전 가능)
-3. [ ] `/wealth`에서 금액 검토·수정
-4. [ ] (선택) `reset_trade_journal.py` 후 `/journal` 주식 재입력
-5. [ ] cron 수동 테스트: `curl -H "Authorization: Bearer $CRON_SECRET" https://<investor-domain>/api/cron/net-worth-snapshot`
-6. [ ] [portfolio-decommission.md](./portfolio-decommission.md) — Portfolio 앱 폐기
+| 항목 | 결과 |
+|------|------|
+| Vercel Production | https://gsf-investor.vercel.app (`npx vercel deploy --prod`) |
+| Git | `feat/portfolio-wealth-merge` → `10ff260` (main 직접 push 훅 차단 → PR 머지 필요) |
+| `CRON_SECRET` | Vercel Production에 신규 생성·등록 후 재배포 완료 (값은 Vercel 대시보드 → Settings → Environment Variables) |
+| Cron 스케줄 | `vercel.json` — 매일 15:00 UTC (`0 15 * * *`) |
+
+## 사용자 후속
+
+1. [x] Vercel Production 배포
+2. [x] Vercel env: `CRON_SECRET`
+3. [ ] GitHub PR 머지: https://github.com/asiaunion/gsf-investor/compare/main...feat/portfolio-wealth-merge
+4. [ ] `/wealth`에서 금액 검토·수정 (로그인 후)
+5. [ ] (선택) `reset_trade_journal.py` 후 `/journal` 주식 재입력
+6. [ ] cron 수동 테스트: `curl -H "Authorization: Bearer $CRON_SECRET" https://gsf-investor.vercel.app/api/cron/net-worth-snapshot`
+7. [ ] (선택) `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — 스냅샷 알림용 Vercel env
+8. [ ] [portfolio-decommission.md](./portfolio-decommission.md) — Portfolio 앱 폐기
 
 ## trade_journal
 
