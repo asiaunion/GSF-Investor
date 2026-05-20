@@ -41,6 +41,20 @@
 7. [ ] (선택) `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — 스냅샷 알림용 Vercel env
 8. [x] Portfolio redirect 배포 + `APP_PIN` 제거 + 로컬 백업 (`~/backup-gsf-portfolio-20260520.tar.gz`); GitHub Archive만 수동
 9. [x] AG 2026-05-21 주식상세 폭주 → `main` UI 원복, stash `ag-session-20260521-backup` ([ag-restore-guide-2026-05-21.md](./ag-restore-guide-2026-05-21.md))
+10. [x] 주식상세 **재무 탭 차트 확정** (2026-05-21) — 아래 「재무 차트 (Editorial 확정)」 참고
+
+## 재무 차트 (Editorial 확정)
+
+| 항목 | 내용 |
+|------|------|
+| UI | 손익·건전성 2차트 → **「재무 추이 (연간)」** 단일 통합 차트 |
+| 막대 | 순이익·영업이익 **동일 폭 겹침** + 영업현금흐름 **나란한 막대**(동일 폭) |
+| 선 | 매출 실선(우측 금액 축), 부채비율 **점선**(우측 % 축) |
+| 시안 | Editorial / Slate / Ink **탭 제거** — `CHART_PALETTE` 고정 |
+| 로컬 dev | `npm run dev` 시 `AUTH_URL=http://localhost:3000` (`package.json`) |
+| Git | `6b8ec33` 통합 차트 · `0ce3b6b` 시안 제거 |
+| Production | https://gsf-investor.vercel.app (Vercel deploy READY) |
+| 확인 | `/stocks/{ticker}` → 재무 탭 (예: `/stocks/026960`) |
 
 ## trade_journal
 
