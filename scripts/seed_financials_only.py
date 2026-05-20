@@ -333,8 +333,8 @@ def main():
             dr  = f"{r['debt_ratio']}%" if r.get('debt_ratio') else "?"
             print(f"  {r['period']:10s}  매출={rev:8s}  영익={op:8s}  부채비율={dr}")
 
-    # ── 3패스: Q4 (4분기) 데이터 합성 (FY - Q3) ──────────────────────────────────
-    print("\n[INFO] Q4 데이터 합성 중 (FY - Q3)...")
+    # ── 3패스: Q4 (4분기) 데이터 합성 (FY - Q1 - Q2 - Q3) ───────────────────────
+    print("\n[INFO] Q4 데이터 합성 중 (FY - Q1 - Q2 - Q3)...")
     today = datetime.date.today()
     for t in TARGETS:
         stock_id = ticker_to_id.get(t["ticker"])
@@ -360,23 +360,29 @@ def main():
                     return float(f_val) - float(q3_val) - float(q2_val) - float(q1_val)
                 return None
             
-            turso_run("DELETE FROM financials WHERE stock_id=? AND period=?", [stock_id, q4_period])
-            
-            turso_run("""
-                INSERT INTO financials (
+            turso_exec([
+                {"q": "DELETE FROM financials WHERE stock_id=? AND period=?", "params": [stock_id, q4_period]},
+                {
+                    "q": """
+                INSERT OR REPLACE INTO financials (
                     stock_id, period, revenue, op_income, net_income, total_assets, total_equity,
                     cash_and_equivalents, debt_ratio, shares_outstanding, eps, bps, roe,
                     dividend_per_share, free_cash_flow, source
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, [
-                stock_id, q4_period,
-                safe_sub(fy['revenue'], q3['revenue'], q2['revenue'], q1['revenue']),
-                safe_sub(fy['op_income'], q3['op_income'], q2['op_income'], q1['op_income']),
-                safe_sub(fy['net_income'], q3['net_income'], q2['net_income'], q1['net_income']),
-                fy['total_assets'], fy['total_equity'], fy['cash_and_equivalents'],
-                fy['debt_ratio'], fy['shares_outstanding'], safe_sub(fy['eps'], q3['eps'], q2['eps'], q1['eps']),
-                fy['bps'], None, fy['dividend_per_share'], safe_sub(fy['free_cash_flow'], q3['free_cash_flow'], q2['free_cash_flow'], q1['free_cash_flow']),
-                'Calculated'
+                    """,
+                    "params": [
+                        stock_id, q4_period,
+                        safe_sub(fy['revenue'], q3['revenue'], q2['revenue'], q1['revenue']),
+                        safe_sub(fy['op_income'], q3['op_income'], q2['op_income'], q1['op_income']),
+                        safe_sub(fy['net_income'], q3['net_income'], q2['net_income'], q1['net_income']),
+                        fy['total_assets'], fy['total_equity'], fy['cash_and_equivalents'],
+                        fy['debt_ratio'], fy['shares_outstanding'],
+                        safe_sub(fy['eps'], q3['eps'], q2['eps'], q1['eps']),
+                        fy['bps'], None, fy['dividend_per_share'],
+                        safe_sub(fy['free_cash_flow'], q3['free_cash_flow'], q2['free_cash_flow'], q1['free_cash_flow']),
+                        'Calculated',
+                    ],
+                },
             ])
             print(f"  ✅ {t['ticker']} {q4_period} 합성 완료")
 
