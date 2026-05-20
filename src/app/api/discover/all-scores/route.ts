@@ -10,6 +10,12 @@ import {
   SCREENING_PRESETS,
   type ScreeningPresetId,
 } from "@/lib/screening-presets";
+import {
+  computePerFy,
+  computePbrFy,
+  findLatestFy,
+  type FinancialRow,
+} from "@/lib/valuation-metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +66,11 @@ export async function GET(req: NextRequest) {
       eps: r[2] != null ? Number(r[2]) : null,
       bps: r[3] != null ? Number(r[3]) : null,
     }));
+    const metricFins: FinancialRow[] = fins.map((f) => ({
+      period: f.period,
+      eps: f.eps,
+      bps: f.bps,
+    }));
 
     // 최신 주가
     const priceRow = await db.run(sql`
@@ -100,31 +111,11 @@ export async function GET(req: NextRequest) {
     `);
     const dividendYearsCount = dividendRow.rows.length;
 
-    // ── 지표 계산 ──────────────────────────────────────────────────────────
-    const latestFin = fins[0] ?? null;
-
-    let pbr: number | null = null;
-    if (latestPrice && latestFin?.bps && latestFin.bps > 0) {
-      pbr = latestPrice / latestFin.bps;
-    }
-
-    let per: number | null = null;
-    const fyFin = fins.find((f) => f.period.endsWith("FY"));
-    const fyEps = fyFin?.eps ?? null;
-    if (latestPrice && fyEps && fyEps > 0) {
-      per = latestPrice / fyEps;
-    } else if (latestPrice) {
-      const qEps = fins
-        .filter((f) => f.period.match(/Q\d$/) && f.eps != null && (f.eps as number) > 0)
-        .slice(0, 4)
-        .map((f) => f.eps as number);
-      if (qEps.length === 4) {
-        const ttmEps = qEps.reduce((a, b) => a + b, 0);
-        if (ttmEps > 0) per = latestPrice / ttmEps;
-      }
-    }
-
-    const debtRatio = latestFin?.debtRatio ?? null;
+    // ── 지표 계산 (FY PER/PBR — 종목 상세와 동일) ───────────────────────────
+    const per = computePerFy(latestPrice, metricFins);
+    const pbr = computePbrFy(latestPrice, metricFins);
+    const fyFin = findLatestFy(fins);
+    const debtRatio = fyFin?.debtRatio ?? fins[0]?.debtRatio ?? null;
     const hasInsiderBuy = insiderRow.rows.length > 0;
     const dividendContinuity = dividendYearsCount >= 4;
     const hasDisclosure = discCount > 0;

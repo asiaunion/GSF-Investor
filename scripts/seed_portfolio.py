@@ -18,6 +18,10 @@ GSF-Investor Phase 1 Day 3 — seed_portfolio.py
   DART_API_KEY        예) abc123...
 
 환경변수 로드 순서: 환경변수 > .env.local > .env
+
+실데이터 안전 장치:
+  REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE — 원격 Turso에 쓰기 전 필수.
+  (이 스크립트는 DRY_RUN을 지원하지 않습니다. 대량 시딩은 반드시 의도적으로만 실행하세요.)
 """
 
 import os
@@ -50,6 +54,8 @@ def load_dotenv(path: str) -> None:
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env.local"))
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
+
+from real_data_guard import enforce_remote_write_guard, is_dry_run
 
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
@@ -592,6 +598,13 @@ def verify_portfolio() -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
+    enforce_remote_write_guard(database_url=TURSO_URL, script_name="seed_portfolio.py")
+    if is_dry_run():
+        print(
+            "[ERROR] seed_portfolio.py 는 DRY_RUN을 지원하지 않습니다. "
+            "원격 DB 대량 시딩을 중단합니다. (일일 배치는 DRY_RUN=1 지원)"
+        )
+        sys.exit(2)
     print("=" * 60)
     print("  GSF-Investor seed_portfolio.py — Phase 1 Day 3")
     print(f"  Turso: {http_url}")

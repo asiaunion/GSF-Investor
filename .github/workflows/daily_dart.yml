@@ -35,6 +35,7 @@ jobs:
           DART_API_KEY:       ${{ secrets.DART_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          REAL_DATA_RUN_ACK: I_ACK_PROD_WRITE
         run: python3 scripts/daily_dart.py
 
   # ── Job 2: SEC EDGAR 수집 (10-Q/10-K) ────────────────────────────────────
@@ -64,4 +65,5 @@ jobs:
           TURSO_AUTH_TOKEN:   ${{ secrets.TURSO_AUTH_TOKEN }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          REAL_DATA_RUN_ACK: I_ACK_PROD_WRITE
         run: python3 scripts/daily_sec.py

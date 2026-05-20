@@ -18,8 +18,11 @@ GSF-Investor Phase 2 — daily_sec.py
   TURSO_DATABASE_URL  예) libsql://xxx.turso.io
   TURSO_AUTH_TOKEN    예) eyJ...
 
+실데이터 안전 장치:
+  REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE — 원격 DB 쓰기 전 필수.
+  DRY_RUN=1 — disclosure 배치 삽입 생략.
+
 실행:
-  python3 scripts/daily_sec.py
 """
 
 import os
@@ -51,6 +54,8 @@ def load_dotenv(path: str) -> None:
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_script_dir, "..", ".env.local"))
 load_dotenv(os.path.join(_script_dir, "..", ".env"))
+
+from real_data_guard import enforce_remote_write_guard, is_dry_run, log_dry_run_skipped_writes
 
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
@@ -146,6 +151,10 @@ def turso_one(sql: str, params: list = None) -> list:
 
 def turso_batch(statements: list) -> int:
     if not statements:
+        return 0
+    if is_dry_run():
+        sample = statements[0].get("q") if statements else None
+        log_dry_run_skipped_writes(stmt_count=len(statements), sample_sql=sample)
         return 0
     inserted = 0
     chunk_size = 200
@@ -313,6 +322,7 @@ def print_summary(results: dict) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
+    enforce_remote_write_guard(database_url=TURSO_URL, script_name="daily_sec.py")
     run_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     print("=" * 55)
     print(f"  GSF-Investor daily_sec.py — {run_ts}")

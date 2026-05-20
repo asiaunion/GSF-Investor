@@ -7,6 +7,7 @@
     "dev:preview": "DEV_PREVIEW_AUTH=true NEXT_PUBLIC_DEV_PREVIEW_AUTH=true next dev",
     "db:dev:setup": "node scripts/dev-setup.mjs",
     "db:views": "node scripts/db-views.mjs",
+    "db:wealth-schema": "node scripts/apply_wealth_schema.mjs",
     "design:capture": "node scripts/capture-design.mjs",
     "build": "next build",
     "start": "next start",

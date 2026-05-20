@@ -180,6 +180,14 @@ export async function GET(
       ? (refFinancial.dividendPerShare / currentPrice) * 100
       : null;
 
+  const overviewRoe =
+    fyFinancial?.roe ??
+    (fyFinancial?.netIncome != null &&
+    fyFinancial?.totalEquity != null &&
+    fyFinancial.totalEquity > 0
+      ? (fyFinancial.netIncome / fyFinancial.totalEquity) * 100
+      : null);
+
   const holdingReturn =
     currentPrice != null && portfolio?.avgPrice && portfolio.avgPrice > 0
       ? ((currentPrice - portfolio.avgPrice) / portfolio.avgPrice) * 100
@@ -205,9 +213,12 @@ export async function GET(
       per,
       pbr,
       dividendYield,
+      roe: overviewRoe,
       holdingReturn,
       portfolio,
       usdkrw,
+      overviewBasis: financials.filter((f) => f.period.endsWith("FY")).pop()?.period ?? null,
+      perBasis: "FY" as const,
     },
     priceChart: priceChartRows.rows
       .map((r) => ({ date: String(r[0]), price: Number(r[1]) }))

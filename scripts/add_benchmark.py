@@ -29,6 +29,8 @@ _dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_dir, "..", ".env.local"))
 load_dotenv(os.path.join(_dir, "..", ".env"))
 
+from real_data_guard import enforce_remote_write_guard, is_dry_run
+
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
 
@@ -66,6 +68,8 @@ def turso_exec(sql, params=None):
 
 
 def main():
+    enforce_remote_write_guard(database_url=TURSO_URL, script_name="add_benchmark.py")
+
     # 1. 중복 확인
     results = turso_exec("SELECT id, ticker FROM stocks WHERE ticker = ?", ["069500"])
     rs = results[0].get("response", {}).get("result", {})
@@ -76,6 +80,10 @@ def main():
         return
 
     # 2. 종목 추가
+    if is_dry_run():
+        print("[DRY_RUN] KODEX 200 INSERT 를 건너뜁니다.")
+        return
+
     turso_exec(
         """INSERT INTO stocks
            (ticker, yahoo_ticker, dart_corp_code, name, market, category, thesis)

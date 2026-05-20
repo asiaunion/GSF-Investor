@@ -2,6 +2,13 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import {
+  computePerFy,
+  computePbrFy,
+  findLatestFy,
+  valuationBasisFromFins,
+  type FinancialRow,
+} from "@/lib/valuation-metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +55,11 @@ export async function GET(req: NextRequest) {
     debtRatio: r[1] != null ? Number(r[1]) : null,
     eps: r[2] != null ? Number(r[2]) : null,
     bps: r[3] != null ? Number(r[3]) : null,
+  }));
+  const metricFins: FinancialRow[] = fins.map((f) => ({
+    period: f.period,
+    eps: f.eps,
+    bps: f.bps,
   }));
 
   // 최신 주가
@@ -97,37 +109,12 @@ export async function GET(req: NextRequest) {
   `);
   const dividendYearsCount = dividendRows.rows.length;
 
-  // ── 체크리스트 계산 ─────────────────────────────────────────────────────────
-  const latestFin = fins[0] ?? null;
-
-  // PBR = 현재가 / BPS
-  let pbr: number | null = null;
-  if (latestPrice && latestFin?.bps && latestFin.bps > 0) {
-    pbr = latestPrice / latestFin.bps;
-  }
-
-  // PER = 현재가 / 연간EPS
-  // 1) FY(사업보고서) EPS 우선 사용
-  // 2) FY 없으면 최근 4분기 EPS 합산(TTM)
-  let per: number | null = null;
-  const fyFin = fins.find((f) => f.period.endsWith("FY"));
-  const fyEps = fyFin?.eps ?? null;
-
-  if (latestPrice && fyEps && fyEps > 0) {
-    per = latestPrice / fyEps;
-  } else if (latestPrice) {
-    // TTM: 최근 분기 EPS 합산 (Q 포함 최대 4개)
-    const qEps = fins
-      .filter((f) => f.period.match(/Q\d$/) && f.eps != null && (f.eps as number) > 0)
-      .slice(0, 4)
-      .map((f) => f.eps as number);
-    if (qEps.length === 4) {
-      const ttmEps = qEps.reduce((a, b) => a + b, 0);
-      if (ttmEps > 0) per = latestPrice / ttmEps;
-    }
-  }
-
-  const debtRatio = latestFin?.debtRatio ?? null;
+  // ── 체크리스트 계산 (FY PER/PBR — 종목 상세와 동일, TTM 미사용) ─────────────
+  const per = computePerFy(latestPrice, metricFins);
+  const pbr = computePbrFy(latestPrice, metricFins);
+  const fyFin = findLatestFy(fins);
+  const debtRatio = fyFin?.debtRatio ?? fins[0]?.debtRatio ?? null;
+  const valuationBasis = valuationBasisFromFins(metricFins);
 
   // 5년 연속 배당: 과거 5년 중 배당 지급 연도가 4년 이상이면 통과
   const dividendContinuity = dividendYearsCount >= 4;
@@ -192,6 +179,7 @@ export async function GET(req: NextRequest) {
     name,
     market,
     latestPrice,
+    valuationBasis,
     checklist,
     summary: {
       passCount,

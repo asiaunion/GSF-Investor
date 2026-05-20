@@ -13,6 +13,28 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
+function isRemoteDbUrl(url) {
+  const u = (url || "").toLowerCase();
+  if (!u) return false;
+  if (u.startsWith("file:")) return false;
+  return u.includes("libsql://") || u.includes("turso.io");
+}
+
+function enforceRemoteGuard(url, scriptLabel) {
+  if (!isRemoteDbUrl(url)) return;
+  if (process.env.DRY_RUN === "1") {
+    console.log(`[${scriptLabel}] DRY_RUN=1 — skipping view DDL.`);
+    process.exit(0);
+  }
+  if (process.env.REAL_DATA_RUN_ACK !== "I_ACK_PROD_WRITE") {
+    console.error(
+      `[ERROR] ${scriptLabel}: remote DB URL detected. Set REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE or use DRY_RUN=1.\n` +
+        "Local file: URLs require no acknowledgement."
+    );
+    process.exit(2);
+  }
+}
+
 export const V_PORTFOLIO_SQL = `
 CREATE VIEW IF NOT EXISTS v_portfolio AS
 WITH positions AS (
@@ -43,6 +65,8 @@ WHERE s.is_active = 1
 
 async function main() {
   const url = process.argv[2] || process.env.TURSO_DATABASE_URL || `file:${path.join(ROOT, "local.db")}`;
+  enforceRemoteGuard(url, "db-views.mjs");
+
   const client = createClient({
     url,
     authToken: process.env.TURSO_AUTH_TOKEN || undefined,

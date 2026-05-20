@@ -59,6 +59,25 @@ npm run db:studio     # Drizzle Studio (로컬 DB GUI)
 npm run db:views      # v_portfolio 뷰 적용 (로컬/TURSO_DATABASE_URL)
 ```
 
+## 운영·실데이터 수동 검증
+
+원격 DB에 직접 쓰는 배치를 로컬에서 돌리기 전에 [실데이터 수동 검증 런북](docs/operations/real-data-manual-validation.md)을 따르세요.  
+`REAL_DATA_RUN_ACK` / `DRY_RUN`은 `scripts/real_data_guard.py` 및 해당 문서를 참고합니다.
+
+재무·밸류에이션(PER/PBR/ROE 등) 숫자 정확도는 [재무 데이터 검증 런북](docs/operations/financial-data-validation.md) 및 `scripts/validate_financials_dart.py` / `scripts/validate_valuation_metrics.py`를 사용합니다.
+
+**GSF-Portfolio 통합** — 전체 순자산·비주식 자산은 [`/wealth`](http://localhost:3000/wealth) 및 [자산 이관 런북](docs/operations/wealth-migration-report.md). 주식 포지션은 매매 일지에서 재입력합니다. Portfolio 앱 폐기: [portfolio-decommission.md](docs/operations/portfolio-decommission.md).
+
+## 시크릿·환경변수 (필수)
+
+API 키 로컬화·Vercel 설정 시 [시크릿 취급 가이드](docs/operations/secret-handling.md)를 따르세요. **브라우저 에이전트로 대시보드에서 시크릿을 추출하는 것은 금지**입니다 (2026-05-20 보안 사고).
+
+로컬 `.env.local` 동기화 (Turso CLI + Vercel API에 값이 있을 때만):
+
+```bash
+python3 scripts/sync_env_local.py
+```
+
 ## Turso 설치 및 DB 생성
 
 ```bash

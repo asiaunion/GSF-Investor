@@ -17,6 +17,10 @@ HIGH 시그널 즉시 감지 룰:
   TURSO_AUTH_TOKEN    예) eyJ...
   DART_API_KEY        DART OpenAPI 인증키
 
+실데이터 안전 장치:
+  REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE — 원격 DB 쓰기 전 필수.
+  DRY_RUN=1 — 공시/signal 배치 삽입 생략.
+
 실행:
   python3 scripts/daily_dart.py
 """
@@ -50,6 +54,8 @@ def load_dotenv(path: str) -> None:
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_script_dir, "..", ".env.local"))
 load_dotenv(os.path.join(_script_dir, "..", ".env"))
+
+from real_data_guard import enforce_remote_write_guard, is_dry_run, log_dry_run_skipped_writes
 
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
@@ -146,6 +152,10 @@ def turso_one(sql: str, params: list = None) -> list:
 def turso_batch(statements: list) -> int:
     """여러 INSERT를 200개씩 나눠 실행 → 삽입 성공 건수 반환"""
     if not statements:
+        return 0
+    if is_dry_run():
+        sample = statements[0].get("q")
+        log_dry_run_skipped_writes(stmt_count=len(statements), sample_sql=sample)
         return 0
     inserted = 0
     chunk_size = 200
@@ -322,7 +332,14 @@ def process_disclosures(stock: dict, dart_list: list) -> dict:
                 "params": [stock_id, signal_type, severity, description],
             })
             print(f"    🔴 HIGH 시그널 감지: [{signal_type}] {report_nm}")
-            notify_telegram(f"🚨 <b>HIGH 시그널 감지</b>\n종목: {stock['name']} ({stock['ticker']})\n유형: {signal_type}\n공시: <a href='{raw_url}'>{report_nm}</a>")
+            tg_msg = (
+                f"🚨 <b>HIGH 시그널 감지</b>\n종목: {stock['name']} ({stock['ticker']})\n유형: {signal_type}"
+                f"\n공시: <a href='{raw_url}'>{report_nm}</a>"
+            )
+            if is_dry_run():
+                print("    [DRY_RUN] Telegram 알림 생략")
+            else:
+                notify_telegram(tg_msg)
 
     disc_inserted = turso_batch(disclosure_stmts)
     sig_inserted = turso_batch(signal_stmts)
@@ -362,6 +379,7 @@ def print_summary(results: dict) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
+    enforce_remote_write_guard(database_url=TURSO_URL, script_name="daily_dart.py")
     run_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     print("=" * 55)
     print(f"  GSF-Investor daily_dart.py — {run_ts}")

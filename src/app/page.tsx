@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 import { Suspense } from "react";
 import DashboardClient from "./DashboardClient";
 import AppPageLayout from "@/components/AppPageLayout";
+import { computeNetWorth, formatKrw } from "@/lib/net-worth";
 
 export const dynamic = "force-dynamic";
 
@@ -239,11 +240,12 @@ export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [rawData, recentSignals, unresolvedCount, loans] = await Promise.all([
+  const [rawData, recentSignals, unresolvedCount, loans, netWorth] = await Promise.all([
     fetchDashboardData(),
     fetchRecentSignals(),
     fetchUnresolvedCount(),
     fetchLoans(),
+    computeNetWorth().catch(() => null),
   ]);
   const { contribData, sectorData, ...data } = rawData;
 
@@ -268,6 +270,14 @@ export default async function HomePage() {
         <>
           기준일: {data.summary.fxDate ?? "—"} · USD/KRW{" "}
           {data.summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
+          {netWorth != null && (
+            <>
+              {" · "}
+              <Link href="/wealth" className="text-brand-green hover:underline">
+                순자산 {formatKrw(netWorth.netWorthKrw)}
+              </Link>
+            </>
+          )}
         </>
       }
     >

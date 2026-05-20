@@ -154,6 +154,44 @@ export const signalRules = sqliteTable("signal_rules", {
   createdAt: text("created_at").default(sql`(datetime('now'))`),
 });
 
+// ── 비주식 자산·부채 (순자산·전체 자산) ───────────────────────────────────────
+export const wealthPositions = sqliteTable(
+  "wealth_positions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    category: text("category").notNull(),
+    bigCategory: text("big_category").notNull(),
+    broker: text("broker"),
+    name: text("name").notNull(),
+    ticker: text("ticker"),
+    quantity: real("quantity").default(1),
+    bookValue: real("book_value"),
+    valueKrw: real("value_krw").notNull(),
+    currency: text("currency").default("KRW"),
+    isLiability: integer("is_liability").default(0),
+    note: text("note"),
+    isActive: integer("is_active").default(1),
+    createdAt: text("created_at").default(sql`(datetime('now'))`),
+    updatedAt: text("updated_at").default(sql`(datetime('now'))`),
+  },
+  (t) => [
+    uniqueIndex("uq_wealth_positions").on(t.broker, t.category, t.name),
+  ]
+);
+
+// ── 순자산 일별 스냅샷 ───────────────────────────────────────────────────────
+export const netWorthSnapshots = sqliteTable("net_worth_snapshots", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  createdAt: text("created_at").default(sql`(datetime('now'))`),
+  totalAssets: real("total_assets").notNull(),
+  totalDebt: real("total_debt").notNull(),
+  netWorth: real("net_worth").notNull(),
+  securitiesKrw: real("securities_krw"),
+  wealthAssetsKrw: real("wealth_assets_krw"),
+  liabilitiesKrw: real("liabilities_krw"),
+  breakdownJson: text("breakdown_json"),
+});
+
 // ── 환율 ─────────────────────────────────────────────────────────────────────
 export const exchangeRates = sqliteTable(
   "exchange_rates",
@@ -181,3 +219,6 @@ export type StockNote = typeof stockNotes.$inferSelect;
 export type ExchangeRate = typeof exchangeRates.$inferSelect;
 export type StockLoan = typeof stockLoans.$inferSelect;
 export type NewStockLoan = typeof stockLoans.$inferInsert;
+export type WealthPosition = typeof wealthPositions.$inferSelect;
+export type NewWealthPosition = typeof wealthPositions.$inferInsert;
+export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;

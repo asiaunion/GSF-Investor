@@ -7,6 +7,10 @@ Drizzle ORM이 아직 View를 지원하지 않으므로, 이 스크립트로 직
 
 실행:
   python3 scripts/create_views.py
+
+실데이터 안전 장치:
+  REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE — 원격 DB에서 DROP/CREATE VIEW 전 필수.
+  DRY_RUN=1 — 뷰 DDL 생략.
 """
 
 import os
@@ -32,6 +36,8 @@ def load_dotenv(path: str) -> None:
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_script_dir, "..", ".env.local"))
 load_dotenv(os.path.join(_script_dir, "..", ".env"))
+
+from real_data_guard import enforce_remote_write_guard, is_dry_run
 
 TURSO_URL = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
@@ -65,6 +71,9 @@ def exec_sql(sql: str) -> dict:
 
 
 def create_view(name: str, sql: str) -> None:
+    if is_dry_run():
+        print(f"  [DRY_RUN] skip view {name}")
+        return
     print(f"  {name} DROP 중...")
     drop_res = exec_sql(f"DROP VIEW IF EXISTS {name}")
     if drop_res.get("type") == "error":
@@ -173,6 +182,7 @@ LEFT JOIN sell_summary ss ON ss.stock_id = s.id
 # ─── MAIN ────────────────────────────────────────────────────────────────────
 
 def main():
+    enforce_remote_write_guard(database_url=TURSO_URL, script_name="create_views.py")
     print("=" * 60)
     print("  GSF-Investor — Turso View 생성 스크립트")
     print("=" * 60)

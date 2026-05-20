@@ -17,8 +17,11 @@ HIGH 시그널은 daily_dart.py에서 즉시 감지. 이 스크립트는 집계 
   TURSO_DATABASE_URL  예) libsql://xxx.turso.io
   TURSO_AUTH_TOKEN    예) eyJ...
 
+실데이터 안전 장치:
+  REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE — 원격 DB 쓰기 전 필수.
+  DRY_RUN=1 — signals 배치 삽입 생략(분석 및 기존 DB 조회는 수행).
+
 실행:
-  python3 scripts/weekly_signal.py
 """
 
 import os
@@ -48,6 +51,8 @@ def load_dotenv(path: str) -> None:
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_script_dir, "..", ".env.local"))
 load_dotenv(os.path.join(_script_dir, "..", ".env"))
+
+from real_data_guard import enforce_remote_write_guard, is_dry_run, log_dry_run_skipped_writes
 
 TURSO_URL   = os.environ.get("TURSO_DATABASE_URL", "")
 TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
@@ -142,6 +147,10 @@ def turso_one(sql: str, params: list = None) -> list:
 def turso_batch(statements: list) -> int:
     """여러 INSERT를 200개씩 나눠 실행 → 삽입 성공 건수 반환"""
     if not statements:
+        return 0
+    if is_dry_run():
+        sample = statements[0].get("q") if statements else None
+        log_dry_run_skipped_writes(stmt_count=len(statements), sample_sql=sample)
         return 0
     inserted = 0
     chunk_size = 200
@@ -399,6 +408,7 @@ def print_summary(results: dict) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def main():
+    enforce_remote_write_guard(database_url=TURSO_URL, script_name="weekly_signal.py")
     run_ts = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     print("=" * 60)
     print(f"  GSF-Investor weekly_signal.py — {run_ts}")
@@ -459,7 +469,10 @@ def main():
                 for sig in important:
                     icon = "🔴" if sig["severity"] == "HIGH" else "🟡"
                     lines.append(f"{icon} [{sig['type']}] {sig['description']}")
-                notify_telegram("\n".join(lines))
+                if is_dry_run():
+                    print(f"    [DRY_RUN] Telegram 알림 생략 ({len(important)}건)")
+                else:
+                    notify_telegram("\n".join(lines))
 
         except Exception as e:
             print(f"    [ERROR] {e}")

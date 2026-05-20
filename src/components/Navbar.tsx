@@ -7,6 +7,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV_LINKS = [
   { href: "/", label: "대시보드" },
+  { href: "/wealth", label: "전체 자산" },
   { href: "/stocks", label: "관심종목" },
   { href: "/disclosures", label: "공시" },
   { href: "/signals", label: "시그널" },
