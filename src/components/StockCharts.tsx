@@ -13,8 +13,6 @@ import {
   Area,
 } from "recharts";
 
-export type ChartVariant = "editorial" | "slate" | "ink";
-
 interface Financial {
   period: string;
   revenue: number | null;
@@ -49,40 +47,17 @@ type Palette = {
   tooltipBorder: string;
 };
 
-const PALETTES: Record<ChartVariant, Palette> = {
-  editorial: {
-    revenue: "#6b5d4f",
-    netFill: "rgba(45, 74, 62, 0.28)",
-    opFill: "#2d4a3e",
-    ocfFill: "#4a6b7c",
-    debtStroke: "#a67c52",
-    grid: "rgba(60, 50, 40, 0.08)",
-    axis: "var(--color-text-secondary)",
-    tooltipBg: "var(--color-bg-surface)",
-    tooltipBorder: "var(--color-border-strong)",
-  },
-  slate: {
-    revenue: "#64748b",
-    netFill: "rgba(71, 85, 105, 0.25)",
-    opFill: "#334155",
-    ocfFill: "#475569",
-    debtStroke: "#0ea5e9",
-    grid: "rgba(100, 116, 139, 0.12)",
-    axis: "var(--color-text-secondary)",
-    tooltipBg: "var(--color-bg-surface)",
-    tooltipBorder: "var(--color-border-strong)",
-  },
-  ink: {
-    revenue: "#525252",
-    netFill: "rgba(23, 23, 23, 0.15)",
-    opFill: "#171717",
-    ocfFill: "#404040",
-    debtStroke: "#737373",
-    grid: "rgba(0, 0, 0, 0.06)",
-    axis: "var(--color-text-secondary)",
-    tooltipBg: "var(--color-bg-surface)",
-    tooltipBorder: "var(--color-border-strong)",
-  },
+/** 확정 Editorial 팔레트 */
+const CHART_PALETTE: Palette = {
+  revenue: "#6b5d4f",
+  netFill: "rgba(45, 74, 62, 0.28)",
+  opFill: "#2d4a3e",
+  ocfFill: "#4a6b7c",
+  debtStroke: "#a67c52",
+  grid: "rgba(60, 50, 40, 0.08)",
+  axis: "var(--color-text-secondary)",
+  tooltipBg: "var(--color-bg-surface)",
+  tooltipBorder: "var(--color-border-strong)",
 };
 
 function fmtAmt(v: number | null, currency: string): string {
@@ -259,7 +234,7 @@ export function PriceAreaChart({
           width={54}
         />
         <Tooltip
-          contentStyle={chartTooltipStyle(PALETTES.editorial)}
+          contentStyle={chartTooltipStyle(CHART_PALETTE)}
           formatter={(v) =>
             typeof v === "number"
               ? currency === "USD"
@@ -279,15 +254,13 @@ export function PriceAreaChart({
 export function UnifiedFinancialChart({
   data,
   currency,
-  variant = "editorial",
 }: {
   data: Financial[];
   currency: string;
-  variant?: ChartVariant;
 }) {
   if (!data || data.length === 0) return <Empty label="재무 데이터 없음" />;
 
-  const p = PALETTES[variant];
+  const p = CHART_PALETTE;
   const formatted = data.map((d) => ({
     period: d.period.replace("FY", ""),
     revenue: d.revenue,
@@ -445,7 +418,6 @@ export function UnifiedFinancialChart({
 export function IncomeLineChart(props: {
   data: Financial[];
   currency: string;
-  variant?: ChartVariant;
 }) {
   return <UnifiedFinancialChart {...props} />;
 }
@@ -454,7 +426,6 @@ export function IncomeLineChart(props: {
 export function BalanceSheetBarChart(props: {
   data: Financial[];
   currency: string;
-  variant?: ChartVariant;
 }) {
   return <UnifiedFinancialChart {...props} />;
 }
@@ -463,7 +434,6 @@ export function BalanceSheetBarChart(props: {
 export function CashFlowAndDebtChart(props: {
   data: Financial[];
   currency: string;
-  variant?: ChartVariant;
 }) {
   return <UnifiedFinancialChart {...props} />;
 }
@@ -476,8 +446,3 @@ function Empty({ label }: { label: string }) {
   );
 }
 
-export const CHART_VARIANT_LABELS: Record<ChartVariant, { title: string; desc: string }> = {
-  editorial: { title: "Editorial", desc: "웜 톤 · 이코노미스트 스타일" },
-  slate: { title: "Slate", desc: "쿨 그레이 · 리포트 톤" },
-  ink: { title: "Ink", desc: "모노톤 · 미니멀" },
-};
