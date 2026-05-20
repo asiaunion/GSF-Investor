@@ -1,19 +1,19 @@
 "use client";
 
 import {
-  LineChart,
+  ComposedChart,
   Line,
-  BarChart,
   Bar,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
-  Legend,
   AreaChart,
   Area,
 } from "recharts";
+
+export type ChartVariant = "editorial" | "slate" | "ink";
 
 interface Financial {
   period: string;
@@ -37,7 +37,54 @@ interface PricePoint {
   price: number;
 }
 
-// ── 숫자 포맷 ──────────────────────────────────────────────────────────────────
+type Palette = {
+  revenue: string;
+  netFill: string;
+  opFill: string;
+  ocfFill: string;
+  debtStroke: string;
+  grid: string;
+  axis: string;
+  tooltipBg: string;
+  tooltipBorder: string;
+};
+
+const PALETTES: Record<ChartVariant, Palette> = {
+  editorial: {
+    revenue: "#6b5d4f",
+    netFill: "rgba(45, 74, 62, 0.28)",
+    opFill: "#2d4a3e",
+    ocfFill: "#4a6b7c",
+    debtStroke: "#a67c52",
+    grid: "rgba(60, 50, 40, 0.08)",
+    axis: "var(--color-text-secondary)",
+    tooltipBg: "var(--color-bg-surface)",
+    tooltipBorder: "var(--color-border-strong)",
+  },
+  slate: {
+    revenue: "#64748b",
+    netFill: "rgba(71, 85, 105, 0.25)",
+    opFill: "#334155",
+    ocfFill: "#475569",
+    debtStroke: "#0ea5e9",
+    grid: "rgba(100, 116, 139, 0.12)",
+    axis: "var(--color-text-secondary)",
+    tooltipBg: "var(--color-bg-surface)",
+    tooltipBorder: "var(--color-border-strong)",
+  },
+  ink: {
+    revenue: "#525252",
+    netFill: "rgba(23, 23, 23, 0.15)",
+    opFill: "#171717",
+    ocfFill: "#404040",
+    debtStroke: "#737373",
+    grid: "rgba(0, 0, 0, 0.06)",
+    axis: "var(--color-text-secondary)",
+    tooltipBg: "var(--color-bg-surface)",
+    tooltipBorder: "var(--color-border-strong)",
+  },
+};
+
 function fmtAmt(v: number | null, currency: string): string {
   if (v == null) return "—";
   if (currency === "USD") {
@@ -45,14 +92,127 @@ function fmtAmt(v: number | null, currency: string): string {
     if (Math.abs(v) >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
     return `$${v.toFixed(0)}`;
   }
-  // KRW
   if (Math.abs(v) >= 1e12) return `${(v / 1e12).toFixed(2)}조`;
   if (Math.abs(v) >= 1e8) return `${(v / 1e8).toFixed(1)}억`;
   if (Math.abs(v) >= 1e4) return `${(v / 1e4).toFixed(0)}만`;
   return v.toFixed(0);
 }
 
-// ── 주가 차트 (Area) ───────────────────────────────────────────────────────────
+function chartTooltipStyle(p: Palette) {
+  return {
+    background: p.tooltipBg,
+    border: `1px solid ${p.tooltipBorder}`,
+    borderRadius: 6,
+    fontSize: 12,
+    color: "var(--color-text-primary)",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+  };
+}
+
+const FINANCIAL_BAR_SIZE = 34;
+
+function clusterBarWidth(slotWidth: number): number {
+  return Math.min(32, slotWidth * 0.62);
+}
+
+type ProfitPayload = {
+  netIncome?: number | null;
+  opIncome?: number | null;
+};
+
+/** 순이익·영업이익 동일 폭 막대 겹침 (영업이익이 위에, 높이는 각 값 비율) */
+function ProfitOverlapShape(
+  props: {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    payload?: ProfitPayload;
+  },
+  palette: Palette
+) {
+  const { x = 0, y = 0, width = 0, height = 0, payload } = props;
+  const net = payload?.netIncome;
+  const op = payload?.opIncome;
+  if (net == null || height <= 0) return null;
+
+  const center = x + width / 2;
+  const barW = clusterBarWidth(width);
+  const netH = Math.max(0, height);
+  const opH =
+    op != null && net > 0 ? Math.min(netH, (Math.abs(op) / Math.abs(net)) * netH) : 0;
+  const opY = y + netH - opH;
+  const left = center - barW / 2;
+
+  return (
+    <g>
+      <rect x={left} y={y} width={barW} height={netH} rx={4} fill={palette.netFill} />
+      {op != null && opH > 0 && (
+        <rect x={left} y={opY} width={barW} height={opH} rx={4} fill={palette.opFill} />
+      )}
+    </g>
+  );
+}
+
+function OcfBarShape(
+  props: { x?: number; y?: number; width?: number; height?: number },
+  palette: Palette
+) {
+  const { x = 0, y = 0, width = 0, height = 0 } = props;
+  if (height <= 0) return null;
+  const barW = clusterBarWidth(width);
+  const left = x + width / 2 - barW / 2;
+  return (
+    <rect
+      x={left}
+      y={y}
+      width={barW}
+      height={height}
+      rx={4}
+      fill={palette.ocfFill}
+      opacity={0.92}
+    />
+  );
+}
+
+function FinancialChartLegend({ p }: { p: Palette }) {
+  const items: { label: string; kind: "bar" | "line"; color: string; dashed?: boolean }[] = [
+    { label: "순이익", kind: "bar", color: p.netFill },
+    { label: "영업이익", kind: "bar", color: p.opFill },
+    { label: "영업현금흐름", kind: "bar", color: p.ocfFill },
+    { label: "매출", kind: "line", color: p.revenue },
+    { label: "부채비율", kind: "line", color: p.debtStroke, dashed: true },
+  ];
+
+  return (
+    <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 pt-3 text-[11px] text-text-secondary list-none m-0 p-0">
+      {items.map((item) => (
+        <li key={item.label} className="flex items-center gap-1.5">
+          {item.kind === "bar" ? (
+            <span
+              className="inline-block h-2.5 w-2.5 shrink-0 rounded-sm"
+              style={{ background: item.color }}
+              aria-hidden
+            />
+          ) : (
+            <span className="inline-flex w-4 shrink-0 items-center" aria-hidden>
+              <span
+                className="block w-full h-0 border-t-[1.5px]"
+                style={{
+                  borderColor: item.color,
+                  borderStyle: item.dashed ? "dashed" : "solid",
+                }}
+              />
+            </span>
+          )}
+          <span>{item.label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// ── 주가 차트 ──────────────────────────────────────────────────────────────────
 export function PriceAreaChart({
   data,
   currency,
@@ -60,8 +220,7 @@ export function PriceAreaChart({
   data: PricePoint[];
   currency: string;
 }) {
-  if (!data || data.length === 0)
-    return <Empty label="주가 데이터 없음" />;
+  if (!data || data.length === 0) return <Empty label="주가 데이터 없음" />;
 
   const first = data[0].price;
   const last = data[data.length - 1].price;
@@ -69,20 +228,20 @@ export function PriceAreaChart({
   const color = isUp ? "var(--color-brand-green)" : "var(--color-brand-red)";
 
   const formatted = data.map((d) => ({
-    date: d.date.slice(5), // MM-DD
+    date: d.date.slice(5),
     price: d.price,
   }));
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <AreaChart data={formatted} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+      <AreaChart data={formatted} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor={color} stopOpacity={0.25} />
             <stop offset="95%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
+        <CartesianGrid strokeDasharray="4 4" stroke="var(--color-border-default)" vertical={false} />
         <XAxis
           dataKey="date"
           tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
@@ -100,13 +259,7 @@ export function PriceAreaChart({
           width={54}
         />
         <Tooltip
-          contentStyle={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border-strong)",
-            borderRadius: 8,
-            fontSize: 12,
-            color: "var(--color-text-primary)",
-          }}
+          contentStyle={chartTooltipStyle(PALETTES.editorial)}
           formatter={(v) =>
             typeof v === "number"
               ? currency === "USD"
@@ -116,293 +269,215 @@ export function PriceAreaChart({
           }
           labelStyle={{ color: "var(--color-text-secondary)" }}
         />
-        <Area
-          type="monotone"
-          dataKey="price"
-          stroke={color}
-          strokeWidth={1.5}
-          fill="url(#priceGrad)"
-          dot={false}
-        />
+        <Area type="monotone" dataKey="price" stroke={color} strokeWidth={1.5} fill="url(#priceGrad)" dot={false} />
       </AreaChart>
     </ResponsiveContainer>
   );
 }
 
-// ── 손익계산서 라인차트 ────────────────────────────────────────────────────────
-export function IncomeLineChart({
+// ── 통합 재무 차트 (손익 + 건전성) ─────────────────────────────────────────────
+export function UnifiedFinancialChart({
   data,
   currency,
+  variant = "editorial",
 }: {
   data: Financial[];
   currency: string;
+  variant?: ChartVariant;
 }) {
-  if (!data || data.length === 0)
-    return <Empty label="재무 데이터 없음" />;
+  if (!data || data.length === 0) return <Empty label="재무 데이터 없음" />;
 
-  const formatted = data.map((d) => ({
-    period: d.period,
-    revenue: d.revenue,
-    opIncome: d.opIncome,
-    netIncome: d.netIncome,
-  }));
-
-  return (
-    <ResponsiveContainer width="100%" height={240}>
-      <LineChart data={formatted} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
-        <XAxis
-          dataKey="period"
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(v: number) => fmtAmt(v, currency)}
-          width={60}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border-strong)",
-            borderRadius: 8,
-            fontSize: 12,
-            color: "var(--color-text-primary)",
-          }}
-          formatter={(v, name) => [fmtAmt(typeof v === 'number' ? v : null, currency), String(name)]}
-          labelStyle={{ color: "var(--color-text-secondary)" }}
-        />
-        <Legend
-          wrapperStyle={{ fontSize: 11, color: "var(--color-text-muted)", paddingTop: 8 }}
-        />
-        <Line
-          type="monotone"
-          dataKey="revenue"
-          name="매출"
-          stroke="var(--color-brand-blue)"
-          strokeWidth={2}
-          dot={{ r: 3, fill: "var(--color-brand-blue)" }}
-          activeDot={{ r: 5 }}
-          connectNulls
-        />
-        <Line
-          type="monotone"
-          dataKey="opIncome"
-          name="영업이익"
-          stroke="var(--color-brand-green)"
-          strokeWidth={2}
-          dot={{ r: 3, fill: "var(--color-brand-green)" }}
-          activeDot={{ r: 5 }}
-          connectNulls
-        />
-        <Line
-          type="monotone"
-          dataKey="netIncome"
-          name="순이익"
-          stroke="var(--color-warn-500)"
-          strokeWidth={2}
-          dot={{ r: 3, fill: "var(--color-warn-500)" }}
-          activeDot={{ r: 5 }}
-          connectNulls
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-}
-
-// ── 재무상태표 바차트 ──────────────────────────────────────────────────────────
-export function BalanceSheetBarChart({
-  data,
-  currency,
-}: {
-  data: Financial[];
-  currency: string;
-}) {
-  if (!data || data.length === 0)
-    return <Empty label="재무상태표 데이터 없음" />;
-
-  const formatted = data.map((d) => ({
-    period: d.period,
-    totalAssets: d.totalAssets,
-    totalEquity: d.totalEquity,
-    cashAndEquivalents: d.cashAndEquivalents,
-  }));
-
-  return (
-    <ResponsiveContainer width="100%" height={240}>
-      <BarChart data={formatted} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
-        <XAxis
-          dataKey="period"
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(v: number) => fmtAmt(v, currency)}
-          width={60}
-        />
-        <Tooltip
-          contentStyle={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border-strong)",
-            borderRadius: 8,
-            fontSize: 12,
-            color: "var(--color-text-primary)",
-          }}
-          formatter={(v, name) => [fmtAmt(typeof v === 'number' ? v : null, currency), String(name)]}
-          labelStyle={{ color: "var(--color-text-secondary)" }}
-        />
-        <Legend
-          wrapperStyle={{ fontSize: 11, color: "var(--color-text-muted)", paddingTop: 8 }}
-        />
-        <Bar dataKey="totalAssets" name="총자산" fill="var(--color-brand-blue)" opacity={0.8} radius={[3, 3, 0, 0]} />
-        <Bar dataKey="totalEquity" name="자기자본" fill="var(--color-brand-green)" opacity={0.8} radius={[3, 3, 0, 0]} />
-        <Bar dataKey="cashAndEquivalents" name="현금·등가물" fill="var(--color-warn-500)" opacity={0.8} radius={[3, 3, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
-
-function Empty({ label }: { label: string }) {
-  return (
-    <div className="h-[200px] flex items-center justify-center">
-      <span className="text-[var(--color-text-disabled)] text-sm">{label}</span>
-    </div>
-  );
-}
-
-// ── 영업현금흐름 및 부채비율 통합 차트 ──────────────────────────────────────────
-export function CashFlowAndDebtChart({
-  data,
-  currency,
-}: {
-  data: Financial[];
-  currency: string;
-}) {
-  if (!data || data.length === 0)
-    return <Empty label="데이터 없음" />;
-
+  const p = PALETTES[variant];
   const formatted = data.map((d) => ({
     period: d.period.replace("FY", ""),
+    revenue: d.revenue,
+    opIncome: d.opIncome,
     netIncome: d.netIncome,
     operCashFlow: d.operCashFlow,
     debtRatio: d.debtRatio,
   }));
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const UnifiedTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload?: (typeof formatted)[0] }>;
+    label?: string;
+  }) => {
     if (!active || !payload?.length) return null;
-    const net = payload.find((p: any) => p.dataKey === "netIncome");
-    const ocf = payload.find((p: any) => p.dataKey === "operCashFlow");
-    const debt = payload.find((p: any) => p.dataKey === "debtRatio");
-    
+    const row = payload[0]?.payload;
+    if (!row) return null;
+    const op = row.opIncome;
+    const net = row.netIncome;
+    const ratio =
+      op != null && net != null && net !== 0
+        ? ` (순이익의 ${Math.round((op / net) * 100)}%)`
+        : "";
     return (
-      <div style={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border-strong)", borderRadius: 8, color: "var(--color-text-primary)" }} className="px-3 py-2 space-y-1 min-w-[160px]">
-        <p className="text-[var(--color-text-muted)] text-[10px] pb-1 border-b border-[var(--color-border-default)]">
-          {label}년
+      <div style={chartTooltipStyle(p)} className="px-3 py-2.5 space-y-1.5 min-w-[180px]">
+        <p className="text-[10px] text-text-muted border-b border-border-default pb-1.5 mb-1">
+          {label}
         </p>
-        {net && (
-          <p className="text-xs flex justify-between gap-4">
-            <span style={{ color: net.color }}>순이익</span>
-            <span className="text-[var(--color-text-secondary)]">{fmtAmt(net.value, currency)}</span>
-          </p>
-        )}
-        {ocf && (
-          <p className="text-xs flex justify-between gap-4">
-            <span style={{ color: ocf.color }} className="font-medium">영업현금흐름</span>
-            <span className="text-[var(--color-text-secondary)] font-medium">{fmtAmt(ocf.value, currency)}</span>
-          </p>
-        )}
-        {debt && debt.value != null && (
-          <p className="text-xs flex justify-between gap-4 mt-1 pt-1 border-t border-[var(--color-border-default)]">
-            <span style={{ color: debt.color }}>부채비율</span>
-            <span className="text-[var(--color-text-secondary)]">{debt.value.toFixed(1)}%</span>
-          </p>
-        )}
+        <p className="text-xs flex justify-between gap-3">
+          <span className="text-text-muted">매출</span>
+          <span>{fmtAmt(row.revenue, currency)}</span>
+        </p>
+        <p className="text-xs flex justify-between gap-3">
+          <span style={{ color: p.opFill }}>영업이익</span>
+          <span>{fmtAmt(op, currency)}</span>
+        </p>
+        <p className="text-xs flex justify-between gap-3">
+          <span style={{ color: p.netFill }}>순이익</span>
+          <span>
+            {fmtAmt(net, currency)}
+            {ratio}
+          </span>
+        </p>
+        <p className="text-xs flex justify-between gap-3">
+          <span style={{ color: p.ocfFill }}>영업현금흐름</span>
+          <span>{fmtAmt(row.operCashFlow, currency)}</span>
+        </p>
+        <p className="text-xs flex justify-between gap-3">
+          <span style={{ color: p.debtStroke }}>부채비율</span>
+          <span>{row.debtRatio != null ? `${row.debtRatio.toFixed(1)}%` : "—"}</span>
+        </p>
       </div>
     );
   };
 
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <AreaChart data={formatted} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-        <defs>
-          <linearGradient id="ocfFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-brand-blue)" stopOpacity={0.2} />
-            <stop offset="95%" stopColor="var(--color-brand-blue)" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
+    <div>
+    <ResponsiveContainer width="100%" height={300}>
+      <ComposedChart
+        data={formatted}
+        margin={{ top: 12, right: 88, left: 4, bottom: 4 }}
+        barCategoryGap="24%"
+        barGap={4}
+      >
+        <CartesianGrid stroke={p.grid} strokeDasharray="2 6" vertical={false} />
         <XAxis
           dataKey="period"
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
+          tick={{ fill: p.axis, fontSize: 10, fontFamily: "inherit" }}
           tickLine={false}
-          axisLine={false}
+          axisLine={{ stroke: p.grid }}
         />
         <YAxis
           yAxisId="left"
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
+          tick={{ fill: p.axis, fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => fmtAmt(v, currency)}
-          width={50}
+          width={56}
         />
         <YAxis
-          yAxisId="right"
+          yAxisId="revenue"
           orientation="right"
-          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
+          tick={{ fill: p.axis, fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v: number) => fmtAmt(v, currency)}
+          width={48}
+        />
+        <YAxis
+          yAxisId="debt"
+          orientation="right"
+          tick={{ fill: p.axis, fontSize: 10 }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => `${v}%`}
           width={40}
+          domain={[0, "auto"]}
         />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend
-          wrapperStyle={{ fontSize: 11, color: "var(--color-text-muted)", paddingTop: 8 }}
-          iconType="circle"
-        />
-        {/* 순이익 (막대형식 대신 Line으로 심플하게) */}
-        <Line
+        <Tooltip content={<UnifiedTooltip />} />
+        <Bar
           yAxisId="left"
-          type="monotone"
           dataKey="netIncome"
           name="순이익"
-          stroke="var(--color-text-disabled)"
-          strokeDasharray="4 4"
-          strokeWidth={1.5}
-          dot={{ r: 2, fill: "var(--color-text-disabled)" }}
-          activeDot={{ r: 4 }}
+          barSize={FINANCIAL_BAR_SIZE}
+          legendType="none"
+          shape={(barProps) => ProfitOverlapShape(barProps, p)}
         />
-        {/* 영업현금흐름 (Area) */}
-        <Area
+        <Bar
           yAxisId="left"
-          type="monotone"
           dataKey="operCashFlow"
           name="영업현금흐름"
-          stroke="var(--color-brand-blue)"
-          strokeWidth={2}
-          fill="url(#ocfFill)"
-          dot={{ r: 3, fill: "var(--color-brand-blue)", strokeWidth: 0 }}
-          activeDot={{ r: 5 }}
+          barSize={FINANCIAL_BAR_SIZE}
+          legendType="none"
+          shape={(barProps) => OcfBarShape(barProps, p)}
         />
-        {/* 부채비율 (Line, 우측 축) */}
         <Line
-          yAxisId="right"
+          yAxisId="revenue"
+          type="monotone"
+          dataKey="revenue"
+          name="매출"
+          stroke={p.revenue}
+          strokeWidth={1.75}
+          dot={{ r: 2.5, fill: "var(--color-bg-surface)", stroke: p.revenue, strokeWidth: 1.5 }}
+          activeDot={{ r: 4, strokeWidth: 2 }}
+          connectNulls
+          legendType="none"
+        />
+        <Line
+          yAxisId="debt"
           type="monotone"
           dataKey="debtRatio"
           name="부채비율"
-          stroke="var(--color-warn-500)"
-          strokeWidth={2}
-          dot={{ r: 3, fill: "var(--color-bg-base)", stroke: "var(--color-warn-500)", strokeWidth: 2 }}
-          activeDot={{ r: 5 }}
+          stroke={p.debtStroke}
+          strokeWidth={1.75}
+          strokeDasharray="8 5"
+          isAnimationActive={false}
+          animationDuration={0}
+          dot={{ r: 3, fill: "var(--color-bg-surface)", stroke: p.debtStroke, strokeWidth: 1.5 }}
+          activeDot={{ r: 5, stroke: p.debtStroke, fill: "var(--color-bg-surface)" }}
+          connectNulls
+          legendType="none"
         />
-      </AreaChart>
+      </ComposedChart>
     </ResponsiveContainer>
+    <FinancialChartLegend p={p} />
+    </div>
   );
 }
+
+/** @deprecated UnifiedFinancialChart 사용 */
+export function IncomeLineChart(props: {
+  data: Financial[];
+  currency: string;
+  variant?: ChartVariant;
+}) {
+  return <UnifiedFinancialChart {...props} />;
+}
+
+/** @deprecated UnifiedFinancialChart 사용 */
+export function BalanceSheetBarChart(props: {
+  data: Financial[];
+  currency: string;
+  variant?: ChartVariant;
+}) {
+  return <UnifiedFinancialChart {...props} />;
+}
+
+/** @deprecated UnifiedFinancialChart 사용 */
+export function CashFlowAndDebtChart(props: {
+  data: Financial[];
+  currency: string;
+  variant?: ChartVariant;
+}) {
+  return <UnifiedFinancialChart {...props} />;
+}
+
+function Empty({ label }: { label: string }) {
+  return (
+    <div className="h-[200px] flex items-center justify-center">
+      <span className="text-text-disabled text-sm">{label}</span>
+    </div>
+  );
+}
+
+export const CHART_VARIANT_LABELS: Record<ChartVariant, { title: string; desc: string }> = {
+  editorial: { title: "Editorial", desc: "웜 톤 · 이코노미스트 스타일" },
+  slate: { title: "Slate", desc: "쿨 그레이 · 리포트 톤" },
+  ink: { title: "Ink", desc: "모노톤 · 미니멀" },
+};

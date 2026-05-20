@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:preview": "DEV_PREVIEW_AUTH=true NEXT_PUBLIC_DEV_PREVIEW_AUTH=true next dev",
+    "dev": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 next dev",
+    "dev:preview": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 DEV_PREVIEW_AUTH=true NEXT_PUBLIC_DEV_PREVIEW_AUTH=true next dev",
     "db:dev:setup": "node scripts/dev-setup.mjs",
     "db:views": "node scripts/db-views.mjs",
     "db:wealth-schema": "node scripts/apply_wealth_schema.mjs",

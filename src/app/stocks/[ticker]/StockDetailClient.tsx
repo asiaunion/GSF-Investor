@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import type { ChartVariant } from "@/components/StockCharts";
+import { CHART_VARIANT_LABELS } from "@/components/StockCharts";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 import {
   btnPrimarySm,
@@ -19,14 +21,11 @@ const PriceAreaChart = dynamic(
   () => import("@/components/StockCharts").then((m) => m.PriceAreaChart),
   { ssr: false }
 );
-const IncomeLineChart = dynamic(
-  () => import("@/components/StockCharts").then((m) => m.IncomeLineChart),
+const UnifiedFinancialChart = dynamic(
+  () => import("@/components/StockCharts").then((m) => m.UnifiedFinancialChart),
   { ssr: false }
 );
-const BalanceSheetBarChart = dynamic(
-  () => import("@/components/StockCharts").then((m) => m.BalanceSheetBarChart),
-  { ssr: false }
-);
+
 // ── Types ────────────────────────────────────────────────────────────────────
 interface Stock {
   id: number; ticker: string; name: string; market: string;
@@ -224,16 +223,56 @@ function FinancialTable({ title, rows, currency }: { title: string; rows: Financ
   );
 }
 
+function ChartVariantPicker({
+  variant,
+  onChange,
+}: {
+  variant: ChartVariant;
+  onChange: (v: ChartVariant) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 mb-4">
+      <span className="text-[10px] uppercase tracking-wider text-text-muted mr-1">차트 시안</span>
+      {(Object.keys(CHART_VARIANT_LABELS) as ChartVariant[]).map((key) => {
+        const { title, desc } = CHART_VARIANT_LABELS[key];
+        const active = variant === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key)}
+            title={desc}
+            className={`px-2.5 py-1 rounded-sm text-[11px] border transition-colors ${
+              active
+                ? "bg-brand-green/10 border-brand-green/30 text-brand-green font-medium"
+                : "border-border-default text-text-muted hover:text-text-secondary hover:border-border-strong"
+            }`}
+          >
+            {title}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function FinancialTab({ quarterlyFinancials, annualFinancials, currency }: { quarterlyFinancials: Financial[]; annualFinancials: Financial[]; currency: string }) {
+  const [chartVariant, setChartVariant] = useState<ChartVariant>("editorial");
+
   return (
     <div className="space-y-6">
+      <ChartVariantPicker variant={chartVariant} onChange={setChartVariant} />
+
       <div className={`${economistCard} p-5`}>
-        <div className="text-text-secondary text-sm font-medium mb-4">손익계산서 추이 (연간)</div>
-        <IncomeLineChart data={annualFinancials} currency={currency} />
-      </div>
-      <div className={`${economistCard} p-5`}>
-        <div className="text-text-secondary text-sm font-medium mb-4">재무상태표 (연간)</div>
-        <BalanceSheetBarChart data={annualFinancials} currency={currency} />
+        <div className="text-text-secondary text-sm font-medium mb-1">재무 추이 (연간)</div>
+        <p className="text-text-disabled text-[10px] mb-4">
+          겹침 막대(순·영업 동일 폭) · 나란한 막대 · 영업현금흐름 · 점선 · 매출 · 부채비율 %
+        </p>
+        <UnifiedFinancialChart
+          data={annualFinancials}
+          currency={currency}
+          variant={chartVariant}
+        />
       </div>
       <FinancialTable title="연간 실적" rows={annualFinancials} currency={currency} />
       <FinancialTable title="분기 실적" rows={quarterlyFinancials} currency={currency} />
