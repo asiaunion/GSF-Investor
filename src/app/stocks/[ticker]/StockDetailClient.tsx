@@ -27,7 +27,6 @@ const BalanceSheetBarChart = dynamic(
   () => import("@/components/StockCharts").then((m) => m.BalanceSheetBarChart),
   { ssr: false }
 );
-
 // ── Types ────────────────────────────────────────────────────────────────────
 interface Stock {
   id: number; ticker: string; name: string; market: string;
@@ -36,7 +35,8 @@ interface Stock {
 interface Overview {
   currentPrice: number | null; priceDate: string | null;
   currency: string; per: number | null; pbr: number | null;
-  dividendYield: number | null; holdingReturn: number | null;
+  dividendYield: number | null; roe: number | null; metricsPeriod: string | null;
+  holdingReturn: number | null;
   portfolio: { quantity: number; avgPrice: number } | null;
   usdkrw: number;
 }
@@ -45,7 +45,7 @@ interface Financial {
   netIncome: number | null; totalAssets: number | null;
   totalEquity: number | null; cashAndEquivalents: number | null;
   debtRatio: number | null; eps: number | null; bps: number | null;
-  roe: number | null; dividendPerShare: number | null; source: string;
+  roe: number | null; dividendPerShare: number | null; operCashFlow: number | null; source: string;
 }
 interface Disclosure {
   id: number; source: string; filedAt: string; title: string;
@@ -64,7 +64,8 @@ interface Props {
   stock: Stock;
   overview: Overview;
   priceChart: PricePoint[];
-  financials: Financial[];
+  quarterlyFinancials: Financial[];
+  annualFinancials: Financial[];
   disclosures: Disclosure[];
   signals: Signal[];
   notes: Note[];
@@ -117,10 +118,7 @@ function SeverityDot({ severity }: { severity: string }) {
 
 // ── Tab: Overview ────────────────────────────────────────────────────────────
 function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stock: Stock; priceChart: PricePoint[] }) {
-  const { currentPrice, currency, per, pbr, dividendYield, holdingReturn, portfolio, usdkrw } = overview;
-  const evalKRW = currentPrice != null && portfolio
-    ? (currency === "USD" ? currentPrice * portfolio.quantity * usdkrw : currentPrice * portfolio.quantity)
-    : null;
+  const { currentPrice, currency, per, pbr, dividendYield, roe, metricsPeriod, holdingReturn, portfolio, usdkrw } = overview;
 
   return (
     <div className="space-y-6">
@@ -163,11 +161,14 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
           { label: "PER", value: per != null ? `${per.toFixed(1)}x` : "—" },
           { label: "PBR", value: pbr != null ? `${pbr.toFixed(2)}x` : "—" },
           { label: "배당수익률", value: dividendYield != null ? `${dividendYield.toFixed(2)}%` : "—" },
-          { label: "평가금액", value: evalKRW != null ? `₩${(evalKRW / 1e8).toFixed(2)}억` : "—" },
+          { label: "ROE", value: roe != null ? `${roe.toFixed(2)}%` : "—" },
         ].map((m) => (
           <div key={m.label} className={`${economistCard} p-4`}>
             <div className="text-text-muted text-[10px] uppercase tracking-wider">{m.label}</div>
             <div className="text-text-primary text-lg font-semibold mt-1">{m.value}</div>
+            {metricsPeriod && (
+              <div className="text-text-disabled text-[10px] mt-1">{metricsPeriod} 기준</div>
+            )}
           </div>
         ))}
       </div>
@@ -184,52 +185,58 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
 }
 
 // ── Tab: 재무 ────────────────────────────────────────────────────────────────
-function FinancialTab({ financials, currency }: { financials: Financial[]; currency: string }) {
+function FinancialTable({ title, rows, currency }: { title: string; rows: Financial[]; currency: string }) {
+  if (rows.length === 0) return null;
+  return (
+    <div className={`${economistCard} overflow-hidden`}>
+      <div className="px-4 py-3 border-b border-border-default text-text-secondary text-sm font-medium">{title}</div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="border-b border-border-default">
+              <th className="px-4 py-3 text-left text-text-muted font-medium">기간</th>
+              <th className="px-4 py-3 text-right text-text-muted font-medium">매출</th>
+              <th className="px-4 py-3 text-right text-text-muted font-medium">영업이익</th>
+              <th className="px-4 py-3 text-right text-text-muted font-medium">순이익</th>
+              <th className="px-4 py-3 text-right text-text-muted font-medium">ROE</th>
+              <th className="px-4 py-3 text-right text-text-muted font-medium">EPS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...rows].reverse().map((f) => (
+              <tr key={f.period} className="border-b border-border-default/50 hover:bg-bg-elevated/30 transition-colors">
+                <td className="px-4 py-3 text-text-secondary font-medium">{f.period}</td>
+                <td className="px-4 py-3 text-right text-text-secondary">{fmtLarge(f.revenue, currency)}</td>
+                <td className={`px-4 py-3 text-right font-medium ${f.opIncome != null && f.opIncome >= 0 ? "text-profit-400" : "text-loss-400"}`}>
+                  {fmtLarge(f.opIncome, currency)}
+                </td>
+                <td className={`px-4 py-3 text-right font-medium ${f.netIncome != null && f.netIncome >= 0 ? "text-profit-400" : "text-loss-400"}`}>
+                  {fmtLarge(f.netIncome, currency)}
+                </td>
+                <td className="px-4 py-3 text-right text-text-secondary">{fmt(f.roe)}%</td>
+                <td className="px-4 py-3 text-right text-text-secondary">{fmtPrice(f.eps, currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function FinancialTab({ quarterlyFinancials, annualFinancials, currency }: { quarterlyFinancials: Financial[]; annualFinancials: Financial[]; currency: string }) {
   return (
     <div className="space-y-6">
       <div className={`${economistCard} p-5`}>
-        <div className="text-text-secondary text-sm font-medium mb-4">손익계산서 추이</div>
-        <IncomeLineChart data={financials} currency={currency} />
+        <div className="text-text-secondary text-sm font-medium mb-4">손익계산서 추이 (연간)</div>
+        <IncomeLineChart data={annualFinancials} currency={currency} />
       </div>
       <div className={`${economistCard} p-5`}>
-        <div className="text-text-secondary text-sm font-medium mb-4">재무상태표</div>
-        <BalanceSheetBarChart data={financials} currency={currency} />
+        <div className="text-text-secondary text-sm font-medium mb-4">재무상태표 (연간)</div>
+        <BalanceSheetBarChart data={annualFinancials} currency={currency} />
       </div>
-      {/* Table */}
-      {financials.length > 0 && (
-        <div className={`${economistCard} overflow-hidden`}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border-default">
-                  <th className="px-4 py-3 text-left text-text-muted font-medium">기간</th>
-                  <th className="px-4 py-3 text-right text-text-muted font-medium">매출</th>
-                  <th className="px-4 py-3 text-right text-text-muted font-medium">영업이익</th>
-                  <th className="px-4 py-3 text-right text-text-muted font-medium">순이익</th>
-                  <th className="px-4 py-3 text-right text-text-muted font-medium">ROE</th>
-                  <th className="px-4 py-3 text-right text-text-muted font-medium">EPS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...financials].reverse().map((f) => (
-                  <tr key={f.period} className="border-b border-border-default/50 hover:bg-bg-elevated/30 transition-colors">
-                    <td className="px-4 py-3 text-text-secondary font-medium">{f.period}</td>
-                    <td className="px-4 py-3 text-right text-text-secondary">{fmtLarge(f.revenue, currency)}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${f.opIncome != null && f.opIncome >= 0 ? "text-profit-400" : "text-loss-400"}`}>
-                      {fmtLarge(f.opIncome, currency)}
-                    </td>
-                    <td className={`px-4 py-3 text-right font-medium ${f.netIncome != null && f.netIncome >= 0 ? "text-profit-400" : "text-loss-400"}`}>
-                      {fmtLarge(f.netIncome, currency)}
-                    </td>
-                    <td className="px-4 py-3 text-right text-text-secondary">{fmt(f.roe)}%</td>
-                    <td className="px-4 py-3 text-right text-text-secondary">{fmtPrice(f.eps, currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      <FinancialTable title="연간 실적" rows={annualFinancials} currency={currency} />
+      <FinancialTable title="분기 실적" rows={quarterlyFinancials} currency={currency} />
     </div>
   );
 }
@@ -389,7 +396,8 @@ export default function StockDetailClient({
   stock,
   overview,
   priceChart,
-  financials,
+  quarterlyFinancials,
+  annualFinancials,
   disclosures,
   signals,
   notes: initialNotes,
@@ -431,7 +439,7 @@ export default function StockDetailClient({
         <OverviewTab overview={overview} stock={stock} priceChart={priceChart} />
       )}
       {activeTab === "재무" && (
-        <FinancialTab financials={financials} currency={overview.currency} />
+        <FinancialTab quarterlyFinancials={quarterlyFinancials} annualFinancials={annualFinancials} currency={overview.currency} />
       )}
       {activeTab === "공시" && <DisclosuresTab disclosures={disclosures} />}
       {activeTab === "시그널" && <SignalsTab signals={signals} />}

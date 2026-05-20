@@ -28,6 +28,7 @@ interface Financial {
   bps: number | null;
   roe: number | null;
   dividendPerShare: number | null;
+  operCashFlow: number | null;
   source: string;
 }
 
@@ -274,5 +275,134 @@ function Empty({ label }: { label: string }) {
     <div className="h-[200px] flex items-center justify-center">
       <span className="text-[var(--color-text-disabled)] text-sm">{label}</span>
     </div>
+  );
+}
+
+// ── 영업현금흐름 및 부채비율 통합 차트 ──────────────────────────────────────────
+export function CashFlowAndDebtChart({
+  data,
+  currency,
+}: {
+  data: Financial[];
+  currency: string;
+}) {
+  if (!data || data.length === 0)
+    return <Empty label="데이터 없음" />;
+
+  const formatted = data.map((d) => ({
+    period: d.period.replace("FY", ""),
+    netIncome: d.netIncome,
+    operCashFlow: d.operCashFlow,
+    debtRatio: d.debtRatio,
+  }));
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null;
+    const net = payload.find((p: any) => p.dataKey === "netIncome");
+    const ocf = payload.find((p: any) => p.dataKey === "operCashFlow");
+    const debt = payload.find((p: any) => p.dataKey === "debtRatio");
+    
+    return (
+      <div style={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border-strong)", borderRadius: 8, color: "var(--color-text-primary)" }} className="px-3 py-2 space-y-1 min-w-[160px]">
+        <p className="text-[var(--color-text-muted)] text-[10px] pb-1 border-b border-[var(--color-border-default)]">
+          {label}년
+        </p>
+        {net && (
+          <p className="text-xs flex justify-between gap-4">
+            <span style={{ color: net.color }}>순이익</span>
+            <span className="text-[var(--color-text-secondary)]">{fmtAmt(net.value, currency)}</span>
+          </p>
+        )}
+        {ocf && (
+          <p className="text-xs flex justify-between gap-4">
+            <span style={{ color: ocf.color }} className="font-medium">영업현금흐름</span>
+            <span className="text-[var(--color-text-secondary)] font-medium">{fmtAmt(ocf.value, currency)}</span>
+          </p>
+        )}
+        {debt && debt.value != null && (
+          <p className="text-xs flex justify-between gap-4 mt-1 pt-1 border-t border-[var(--color-border-default)]">
+            <span style={{ color: debt.color }}>부채비율</span>
+            <span className="text-[var(--color-text-secondary)]">{debt.value.toFixed(1)}%</span>
+          </p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <AreaChart data={formatted} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="ocfFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-brand-blue)" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="var(--color-brand-blue)" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-default)" vertical={false} />
+        <XAxis
+          dataKey="period"
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          yAxisId="left"
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v: number) => fmtAmt(v, currency)}
+          width={50}
+        />
+        <YAxis
+          yAxisId="right"
+          orientation="right"
+          tick={{ fill: "var(--color-text-secondary)", fontSize: 10 }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v: number) => `${v}%`}
+          width={40}
+        />
+        <Tooltip content={<CustomTooltip />} />
+        <Legend
+          wrapperStyle={{ fontSize: 11, color: "var(--color-text-muted)", paddingTop: 8 }}
+          iconType="circle"
+        />
+        {/* 순이익 (막대형식 대신 Line으로 심플하게) */}
+        <Line
+          yAxisId="left"
+          type="monotone"
+          dataKey="netIncome"
+          name="순이익"
+          stroke="var(--color-text-disabled)"
+          strokeDasharray="4 4"
+          strokeWidth={1.5}
+          dot={{ r: 2, fill: "var(--color-text-disabled)" }}
+          activeDot={{ r: 4 }}
+        />
+        {/* 영업현금흐름 (Area) */}
+        <Area
+          yAxisId="left"
+          type="monotone"
+          dataKey="operCashFlow"
+          name="영업현금흐름"
+          stroke="var(--color-brand-blue)"
+          strokeWidth={2}
+          fill="url(#ocfFill)"
+          dot={{ r: 3, fill: "var(--color-brand-blue)", strokeWidth: 0 }}
+          activeDot={{ r: 5 }}
+        />
+        {/* 부채비율 (Line, 우측 축) */}
+        <Line
+          yAxisId="right"
+          type="monotone"
+          dataKey="debtRatio"
+          name="부채비율"
+          stroke="var(--color-warn-500)"
+          strokeWidth={2}
+          dot={{ r: 3, fill: "var(--color-bg-base)", stroke: "var(--color-warn-500)", strokeWidth: 2 }}
+          activeDot={{ r: 5 }}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }

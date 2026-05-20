@@ -47,15 +47,26 @@ async function fetchStockData(ticker: string) {
     ORDER BY date DESC LIMIT 90
   `);
 
-  // 재무제표 (최근 8분기)
-  const financialRows = await db.run(sql`
+  // 재무제표 (최근 5분기)
+  const qRows = await db.run(sql`
     SELECT
       period, revenue, op_income, net_income,
       total_assets, total_equity, cash_and_equivalents,
-      debt_ratio, eps, bps, roe, dividend_per_share, source
+      debt_ratio, eps, bps, roe, dividend_per_share, free_cash_flow, source
     FROM financials
-    WHERE stock_id = ${stockId}
-    ORDER BY period ASC LIMIT 8
+    WHERE stock_id = ${stockId} AND period NOT LIKE '%FY'
+    ORDER BY period DESC LIMIT 4
+  `);
+
+  // 재무제표 (최근 5연간)
+  const aRows = await db.run(sql`
+    SELECT
+      period, revenue, op_income, net_income,
+      total_assets, total_equity, cash_and_equivalents,
+      debt_ratio, eps, bps, roe, dividend_per_share, free_cash_flow, source
+    FROM financials
+    WHERE stock_id = ${stockId} AND period LIKE '%FY'
+    ORDER BY period DESC LIMIT 5
   `);
 
   // 공시 (최근 20건)
@@ -100,28 +111,56 @@ async function fetchStockData(ticker: string) {
       ? { quantity: Number(portfolioRow.rows[0][0]), avgPrice: Number(portfolioRow.rows[0][1]) }
       : null;
 
-  const financials = financialRows.rows.map((r) => ({
-    period: String(r[0]),
-    revenue: r[1] != null ? Number(r[1]) : null,
-    opIncome: r[2] != null ? Number(r[2]) : null,
-    netIncome: r[3] != null ? Number(r[3]) : null,
-    totalAssets: r[4] != null ? Number(r[4]) : null,
-    totalEquity: r[5] != null ? Number(r[5]) : null,
-    cashAndEquivalents: r[6] != null ? Number(r[6]) : null,
-    debtRatio: r[7] != null ? Number(r[7]) : null,
-    eps: r[8] != null ? Number(r[8]) : null,
-    bps: r[9] != null ? Number(r[9]) : null,
-    roe: r[10] != null ? Number(r[10]) : null,
-    dividendPerShare: r[11] != null ? Number(r[11]) : null,
-    source: String(r[12]),
-  }));
+  const parseFinancialRow = (r: any) => {
+    const periodStr = String(r[0]);
+    const isQuarterly = !periodStr.endsWith('FY');
+    const netIncome = r[3] != null ? Number(r[3]) : null;
+    const totalEquity = r[5] != null ? Number(r[5]) : null;
+    let roeVal = r[10] != null ? Number(r[10]) : null;
+    if (roeVal === null && netIncome != null && totalEquity != null && totalEquity > 0) {
+      roeVal = (netIncome / totalEquity) * 100;
+    }
+    if (isQuarterly && roeVal != null) {
+      roeVal = roeVal * 4;
+    }
 
-  const latestFin = financials.length > 0 ? financials[financials.length - 1] : null;
-  const per = currentPrice != null && latestFin?.eps && latestFin.eps > 0 ? currentPrice / latestFin.eps : null;
-  const pbr = currentPrice != null && latestFin?.bps && latestFin.bps > 0 ? currentPrice / latestFin.bps : null;
+    return {
+      period: periodStr,
+      revenue: r[1] != null ? Number(r[1]) : null,
+      opIncome: r[2] != null ? Number(r[2]) : null,
+      netIncome: netIncome,
+      totalAssets: r[4] != null ? Number(r[4]) : null,
+      totalEquity: totalEquity,
+      cashAndEquivalents: r[6] != null ? Number(r[6]) : null,
+      debtRatio: r[7] != null ? Number(r[7]) : null,
+      eps: r[8] != null ? Number(r[8]) : null,
+      bps: r[9] != null ? Number(r[9]) : null,
+      roe: roeVal,
+      dividendPerShare: r[11] != null ? Number(r[11]) : null,
+      operCashFlow: r[12] != null ? Number(r[12]) : null,
+      source: String(r[13]),
+    };
+  };
+
+  // 역순 정렬 (오래된 순 -> 최신순) for charts
+  const quarterlyFinancials = [...qRows.rows].reverse().map(parseFinancialRow);
+  const annualFinancials = [...aRows.rows].reverse().map(parseFinancialRow);
+
+  const latestAnnualFin =
+    annualFinancials.length > 0 ? annualFinancials[annualFinancials.length - 1] : null;
+  const per =
+    currentPrice != null && latestAnnualFin?.eps && latestAnnualFin.eps > 0
+      ? currentPrice / latestAnnualFin.eps
+      : null;
+  const pbr =
+    currentPrice != null && latestAnnualFin?.bps && latestAnnualFin.bps > 0
+      ? currentPrice / latestAnnualFin.bps
+      : null;
   const dividendYield =
-    currentPrice != null && latestFin?.dividendPerShare && latestFin.dividendPerShare > 0
-      ? (latestFin.dividendPerShare / currentPrice) * 100
+    currentPrice != null &&
+    latestAnnualFin?.dividendPerShare &&
+    latestAnnualFin.dividendPerShare > 0
+      ? (latestAnnualFin.dividendPerShare / currentPrice) * 100
       : null;
   const holdingReturn =
     currentPrice != null && portfolio?.avgPrice && portfolio.avgPrice > 0
@@ -141,9 +180,22 @@ async function fetchStockData(ticker: string) {
       secCik: sr[8] ? String(sr[8]) : null,
       yahooTicker: sr[9] ? String(sr[9]) : null,
     },
-    overview: { currentPrice, priceDate, currency: priceCurrency, per, pbr, dividendYield, holdingReturn, portfolio, usdkrw },
+    overview: {
+      currentPrice,
+      priceDate,
+      currency: priceCurrency,
+      per,
+      pbr,
+      dividendYield,
+      roe: latestAnnualFin?.roe ?? null,
+      metricsPeriod: latestAnnualFin?.period ?? null,
+      holdingReturn,
+      portfolio,
+      usdkrw,
+    },
     priceChart: priceChartRows.rows.map((r) => ({ date: String(r[0]), price: Number(r[1]) })).reverse(),
-    financials,
+    quarterlyFinancials,
+    annualFinancials,
     disclosures: disclosureRows.rows.map((r) => ({
       id: Number(r[0]), source: String(r[1]), filedAt: String(r[2]),
       title: String(r[3]), summaryAi: r[4] ? String(r[4]) : null,
@@ -168,7 +220,7 @@ export default async function StockDetailPage({ params }: PageProps) {
   const data = await fetchStockData(ticker);
   if (!data) notFound();
 
-  const { stock, overview, priceChart, financials, disclosures, signals, notes } = data;
+  const { stock, overview, priceChart, quarterlyFinancials, annualFinancials, disclosures, signals, notes } = data;
 
   const categoryColor =
     stock.category === "Core"
@@ -218,7 +270,8 @@ export default async function StockDetailPage({ params }: PageProps) {
           stock={stock}
           overview={overview}
           priceChart={priceChart}
-          financials={financials}
+          quarterlyFinancials={quarterlyFinancials}
+          annualFinancials={annualFinancials}
           disclosures={disclosures}
           signals={signals}
           notes={notes}

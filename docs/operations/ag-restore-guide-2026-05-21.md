@@ -31,6 +31,23 @@ Q4 = FY − (Q1 + Q2 + Q3)
 
 `main`의 `seed_financials_only.py`는 위 수식을 이미 사용합니다.
 
+## 「DART기준으로 수정해줘」 직전 복구 (2026-05-21)
+
+`chat_history` 기준 **가능한 최근 복구점**입니다. Git 스냅샷은 없어 `stash@{0}` + 문서 스펙으로 재구성했습니다.
+
+| 포함 | 제외 (그 이후 AG 작업) |
+|------|------------------------|
+| 연간/분기 쿼리 분리, FY 기준 PER/PBR/배당/ROE | DART EPS 우선(덮어쓰기 제거) + prod re-seed |
+| 재무 탭 연간 차트·연간/분기 테이블 | Economist 병합 후 `LIMIT 8` 회귀 |
+| `seed` EPS = 순이익/주식수 **강제** (네이버 분석 직전) | `CashFlowAndDebtChart` (Knowledge 복구 때 추가) |
+| `scripts/update_dividends.py` | 차트 「망가짐」 이후 패치·배포 |
+
+프로덕션 DB는 AG가 DART EPS로 다시 쓴 상태일 수 있습니다. UI와 맞추려면:
+
+```bash
+REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE python3 scripts/seed_financials_only.py
+```
+
 ## 실행한 원복 (2026-05-21)
 
 ```bash
