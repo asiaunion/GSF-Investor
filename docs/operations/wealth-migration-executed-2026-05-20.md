@@ -39,7 +39,7 @@
 5. [ ] (선택) `reset_trade_journal.py` 후 `/journal` 주식 재입력
 6. [x] cron 수동 테스트 (2026-05-20 스모크 200 OK)
 7. [ ] (선택) `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — 스냅샷 알림용 Vercel env
-8. [ ] [portfolio-decommission.md](./portfolio-decommission.md) — Portfolio 앱 폐기
+8. [x] Portfolio redirect 배포 + `APP_PIN` 제거 + 로컬 백업 (`~/backup-gsf-portfolio-20260520.tar.gz`); GitHub Archive만 수동
 
 ## trade_journal
 
