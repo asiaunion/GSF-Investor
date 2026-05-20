@@ -24,7 +24,7 @@
 | 항목 | 결과 |
 |------|------|
 | Vercel Production | https://gsf-investor.vercel.app (`npx vercel deploy --prod`) |
-| Git | `feat/portfolio-wealth-merge` → `10ff260` (main 직접 push 훅 차단 → PR 머지 필요) |
+| Git | `main` @ `a74fa71` 머지 완료 (`feat/portfolio-wealth-merge` → origin/main) |
 | `CRON_SECRET` | Vercel Production에 신규 생성·등록 후 재배포 완료 (값은 Vercel 대시보드 → Settings → Environment Variables) |
 | Cron 스케줄 | `vercel.json` — 매일 15:00 UTC (`0 15 * * *`) |
 | Cron 스모크 | `GET /api/cron/net-worth-snapshot` + Bearer → **200**, 첫 `net_worth_snapshots` 행 기록 |
@@ -34,7 +34,7 @@
 
 1. [x] Vercel Production 배포
 2. [x] Vercel env: `CRON_SECRET`
-3. [ ] GitHub PR 머지: https://github.com/asiaunion/gsf-investor/compare/main...feat/portfolio-wealth-merge
+3. [x] `main` 머지 (`a74fa71`)
 4. [ ] `/wealth`에서 금액 검토·수정 (로그인 후)
 5. [ ] (선택) `reset_trade_journal.py` 후 `/journal` 주식 재입력
 6. [x] cron 수동 테스트 (2026-05-20 스모크 200 OK)
