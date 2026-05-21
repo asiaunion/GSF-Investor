@@ -18,7 +18,10 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   let session = await auth();
   if (process.env.DEV_PREVIEW_AUTH === "true") {
-    session = session || { user: { email: "preview@gsf-investor.local", name: "Design Preview" } };
+    session = session || {
+      user: { email: "preview@gsf-investor.local", name: "Design Preview" },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
   }
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
