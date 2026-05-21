@@ -36,8 +36,12 @@ export async function GET(req: Request) {
       .orderBy(holdingSnapshots.date);
 
     return NextResponse.json(history);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[HOLDINGS HISTORY GET ERROR]:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { error: "Internal Server Error", message },
+      { status: 500 }
+    );
   }
 }

@@ -49,9 +49,13 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(prefs);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[PREFERENCES GET ERROR]:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { error: "Internal Server Error", message },
+      { status: 500 }
+    );
   }
 }
 
@@ -113,8 +117,12 @@ export async function PATCH(req: NextRequest) {
       .then((rows) => rows[0]);
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[PREFERENCES PATCH ERROR]:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json(
+      { error: "Internal Server Error", message },
+      { status: 500 }
+    );
   }
 }
