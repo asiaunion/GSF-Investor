@@ -1,0 +1,11 @@
+{
+  "event_type": "automation_pipeline",
+  "title": "yfinance 기반 GSF-Investor 배당 캘린더 적재 자동화 파이프라인 구축",
+  "summary": "yfinance를 활용하여 한국(KR), 미국(US), 일본(JP) 활성 종목의 2024년 1월 1일 이후 배당락(ex_date) 데이터를 수집, DB 조회 기반의 2단계 이중 중복 방지 필터링 및 원격 DB 안전 제약(enforce_remote_write_guard)을 포함하여 dividend_events 테이블에 안전하게 적재하는 자동화 스크립트 구축 및 1회 프로덕션 시드 적재 완료.",
+  "original_sources": [
+    "scripts/update_dividend_calendar.py",
+    "docs/operations/phase-2b-backlog.md"
+  ],
+  "captured_at": "2026-05-21T17:36:00+09:00",
+  "status": "active"
+}
