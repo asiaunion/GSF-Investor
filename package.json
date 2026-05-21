@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 next dev",
-    "dev:preview": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 DEV_PREVIEW_AUTH=true NEXT_PUBLIC_DEV_PREVIEW_AUTH=true next dev",
+    "dev:preview": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 DEV_PREVIEW_AUTH=true NEXT_PUBLIC_DEV_PREVIEW_AUTH=true TURSO_DATABASE_URL=file:local.db next dev",
     "db:dev:setup": "node scripts/dev-setup.mjs",
     "db:views": "node scripts/db-views.mjs",
     "db:wealth-schema": "node scripts/apply_wealth_schema.mjs",

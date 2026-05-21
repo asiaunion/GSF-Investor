@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "range": "3M",
+  "startDate": "2026-02-20",
+  "meta": [
+    {
+      "stockId": 1,
+      "ticker": "005380",
+      "name": "현대차",
+      "market": "KR"
+    },
+    {
+      "stockId": 2,
+      "ticker": "AAPL",
+      "name": "Apple",
+      "market": "US"
+    }
+  ],
+  "chartData": [
+    {
+      "date": "2026-05-21",
+      "005380": 100,
+      "AAPL": 100
+    }
+  ]
+}

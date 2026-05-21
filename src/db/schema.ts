@@ -205,6 +205,25 @@ export const exchangeRates = sqliteTable(
   (t) => [uniqueIndex("uq_exchange_rates").on(t.pair, t.date)]
 );
 
+// ── 일별 보유 평가 스냅샷 ───────────────────────────────────────────────────
+export const holdingSnapshots = sqliteTable(
+  "holding_snapshots",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    stockId: integer("stock_id").references(() => stocks.id).notNull(),
+    date: text("date").notNull(), // YYYY-MM-DD
+    quantity: real("quantity").notNull(),
+    avgPrice: real("avg_price").notNull(),
+    marketPrice: real("market_price"),
+    marketValueKrw: real("market_value_krw"),
+    unrealizedPnlKrw: real("unrealized_pnl_krw"),
+    currency: text("currency").default("KRW"),
+    createdAt: text("created_at").default(sql`(datetime('now'))`),
+  },
+  (t) => [uniqueIndex("uq_holding_snapshots").on(t.stockId, t.date)]
+);
+
+
 // ── Type Exports ─────────────────────────────────────────────────────────────
 export type Stock = typeof stocks.$inferSelect;
 export type NewStock = typeof stocks.$inferInsert;
@@ -222,3 +241,6 @@ export type NewStockLoan = typeof stockLoans.$inferInsert;
 export type WealthPosition = typeof wealthPositions.$inferSelect;
 export type NewWealthPosition = typeof wealthPositions.$inferInsert;
 export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;
+export type HoldingSnapshot = typeof holdingSnapshots.$inferSelect;
+export type NewHoldingSnapshot = typeof holdingSnapshots.$inferInsert;
+
