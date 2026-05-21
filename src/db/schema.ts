@@ -244,3 +244,35 @@ export type NetWorthSnapshot = typeof netWorthSnapshots.$inferSelect;
 export type HoldingSnapshot = typeof holdingSnapshots.$inferSelect;
 export type NewHoldingSnapshot = typeof holdingSnapshots.$inferInsert;
 
+
+// ── 기준 통화 Preference (id=1 고정) ──────────────────────────────────────────
+export const userPreferences = sqliteTable("user_preferences", {
+  id: integer("id").primaryKey(), // always 1
+  baseCurrency: text("base_currency").default("KRW").notNull(), // KRW | USD | JPY
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`),
+});
+
+// ── 배당 일정 마스터 ──────────────────────────────────────────────────────────
+export const dividendEvents = sqliteTable(
+  "dividend_events",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    stockId: integer("stock_id").references(() => stocks.id).notNull(),
+    exDate: text("ex_date"),       // 배당락일 (YYYY-MM-DD)
+    payDate: text("pay_date"),     // 배당지급일 (YYYY-MM-DD)
+    amountPerShare: real("amount_per_share").notNull(),
+    currency: text("currency").default("KRW").notNull(),
+    source: text("source"),        // 데이터 출처 (e.g. 'YAHOO', 'SEIBRO')
+    fetchedAt: text("fetched_at").default(sql`(datetime('now'))`),
+  },
+  (t) => [
+    uniqueIndex("uq_dividend_events").on(t.stockId, t.exDate, t.payDate)
+  ]
+);
+
+export type UserPreference = typeof userPreferences.$inferSelect;
+export type NewUserPreference = typeof userPreferences.$inferInsert;
+export type DividendEvent = typeof dividendEvents.$inferSelect;
+export type NewDividendEvent = typeof dividendEvents.$inferInsert;
+
+
