@@ -10,6 +10,7 @@ import {
   marketBadge,
 } from "@/lib/economist-ui";
 import type { StockSetting, LoanSetting } from "./page";
+import CurrencyPreferenceSection from "@/components/CurrencyPreferenceSection";
 
 type Props = {
   stocks: StockSetting[];
@@ -221,6 +222,8 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
 
   return (
     <div className="space-y-6">
+      <CurrencyPreferenceSection />
+
       {/* ── 통계 요약 ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[

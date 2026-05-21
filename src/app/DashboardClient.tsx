@@ -9,6 +9,8 @@ import {
   formatKRW,
 } from "@/components/DashboardCharts";
 import NetWorthHistoryChart from "@/components/NetWorthHistoryChart";
+import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
+import ActivityTimeline, { type ActivityItem } from "@/components/ActivityTimeline";
 import Link from "next/link";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 import { economistCard, severityConfig } from "@/lib/economist-ui";
@@ -89,11 +91,19 @@ interface Props {
   contribData: ContribItem[];
   sectorData: SectorItem[];
   loans: LoanItem[];
+  activityItems: ActivityItem[];
 }
 
 // ── 컴포넌트 ─────────────────────────────────────────────────────────────────
 
-export default function DashboardClient({ data, recentSignals, contribData, sectorData, loans }: Props) {
+export default function DashboardClient({
+  data,
+  recentSignals,
+  contribData,
+  sectorData,
+  loans,
+  activityItems,
+}: Props) {
   const { holdings, summary } = data;
 
   const donutData = [
@@ -158,6 +168,8 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
       </div>
 
       <NetWorthHistoryChart />
+
+      <PortfolioPerformanceChart />
 
       {/* 차트 4종 */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 overflow-visible">
@@ -268,8 +280,9 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
         )}
       </div>
 
-      {/* 대출 + 시그널 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      {/* 활동 + 대출 + 시그널 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <ActivityTimeline items={activityItems} />
         <div className={`${economistCard} overflow-hidden`}>
           <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
             <h2 className="text-sm font-semibold text-text-primary">대출 현황</h2>

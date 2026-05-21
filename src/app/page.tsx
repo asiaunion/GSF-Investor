@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { Suspense } from "react";
 import DashboardClient from "./DashboardClient";
+import type { ActivityItem } from "@/components/ActivityTimeline";
 import AppPageLayout from "@/components/AppPageLayout";
 import { computeNetWorth, formatKrw } from "@/lib/net-worth";
 
@@ -212,6 +213,49 @@ async function fetchUnresolvedCount() {
   return Number(rows.rows[0]?.[0] ?? 0);
 }
 
+async function fetchActivityTimeline(): Promise<ActivityItem[]> {
+  const tradeRows = await db.run(sql`
+    SELECT tj.traded_at, tj.action, tj.quantity, tj.price, tj.currency,
+           s.ticker, s.name
+    FROM trade_journal tj
+    JOIN stocks s ON s.id = tj.stock_id
+    ORDER BY tj.traded_at DESC
+    LIMIT 10
+  `).catch(() => ({ rows: [] }));
+
+  const discRows = await db.run(sql`
+    SELECT d.filed_at, d.title, d.source, s.ticker, s.name
+    FROM disclosures d
+    JOIN stocks s ON s.id = d.stock_id
+    ORDER BY d.filed_at DESC
+    LIMIT 10
+  `).catch(() => ({ rows: [] }));
+
+  const merged: ActivityItem[] = [
+    ...tradeRows.rows.map((r) => ({
+      kind: "trade" as const,
+      at: String(r[0]),
+      title: `${String(r[1])} ${Number(r[2]).toLocaleString()}주 @ ${Number(r[3]).toLocaleString()}`,
+      detail: String(r[4]),
+      ticker: String(r[5]),
+      stockName: String(r[6]),
+      href: "/journal",
+    })),
+    ...discRows.rows.map((r) => ({
+      kind: "disclosure" as const,
+      at: String(r[0]),
+      title: String(r[1]),
+      detail: String(r[2]),
+      ticker: String(r[3]),
+      stockName: String(r[4]),
+      href: "/disclosures",
+    })),
+  ];
+
+  merged.sort((a, b) => b.at.localeCompare(a.at));
+  return merged.slice(0, 10);
+}
+
 async function fetchLoans() {
   const rows = await db.run(sql`
     SELECT
@@ -240,13 +284,15 @@ export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [rawData, recentSignals, unresolvedCount, loans, netWorth] = await Promise.all([
-    fetchDashboardData(),
-    fetchRecentSignals(),
-    fetchUnresolvedCount(),
-    fetchLoans(),
-    computeNetWorth().catch(() => null),
-  ]);
+  const [rawData, recentSignals, unresolvedCount, loans, netWorth, activityItems] =
+    await Promise.all([
+      fetchDashboardData(),
+      fetchRecentSignals(),
+      fetchUnresolvedCount(),
+      fetchLoans(),
+      computeNetWorth().catch(() => null),
+      fetchActivityTimeline(),
+    ]);
   const { contribData, sectorData, ...data } = rawData;
 
   return (
@@ -288,6 +334,7 @@ export default async function HomePage() {
           contribData={contribData}
           sectorData={sectorData}
           loans={loans}
+          activityItems={activityItems}
         />
       </Suspense>
     </AppPageLayout>
