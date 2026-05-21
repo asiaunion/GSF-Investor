@@ -41,7 +41,9 @@ export async function GET(req: NextRequest) {
   try {
     // 1. v_portfolio에서 보유중인 stock_id 조회
     const portfolioRes = await db.run(sql`
-      SELECT stock_id FROM v_portfolio
+      SELECT s.id AS stock_id
+      FROM v_portfolio vp
+      JOIN stocks s ON s.ticker = vp.ticker AND s.is_active = 1
     `);
     const heldStockIds = new Set<number>(
       portfolioRes.rows.map((r) => Number(r[0]))

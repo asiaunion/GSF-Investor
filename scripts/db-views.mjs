@@ -71,8 +71,9 @@ async function main() {
     url,
     authToken: process.env.TURSO_AUTH_TOKEN || undefined,
   });
+  await client.execute("DROP VIEW IF EXISTS v_portfolio");
   await client.execute(V_PORTFOLIO_SQL);
-  console.log(`✅ v_portfolio view applied on ${url}`);
+  console.log(`✅ v_portfolio view recreated (DROP + CREATE) on ${url}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
