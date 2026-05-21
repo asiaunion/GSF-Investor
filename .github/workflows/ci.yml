@@ -11,15 +11,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
-      - run: npm ci
+      - name: Environment (debug 01164f)
+        run: |
+          node -v
+          npm -v
+          test -f eslint.config.mjs && head -25 eslint.config.mjs || echo "MISSING eslint.config.mjs"
+          node -e "console.log('lint script:', require('./package.json').scripts.lint)"
 
-      - run: npm run lint
+      - name: Install
+        run: |
+          # package-lock.json is generated with npm 11; Node 20 ships npm 10 which fails npm ci (EUSAGE / missing @esbuild/*).
+          npm install -g npm@11.12.1
+          npm --version
+          npm ci
+
+      - name: Lint
+        run: |
+          npm run lint || {
+            echo "=== npm run lint failed; eslint report ==="
+            npx eslint -f stylish . 2>&1 | tail -100 || true
+            npx eslint -f json -o eslint-report.json . 2>/dev/null || true
+            node -e "
+              const r=require('./eslint-report.json');
+              const e=r.reduce((a,f)=>a+f.errorCount,0);
+              const w=r.reduce((a,f)=>a+f.warningCount,0);
+              const bad=r.filter(f=>f.errorCount>0).map(f=>f.filePath+':'+f.errorCount);
+              console.log('eslint errors='+e+' warnings='+w);
+              if(bad.length) console.log('error files:', bad.join(', '));
+            " 2>/dev/null || true
+            exit 1
+          }
+
+      - name: CI diagnose (debug 01164f)
+        if: failure()
+        run: node scripts/ci-diagnose.mjs
+        env:
+          DEBUG_RUN_ID: gha-${{ github.run_id }}
+          DEBUG_LOG_PATH: ${{ github.workspace }}/.cursor/debug-01164f.log
+          GITHUB_ACTIONS: "true"
+          CI: "true"
 
       - run: npm test
 

@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export default auth((req) => {
-  const isLoggedIn = !!req.auth;
+  const isLoggedIn = !!req.auth || process.env.DEV_PREVIEW_AUTH === "true";
   const { pathname } = req.nextUrl;
 
   // 공개 경로

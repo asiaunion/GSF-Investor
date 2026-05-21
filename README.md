@@ -59,6 +59,22 @@ npm run db:studio     # Drizzle Studio (로컬 DB GUI)
 npm run db:views      # v_portfolio 뷰 적용 (로컬/TURSO_DATABASE_URL)
 ```
 
+### 프로덕션(Turso DB) 마이그레이션 및 뷰 적용 절차
+스키마가 변경되었을 때, 실서버(Turso DB)에 마이그레이션과 SQL 뷰를 적용하는 단계입니다:
+
+1. **마이그레이션 파일 생성** (로컬 개발 완료 시점):
+   ```bash
+   npm run db:generate
+   ```
+2. **원격 Turso DB에 스키마 마이그레이션 적용** (`REAL_DATA_RUN_ACK` 환경변수 필수):
+   ```bash
+   REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE npm run db:migrate
+   ```
+3. **원격 Turso DB에 SQL 뷰(`v_portfolio`) 생성/업데이트**:
+   ```bash
+   REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE npm run db:views
+   ```
+
 ## 운영·실데이터 수동 검증
 
 원격 DB에 직접 쓰는 배치를 로컬에서 돌리기 전에 [실데이터 수동 검증 런북](docs/operations/real-data-manual-validation.md)을 따르세요.  

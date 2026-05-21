@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import AppPageLayout from "@/components/AppPageLayout";
@@ -46,7 +47,9 @@ export default async function DiscoverPage() {
       title="종목 발굴"
       subtitle="관심종목 체크리스트 · AI 스코어보드로 투자 기회를 발굴하세요"
     >
-      <DiscoverTabs stocks={stocks} />
+      <Suspense fallback={<p className="text-sm text-text-muted">불러오는 중…</p>}>
+        <DiscoverTabs stocks={stocks} />
+      </Suspense>
     </AppPageLayout>
   );
 }

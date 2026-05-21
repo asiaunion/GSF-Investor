@@ -8,6 +8,7 @@ import {
   SectorDonut,
   formatKRW,
 } from "@/components/DashboardCharts";
+import NetWorthHistoryChart from "@/components/NetWorthHistoryChart";
 import Link from "next/link";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 import { economistCard, severityConfig } from "@/lib/economist-ui";
@@ -155,6 +156,8 @@ export default function DashboardClient({ data, recentSignals, contribData, sect
           <MiniStat label="Sat" value={`${satPct.toFixed(0)}%`} sub={formatKRW(summary.satelliteKRW)} accent="blue" />
         </div>
       </div>
+
+      <NetWorthHistoryChart />
 
       {/* 차트 4종 */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 overflow-visible">

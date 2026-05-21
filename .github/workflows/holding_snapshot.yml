@@ -1,0 +1,38 @@
+name: Daily Portfolio Snapshot Collection
+
+# KST 18:00 = UTC 09:00 (월~금 한국 평일 장 마감 후)
+on:
+  schedule:
+    - cron: "0 9 * * 1-5"      # UTC 09:00, 월~금
+  workflow_dispatch:          # 수동 실행 지원
+
+jobs:
+  collect-snapshots:
+    name: Collect Daily Portfolio Snapshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # ── 1. 소스 체크아웃 ────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Python 셋업 ──────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: scripts/requirements.txt
+
+      # ── 3. 의존성 설치 ──────────────────────────────────────────────────────
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      # ── 4. 스크립트 실행 ────────────────────────────────────────────────────
+      - name: Run holding_snapshot.py
+        env:
+          TURSO_DATABASE_URL: ${{ secrets.TURSO_DATABASE_URL }}
+          TURSO_AUTH_TOKEN:   ${{ secrets.TURSO_AUTH_TOKEN }}
+          REAL_DATA_RUN_ACK: I_ACK_PROD_WRITE
+        run: python3 scripts/holding_snapshot.py
