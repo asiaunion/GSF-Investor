@@ -45,16 +45,26 @@ def enforce_ag_session_checkpoint(*, script_name: str) -> None:
         return
     path = _manifest_path()
     if not path.exists():
-        return
+        if os.environ.get("GITHUB_ACTIONS", "").lower() == "true":
+            return  # CI uses its own ACK
+        if os.environ.get("AG_ALLOW_NO_SESSION", "").strip() in ("1", "true"):
+            return  # Emergency override — allow autonomous work
+        print(
+            f"[ERROR] {script_name}: No .ag-session.json found.\n"
+            "  Run: npm run ag:session:start\n"
+            "  Emergency override: AG_ALLOW_NO_SESSION=1"
+        )
+        sys.exit(2)
     try:
         with path.open(encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, json.JSONDecodeError):
         print(
-            f"[WARN] {script_name}: could not read {path}; "
-            "run npm run ag:session:checkpoint before prod writes."
+            f"[ERROR] {script_name}: could not read {path}.\n"
+            "  Fix or recreate with: npm run ag:session:start\n"
+            "  Emergency override: AG_SESSION_SKIP_CHECKPOINT=1"
         )
-        return
+        sys.exit(2)
     if data.get("checkpointed") is True:
         return
     print(

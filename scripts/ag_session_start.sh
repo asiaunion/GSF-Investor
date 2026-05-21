@@ -30,7 +30,11 @@ git tag -a "$TAG" -m "AG session checkpoint before ${SID}"
 
 COMMIT="$(git rev-parse HEAD)"
 
-turso_export_db "$EXPORT_PATH" || EXPORT_PATH=""
+if ! turso_export_db "$EXPORT_PATH"; then
+  EXPORT_PATH=""
+  echo "⚠️  WARNING: Turso export failed. DB rollback will NOT be available."
+  echo "   --db rollback will fail for this session."
+fi
 
 python3 scripts/ag_session_manifest.py init \
   --session-id "$SID" \
