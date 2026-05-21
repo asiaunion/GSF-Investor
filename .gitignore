@@ -55,3 +55,7 @@ tmp/
 screenshots/GSF-Investor*/
 screenshots/png/
 screenshots/*.html
+
+# AG safe session (manifest + Turso exports)
+.ag-session.json
+backups/ag-sessions/

@@ -42,6 +42,7 @@
 8. [x] Portfolio redirect 배포 + `APP_PIN` 제거 + 로컬 백업 (`~/backup-gsf-portfolio-20260520.tar.gz`); GitHub Archive만 수동
 9. [x] AG 2026-05-21 주식상세 폭주 → `main` UI 원복, stash `ag-session-20260521-backup` ([ag-restore-guide-2026-05-21.md](./ag-restore-guide-2026-05-21.md))
 10. [x] 주식상세 **재무 탭 차트 확정** (2026-05-21) — 아래 「재무 차트 (Editorial 확정)」 참고
+11. [x] **AG 안전 세션** — `npm run ag:session:*`, full-stack rollback ([ag-safe-session.md](./ag-safe-session.md))
 
 ## 재무 차트 (Editorial 확정)
 

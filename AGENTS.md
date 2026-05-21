@@ -21,3 +21,24 @@ Full guide: [docs/operations/secret-handling.md](docs/operations/secret-handling
 - Sync **Turso** via CLI: `python3 scripts/sync_env_local.py` (never browser).
 - Run `vercel env pull` / Vercel API only to check **whether** keys exist; Sensitive values arrive empty by design—tell the user to set them in the Vercel UI manually.
 - After a suspected leak, instruct **rotation** (Turso token, Gemini, Google OAuth secret, `AUTH_SECRET`, DART) per `secret-handling.md`—do not attempt automated extraction to fix it.
+
+## AG safe session (mandatory for multi-file or prod work)
+
+Full guide: [docs/operations/ag-safe-session.md](docs/operations/ag-safe-session.md)
+
+### Session workflow
+
+1. **Start** — Before the first code change in a session: `npm run ag:session:start` (creates `ui/ag-*` branch, git tag, Turso export, `.ag-session.json`).
+2. **Checkpoint** — Immediately before `REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE` scripts or `npx vercel deploy --prod`: `npm run ag:session:checkpoint`.
+3. **Status** — `npm run ag:session:status` to inspect diff vs checkpoint.
+4. **Rollback** — If the user says revert / restore / 원상복구: `npm run ag:session:rollback -- --all --dry-run` first, then `--yes` after confirmation. Do **not** use partial `git checkout origin/main -- <files>` unless the user explicitly names paths and a documented tag.
+
+### Never do (AG runaway prevention)
+
+- Work or commit directly on `main` (pre-push hook blocks push; use feature branches).
+- Prod Turso writes or production deploy without a prior checkpoint in `.ag-session.json`.
+- “Fix” a bad restore by re-seeding production data without reading the manifest and [ag-restore-guide-2026-05-21.md](docs/operations/ag-restore-guide-2026-05-21.md).
+
+### Allowed without checkpoint
+
+- Edits on the session feature branch, `DRY_RUN=1` data scripts, `npm run build`, local `npm run dev`.

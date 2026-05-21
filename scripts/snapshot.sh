@@ -27,6 +27,12 @@ mkdir -p "${SNAPSHOT_DIR}"
 git tag -a "${TAG_NAME}" -m "Approved design: ${DESCRIPTION} at ${TIMESTAMP}"
 echo "✅ Git 태그 생성: ${TAG_NAME}"
 
+# 2b. AG 세션 매니페스트가 있으면 체크포인트 동기화
+if [ -f ".ag-session.json" ]; then
+  echo "📌 AG session checkpoint 갱신..."
+  bash "$(dirname "$0")/ag_session_checkpoint.sh" || echo "⚠️  AG checkpoint skipped"
+fi
+
 # 3. CSS 토큰 덤프
 if [ -f "src/app/globals.css" ]; then
   cp "src/app/globals.css" "${SNAPSHOT_DIR}/globals.css.snapshot"

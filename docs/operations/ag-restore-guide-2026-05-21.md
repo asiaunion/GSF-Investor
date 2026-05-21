@@ -1,5 +1,8 @@
 # AG 세션 원복 가이드 (2026-05-21)
 
+> **표준 절차 (권장):** 새 세션부터는 [ag-safe-session.md](./ag-safe-session.md) — `npm run ag:session:start` / `checkpoint` / `rollback`.  
+> 이 문서는 **2026-05-21 AG 폭주 사후** 수동 복구 기록입니다.
+
 참고: `~/.gemini/antigravity/brain/bb20d288-e898-4323-8b72-deacdc528444/chat_history.md`
 
 ## 원복 기준 (Git)
