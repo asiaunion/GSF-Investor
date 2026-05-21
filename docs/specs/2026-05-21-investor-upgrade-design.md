@@ -1,5 +1,6 @@
-# GSF-Investor 고도화 설계서
+# GSF-Investor 고도화 설계서 (v1 초안)
 
+> **구현 정본**: [2026-05-21-investor-upgrade-design-v2.md](./2026-05-21-investor-upgrade-design-v2.md) — 코드베이스 감사 반영 (스키마·cron·기존 기능 정합)  
 > **작성일**: 2026-05-21  
 > **타임라인**: 1~2주 (Impact-First 접근)  
 > **디자인 레퍼런스**: Koyfin (전체) + Simply Wall St (시각) + Empower (자산) + TradingView (차트 인터랙션)  
