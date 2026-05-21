@@ -58,7 +58,9 @@ flowchart TD
 
 - `REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE` + `scripts/seed_*.py`, `update_dividends.py`, …
 - `npx vercel deploy --prod`
-- `turso db import` (복구 포함)
+- `turso db import` (복구 포함) — 프로덕션 DB 데이터 일괄 교체
+- `turso db execute` — 프로덕션 DB 직접 SQL 실행 (단일 쿼리도 포함)
+- `turso db shell` — 프로덕션 DB 대화형 접속 (세션 중 임의 쓰기 가능)
 
 `DRY_RUN=1`, `npm run build`, `npm run dev` → checkpoint 불필요.
 

@@ -47,6 +47,9 @@ Turso 백업: `backups/ag-sessions/<session_id>.db` (gitignore)
 4. `turso db export gsf-investor` → `backups/ag-sessions/<session_id>.db`
 5. `.ag-session.json` 초기화
 
+> **Turso export 실패 시**: 기본적으로 `exit 1`로 세션 시작을 거부합니다 (DB 없이 시작하면 `--db` 롤백 불가).  
+> 로컬 Turso 미설치 등 의도적으로 건너뛰려면: `AG_ALLOW_NO_DB_BACKUP=1 npm run ag:session:start`
+
 **규칙:** `main`에서 직접 작업하지 않습니다 ([pre-push hook](../../.git/hooks/pre-push)과 동일).
 
 ---
@@ -57,6 +60,9 @@ Turso 백업: `backups/ag-sessions/<session_id>.db` (gitignore)
 
 - `REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE` 가 필요한 스크립트 (`seed_financials_only.py` 등)
 - `npx vercel deploy --prod`
+- `turso db import` — 프로덕션 DB 데이터 일괄 교체
+- `turso db execute` — 프로덕션 DB 직접 SQL 실행 (단일 쿼리도 포함)
+- `turso db shell` — 프로덕션 DB 대화형 접속 (세션 중 임의 쓰기 가능)
 
 체크포인트가 갱신하는 것:
 

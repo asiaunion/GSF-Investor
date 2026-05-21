@@ -32,8 +32,15 @@ COMMIT="$(git rev-parse HEAD)"
 
 if ! turso_export_db "$EXPORT_PATH"; then
   EXPORT_PATH=""
-  echo "⚠️  WARNING: Turso export failed. DB rollback will NOT be available."
-  echo "   --db rollback will fail for this session."
+  if [[ "${AG_ALLOW_NO_DB_BACKUP:-0}" == "1" ]]; then
+    echo "⚠️  WARNING: Turso export failed. DB rollback will NOT be available."
+    echo "   --db rollback will fail for this session. Continuing because AG_ALLOW_NO_DB_BACKUP=1."
+  else
+    echo "❌ ERROR: Turso export failed. Cannot start session without DB backup."
+    echo "   --db rollback will be unavailable, risking unrecoverable prod data loss."
+    echo "   To skip backup and continue anyway: AG_ALLOW_NO_DB_BACKUP=1 npm run ag:session:start"
+    exit 1
+  fi
 fi
 
 python3 scripts/ag_session_manifest.py init \
