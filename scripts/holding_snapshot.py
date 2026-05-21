@@ -205,8 +205,14 @@ def main():
 
     # 1. v_portfolio에서 보유 포지션 조회
     try:
+        # v_portfolio may lack stock_id until db:views DROP+CREATE; resolve via stocks.ticker
         portfolio_rows = query_db(
-            "SELECT stock_id, ticker, name, market, quantity, avg_price, currency FROM v_portfolio"
+            """
+            SELECT s.id AS stock_id, vp.ticker, vp.name, vp.market,
+                   vp.quantity, vp.avg_price, vp.currency
+            FROM v_portfolio vp
+            JOIN stocks s ON s.ticker = vp.ticker AND s.is_active = 1
+            """
         )
     except Exception as e:
         print(f"[ERROR] v_portfolio 조회 실패 (혹시 뷰가 생성되지 않았거나 DB 설정 문제): {e}")

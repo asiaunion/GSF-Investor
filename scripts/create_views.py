@@ -106,6 +106,7 @@ WITH positions AS (
   HAVING quantity > 0
 )
 SELECT
+  p.stock_id,
   s.ticker,
   s.name,
   s.market,
