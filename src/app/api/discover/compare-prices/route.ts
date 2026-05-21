@@ -117,11 +117,12 @@ export async function GET(req: NextRequest) {
     // 4. 시계열 데이터 병합 및 정규화
     // Recharts용 최종 데이터셋: { date: 'YYYY-MM-DD', 'AAPL': 102.3, '005380': 98.5 }
     // 가격이 누락된 날짜는 이전 날짜의 정규화 비율로 채우는(Forward-fill) 로직 적용
-    const timeSeriesData: Record<string, any>[] = [];
+    type ChartPoint = Record<string, string | number>;
+    const timeSeriesData: ChartPoint[] = [];
     const lastNormMap = new Map<string, number>();
 
     for (const date of sortedDates) {
-      const point: Record<string, any> = { date };
+      const point: ChartPoint = { date };
 
       for (const [ticker, pList] of tickerToPricesMap.entries()) {
         const match = pList.find((p) => p.date === date);
@@ -153,10 +154,11 @@ export async function GET(req: NextRequest) {
       meta: metaList,
       chartData: timeSeriesData,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Compare Prices API error:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error.message },
+      { error: "Internal Server Error", message },
       { status: 500 }
     );
   }

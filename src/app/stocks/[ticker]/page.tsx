@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import type { Row } from "@libsql/client";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import Navbar from "@/components/Navbar";
@@ -111,7 +113,7 @@ async function fetchStockData(ticker: string) {
       ? { quantity: Number(portfolioRow.rows[0][0]), avgPrice: Number(portfolioRow.rows[0][1]) }
       : null;
 
-  const parseFinancialRow = (r: any) => {
+  const parseFinancialRow = (r: Row) => {
     const periodStr = String(r[0]);
     const isQuarterly = !periodStr.endsWith('FY');
     const netIncome = r[3] != null ? Number(r[3]) : null;
@@ -234,7 +236,7 @@ export default async function StockDetailPage({ params }: PageProps) {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-text-muted mb-6">
-          <a href="/stocks" className="hover:text-text-secondary transition-colors">관심종목</a>
+          <Link href="/stocks" className="hover:text-text-secondary transition-colors">관심종목</Link>
           <span>›</span>
           <span className="text-text-secondary">{stock.name}</span>
         </div>

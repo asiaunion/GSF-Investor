@@ -733,7 +733,7 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
           <p>• <span className="text-[var(--color-text-primary)] font-medium">식별자 (Yahoo/DART/SEC)</span>: 자동 데이터 수집에 사용됩니다. 정확히 입력해야 수집이 정상 동작합니다.</p>
           <p>• <span className="text-[var(--color-text-primary)] font-medium">카테고리 변경</span>: Core ↔ Satellite 전환은 즉시 대시보드 비중 차트에 반영됩니다.</p>
           <p>• <span className="text-[var(--color-text-primary)] font-medium">비활성화</span>: 종목 데이터는 보존하되 대시보드에서 제외됩니다. 완전 삭제가 아닙니다.</p>
-          <p>• <span className="text-text-primary font-medium">신규 종목 추가</span>: 위 <span className="text-brand-green font-medium">"+ 신규 종목 추가"</span> 버튼을 클릭하세요. Yahoo Ticker가 있어야 주가 자동 수집이 됩니다.</p>
+          <p>• <span className="text-text-primary font-medium">신규 종목 추가</span>: 위 <span className="text-brand-green font-medium">&quot;+ 신규 종목 추가&quot;</span> 버튼을 클릭하세요. Yahoo Ticker가 있어야 주가 자동 수집이 됩니다.</p>
           <p>• <span className="text-[var(--color-text-primary)] font-medium">대출 관리</span>: 대출금액 × 연이자율 ÷ 100 = 연간이자, ÷ 12 = 월평균이자로 자동 계산됩니다.</p>
         </div>
       </div>

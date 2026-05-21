@@ -76,25 +76,27 @@ export default function NetWorthHistoryChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (range: ChartPeriod) => {
+  const handlePeriodChange = useCallback((range: ChartPeriod) => {
+    setPeriod(range);
     setLoading(true);
     setError(null);
-    try {
-      const res = await fetch(`/api/net-worth/history?range=${range}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || data.error || res.statusText);
-      setPoints(data.points ?? []);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "불러오기 실패");
-      setPoints([]);
-    } finally {
-      setLoading(false);
-    }
+    fetch(`/api/net-worth/history?range=${range}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || data.error || res.statusText);
+        setPoints(data.points ?? []);
+      })
+      .catch((e) => {
+        setError(e instanceof Error ? e.message : "불러오기 실패");
+        setPoints([]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
-    load(period);
-  }, [period, load]);
+    handlePeriodChange("3M");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load only
+  }, []);
 
   const chartData: ChartRow[] = points.map((p) => ({
     date: p.date.slice(5),
@@ -113,7 +115,7 @@ export default function NetWorthHistoryChart() {
           <h2 className="text-sm font-semibold text-text-primary">순자산 추이</h2>
           <p className="text-[11px] text-text-muted">주식 · 비주식 자산 (스냅샷 기준)</p>
         </div>
-        <ChartPeriodTabs value={period} onChange={setPeriod} idPrefix="nw-period" />
+        <ChartPeriodTabs value={period} onChange={handlePeriodChange} idPrefix="nw-period" />
       </div>
 
       <div className="flex-1 min-h-[200px]">

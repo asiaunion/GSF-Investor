@@ -32,6 +32,30 @@ type ScreenStock = {
 
 type SortKey = "name" | "per" | "pbr" | "roe" | "dividendYield";
 
+function ScreenerSortTh({
+  label,
+  col,
+  sortKey,
+  sortAsc,
+  onToggle,
+}: {
+  label: string;
+  col: SortKey;
+  sortKey: SortKey;
+  sortAsc: boolean;
+  onToggle: (key: SortKey) => void;
+}) {
+  return (
+    <th
+      className="text-right px-2 py-1 font-medium text-text-muted cursor-pointer select-none"
+      onClick={() => onToggle(col)}
+    >
+      {label}
+      {sortKey === col && (sortAsc ? " ↑" : " ↓")}
+    </th>
+  );
+}
+
 export default function DiscoverScreener() {
   const router = useRouter();
   const [market, setMarket] = useState<"ALL" | "KR" | "US">("ALL");
@@ -100,13 +124,6 @@ export default function DiscoverScreener() {
       setSortAsc(key === "name");
     }
   };
-
-  const SortTh = ({ label, col }: { label: string; col: SortKey }) => (
-    <th className="text-right px-2 py-1 font-medium text-text-muted cursor-pointer select-none" onClick={() => toggleSort(col)}>
-      {label}
-      {sortKey === col && (sortAsc ? " ↑" : " ↓")}
-    </th>
-  );
 
   return (
     <div className="space-y-4">
@@ -205,10 +222,10 @@ export default function DiscoverScreener() {
                   >
                     종목
                   </th>
-                  <SortTh label="PER" col="per" />
-                  <SortTh label="PBR" col="pbr" />
-                  <SortTh label="ROE" col="roe" />
-                  <SortTh label="배당%" col="dividendYield" />
+                  <ScreenerSortTh label="PER" col="per" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="PBR" col="pbr" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="ROE" col="roe" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="배당%" col="dividendYield" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
                 </tr>
               </thead>
               <tbody>

@@ -49,12 +49,12 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
 
   const tickerKey = tickers.join(",");
 
-  const loadPrices = useCallback(async () => {
+  const loadPrices = useCallback(async (range: ChartPeriod = period) => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(
-        `/api/discover/compare-prices?tickers=${encodeURIComponent(tickerKey)}&range=${period}`
+        `/api/discover/compare-prices?tickers=${encodeURIComponent(tickerKey)}&range=${range}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.error);
@@ -84,9 +84,9 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
 
   useEffect(() => {
     if (tickers.length < 2) return;
-    loadPrices();
-    loadMetrics();
-  }, [tickers.length, loadPrices, loadMetrics]);
+    void loadPrices(period);
+    void loadMetrics();
+  }, [tickers.length, tickerKey, period, loadPrices, loadMetrics]);
 
   const lines = useMemo(
     () => meta.map((m, i) => ({ key: m.ticker, color: LINE_COLORS[i % LINE_COLORS.length] })),
@@ -108,7 +108,14 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
         <Link href="/discover" className={`text-sm ${linkMuted}`}>
           ← 스크리너로 돌아가기
         </Link>
-        <ChartPeriodTabs value={period} onChange={setPeriod} idPrefix="cmp-period" />
+        <ChartPeriodTabs
+          value={period}
+          onChange={(p) => {
+            setPeriod(p);
+            void loadPrices(p);
+          }}
+          idPrefix="cmp-period"
+        />
       </div>
 
       {error && <EconomistAlert variant="error">{error}</EconomistAlert>}

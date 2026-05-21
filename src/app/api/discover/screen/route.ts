@@ -149,10 +149,11 @@ export async function GET(req: NextRequest) {
       count: results.length,
       stocks: results,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Screen API error:", error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: "Internal Server Error", message: error.message },
+      { error: "Internal Server Error", message },
       { status: 500 }
     );
   }
