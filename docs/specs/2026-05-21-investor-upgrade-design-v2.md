@@ -415,6 +415,118 @@ Alpha KPI는 옵션 A와 일관.
 
 ---
 
+## 13. 작업 분담 (AG · Cursor/사용자)
+
+Antigravity(AG)와 Cursor(사용자)가 **같은 스펙(v2)·같은 feature 브랜치**에서 병렬 작업할 때의 기본 규칙입니다.
+
+### 13.1 공통 규칙
+
+| 규칙 | 내용 |
+|------|------|
+| 정본 | 이 문서(v2)만 구현 기준. v1 테이블명·cron 가정 **금지** |
+| 브랜치 | `ui/ag-upgrade-*` 하나. **한쪽만** `npm run ag:session:start` |
+| main | 직접 commit/push 금지. 머지는 PR 또는 사용자 확인 후 |
+| 복구 | `ag:session:rollback`만. `git checkout origin/main -- <file>` **금지** |
+| prod | migrate/seed/deploy 전 `ag:session:checkpoint` + 사용자 승인 |
+| 충돌 방지 | 아래 **파일 소유권** 표 준수 — 동일 파일 동시 편집 금지 |
+
+참고: [ag-safe-session.md](../operations/ag-safe-session.md), [ag-prompts-ko.md](../operations/ag-prompts-ko.md)
+
+### 13.2 권장 역할
+
+| 담당 | Week 1 | Week 2 |
+|------|--------|--------|
+| **AG** | `holding_snapshots` 스키마·migrate, `holding_snapshot.py`, GHA workflow, `GET /api/discover/screen`, `GET /api/discover/compare-prices`, (선택) `GET /api/holdings/history` | `user_preferences` 스키마·API, `dividend_events` + 적재 스크립트(데이터 소스 확정 시), 벤치마크 `daily_price` 확장(정책 B/C 선택 시) |
+| **사용자 (Cursor)** | `GET /api/net-worth/history`, `/` Stacked Area·KPI 정리, Discover 스크리너 UI·`?compare=` 페이지 | `/settings` 통화 UI, 포트폴리오 수익률 라인·벤치 오버레이, 활동 타임라인, `/dividends` UI(데이터 있을 때), 차트 UX 폴리싱 |
+| **함께** | prod migrate 일정, cron 스케줄(KST), §6.4 벤치마크 A/B/C 결정 | 배당 데이터 소스·연기 여부, Week 1 회고 후 범위 조정 |
+
+### 13.3 파일 소유권 (동시 수정 금지)
+
+| 소유 | 경로 예시 |
+|------|-----------|
+| **AG** | `src/db/schema.ts` (신규 테이블만), `drizzle/*`, `scripts/holding_snapshot.py`, `.github/workflows/holding_snapshot.yml`, `src/app/api/discover/screen/`, `compare-prices/`, `src/app/api/holdings/` |
+| **사용자** | `src/app/page.tsx`, `DashboardClient.tsx`, `src/components/DashboardCharts.tsx`, `src/app/discover/**`, `src/app/api/net-worth/`, `src/app/settings/**`, `src/app/dividends/**` |
+| **협의 후** | `package.json` scripts, `README.md`, `AGENTS.md`, 공용 `src/lib/*` |
+
+스키마 변경 후 사용자는 AG 커밋을 **pull/rebase 한 뒤** UI 작업을 시작한다.
+
+### 13.4 권장 순서
+
+```mermaid
+flowchart LR
+  start[ag:session:start] --> agBE[AG: schema + snapshot + discover APIs]
+  agBE --> userUI[사용자: Dashboard + Discover UI]
+  userUI --> verify[build + dry-run + checkpoint]
+  verify --> merge[main 머지 / 배포]
+```
+
+1. 세션 시작(한 번) → 브랜치 공유
+2. **AG**: 데이터·API 먼저 (UI가 붙을 계약 확정)
+3. **사용자**: API 스펙·응답 JSON 확인 후 UI
+4. `npm run build` → 로컬 검증 → prod는 checkpoint 후
+
+### 13.5 체크리스트 소유 (§11 대응)
+
+| §11 항목 | AG | 사용자 |
+|----------|-----|--------|
+| `holding_snapshots` + cron | ✅ | 검증만 |
+| `net-worth/history` + Area | API 공유 시 AG 가능 | ✅ 기본 |
+| discover screen API | ✅ | |
+| discover screen/compare UI | | ✅ |
+| `ag:session:checkpoint` (prod) | 실행·보고 | **승인** |
+| Week 2 `user_preferences` | 스키마·API ✅ | Settings UI ✅ |
+| Week 2 dividends | 파이프라인 ✅ | 페이지 ✅ |
+
+### 13.6 복사용 프롬프트
+
+**AG — Week 1 백엔드만**
+
+```
+GSF-Investor 고도화 Week 1 백엔드만 담당한다.
+정본: docs/specs/2026-05-21-investor-upgrade-design-v2.md §4, §5.2 Week 1, §11 Week 1, §13.
+GEMINI.md §2.5 + AGENTS.md + AG Safe Session(ui/ag-*) 준수. v1 테이블명·ExchangeRate-API 신규 cron 금지.
+산출: holding_snapshots(Drizzle) + scripts/holding_snapshot.py + .github/workflows/holding_snapshot.yml
+      + GET /api/discover/screen + GET /api/discover/compare-prices
+      + (선택) GET /api/holdings/history
+UI·Dashboard·net-worth history API는 하지 않는다. 완료 시 변경 파일 목록·migrate 명령·샘플 API 응답을 보고한다.
+```
+
+**사용자 (Cursor) — Week 1 프론트·통합**
+
+```
+v2 §6.2 Week 1 + §10: GET /api/net-worth/history + Dashboard Stacked Area(net_worth_snapshots)
+      + Discover 스크리너 UI + /discover?compare= (AG의 screen/compare-prices API 사용).
+AG 브랜치 머지·schema 반영 후 진행. schema.ts·scripts/ 는 AG 소유 — 직접 수정하지 않는다.
+AG Safe Session 브랜치에서만 작업. 완료 후 npm run build.
+```
+
+**AG — Week 2 백엔드**
+
+```
+v2 §7, §11 Week 2: user_preferences + dividend_events(소스 확정 시) + 적재 스크립트.
+/dividends·Settings UI·차트 폴리싱은 하지 않는다.
+```
+
+**사용자 — Week 2 UI**
+
+```
+v2 §6.3–§7, §8: Settings base_currency, portfolio return line, benchmark overlay(069500 A),
+activity timeline, /dividends(UI는 dividend_events 데이터 있을 때만).
+```
+
+### 13.7 병렬 불가·직렬 구간
+
+| 직렬 구간 | 이유 |
+|-----------|------|
+| UI → `holding_snapshots` 조회 | AG 스키마·migrate 선행 |
+| 포트폴리오 수익률 라인(Week 2) | Week 1 cron이 2일치 이상 쌓인 후 |
+| `/dividends` 실데이터 | `dividend_events` 적재 완료 후 |
+| prod DB migrate | 사용자 승인 + checkpoint 단일 창구 |
+
+Week 1에서 AG API가 지연되면 사용자는 **mock JSON·로컬 db**로 UI만 먼저 개발 가능(병렬 유지).
+
+---
+
 ## 부록 A — v1 → v2 용어 대조
 
 | v1 | v2 |
@@ -433,6 +545,6 @@ Alpha KPI는 옵션 A와 일관.
 
 ```
 이 스펙은 docs/specs/2026-05-21-investor-upgrade-design-v2.md 가 정본이다.
+작업 분담: §13. AG = 백엔드·API·cron / 사용자 = UI·통합. 동일 파일 동시 편집 금지.
 AG Safe Session(ui/ag-*), real_data_guard, v1 테이블명 사용 금지.
-Week 1 완료 전: holding_snapshots + net-worth history API + discover screen.
 ```
