@@ -104,6 +104,22 @@ turso db show gsf-investor
 turso db tokens create gsf-investor
 ```
 
+## 데이터 수집·Cron (KST)
+
+v2 [§4.3](docs/specs/2026-05-21-investor-upgrade-design-v2.md) 기준. GitHub Actions는 **UTC cron** → 아래는 **한국 시각** 환산.
+
+| 작업 | 주기 (KST) | 구현 | 수동 실행 |
+|------|------------|------|-----------|
+| 종가·USDKRW | 평일 **07:00** | `.github/workflows/daily_price.yml` → `scripts/daily_price.py` | workflow_dispatch |
+| DART·SEC 공시 | 평일 **07:30** | `.github/workflows/daily_dart.yml` | workflow_dispatch |
+| 보유 일별 스냅샷 | 평일 **18:00** | `.github/workflows/holding_snapshot.yml` → `scripts/holding_snapshot.py` | workflow_dispatch |
+| 주간 시그널 | 일요일 **21:00** | `.github/workflows/weekly_signal.yml` | workflow_dispatch |
+| 순자산 스냅샷 | 매일 **00:00** (Vercel) | `vercel.json` → `GET /api/cron/net-worth-snapshot` | curl + `CRON_SECRET` |
+
+Prod DB 쓰기: `REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE` ([실데이터 검증](docs/operations/real-data-manual-validation.md)).
+
+고도화 설계: [v2 스펙](docs/specs/2026-05-21-investor-upgrade-design-v2.md) · Phase 2b: [phase-2b-backlog.md](docs/operations/phase-2b-backlog.md)
+
 ## 손익 기준 안내
 
 | 화면 | 기준 |

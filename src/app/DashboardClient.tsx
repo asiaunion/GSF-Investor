@@ -8,6 +8,7 @@ import {
   SectorDonut,
   formatKRW,
 } from "@/components/DashboardCharts";
+import { formatMoney, type BaseCurrency, type FxRates } from "@/lib/format-money";
 import NetWorthHistoryChart from "@/components/NetWorthHistoryChart";
 import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
 import ActivityTimeline, { type ActivityItem } from "@/components/ActivityTimeline";
@@ -92,6 +93,8 @@ interface Props {
   sectorData: SectorItem[];
   loans: LoanItem[];
   activityItems: ActivityItem[];
+  baseCurrency: BaseCurrency;
+  fxRates: FxRates;
 }
 
 // ── 컴포넌트 ─────────────────────────────────────────────────────────────────
@@ -103,8 +106,11 @@ export default function DashboardClient({
   sectorData,
   loans,
   activityItems,
+  baseCurrency,
+  fxRates,
 }: Props) {
   const { holdings, summary } = data;
+  const fmt = (n: number) => formatMoney(n, baseCurrency, fxRates);
 
   const donutData = [
     { name: "Core", valueKRW: summary.coreKRW, pct: summary.totalEvalKRW > 0 ? (summary.coreKRW / summary.totalEvalKRW) * 100 : 0 },
@@ -136,13 +142,13 @@ export default function DashboardClient({
       <div className={`${economistCard} px-4 py-3 relative overflow-hidden`}>
         <div className="absolute inset-0 bg-gradient-to-r from-brand-green/4 via-transparent to-brand-green/4 pointer-events-none" />
         <div className="relative grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-x-3 gap-y-2 lg:divide-x divide-border-default">
-          <HeroMetric emphasis label="총 평가" value={formatKRW(summary.totalEvalKRW)} sub={`원가 ${formatKRW(summary.totalCostKRW)}`} />
+          <HeroMetric emphasis label="총 평가" value={fmt(summary.totalEvalKRW)} sub={`원가 ${fmt(summary.totalCostKRW)}`} />
           <HeroMetric
             emphasis
             label="총 수익률"
             labelExtra={<PnlMethodHint method="weighted_avg" />}
             value={`${isPositive ? "+" : ""}${summary.totalReturnRate.toFixed(2)}%`}
-            sub={`수익 ${isPositive ? "+" : ""}${formatKRW(pnl)}`}
+            sub={`수익 ${isPositive ? "+" : ""}${fmt(pnl)}`}
             valueClass={isPositive ? "text-profit-400" : "text-loss-400"}
           />
           <HeroMetric
@@ -162,8 +168,8 @@ export default function DashboardClient({
             value={summary.usdKrw > 0 ? summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) : "—"}
             sub={summary.fxDate ? summary.fxDate.slice(5) : "—"}
           />
-          <MiniStat label="Core" value={`${corePct.toFixed(0)}%`} sub={formatKRW(summary.coreKRW)} accent="green" />
-          <MiniStat label="Sat" value={`${satPct.toFixed(0)}%`} sub={formatKRW(summary.satelliteKRW)} accent="blue" />
+          <MiniStat label="Core" value={`${corePct.toFixed(0)}%`} sub={fmt(summary.coreKRW)} accent="green" />
+          <MiniStat label="Sat" value={`${satPct.toFixed(0)}%`} sub={fmt(summary.satelliteKRW)} accent="blue" />
         </div>
       </div>
 
