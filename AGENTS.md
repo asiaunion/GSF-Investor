@@ -43,7 +43,7 @@ Agent flow + user prompts: [docs/operations/ag-safe-session-for-ag.md](docs/oper
 
 - Work or commit directly on `main` (pre-push hook blocks push; use feature branches).
 - Prod Turso writes or production deploy without a prior checkpoint in `.ag-session.json`.
-- “Fix” a bad restore by re-seeding production data without reading the manifest and [ag-restore-guide-2026-05-21.md](docs/operations/ag-restore-guide-2026-05-21.md).
+- “Fix” a bad restore by re-seeding production data without reading the manifest and [ag-postmortem-2026-05-21.md](docs/operations/ag-postmortem-2026-05-21.md).
 
 ### Allowed without checkpoint
 
