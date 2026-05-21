@@ -2,7 +2,7 @@
 
 Antigravity(AG)·Cursor 등 자율 에이전트가 **코드 + Turso + Vercel**을 한 세션에서 건드릴 때, 복구 지점을 기계적으로 남기고 되돌리기 위한 표준 절차입니다.
 
-사후 수동 복구: [ag-restore-guide-2026-05-21.md](./ag-restore-guide-2026-05-21.md) (AG 폭주 **이후** 참고).
+사후 수동 복구: [ag-postmortem-2026-05-21.md](./ag-postmortem-2026-05-21.md) (AG 폭주 **이후** 참고).
 
 ---
 

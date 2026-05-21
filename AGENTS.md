@@ -48,3 +48,17 @@ Agent flow + user prompts: [docs/operations/ag-safe-session-for-ag.md](docs/oper
 ### Allowed without checkpoint
 
 - Edits on the session feature branch, `DRY_RUN=1` data scripts, `npm run build`, local `npm run dev`.
+
+## Antigravity 자동 세션 (hooks 없는 환경)
+
+Cursor hooks가 없는 에이전트(Antigravity 등)는 GEMINI.md §2.5에 따라 다음을 **직접** 실행해야 합니다:
+
+1. **세션 시작 (최초 1회)**:
+   ```bash
+   npm run ag:session:status  # 기존 세션 확인
+   npm run ag:session:start   # 없으면 시작
+   ```
+2. **위험 명령 직전**: `npm run ag:session:checkpoint`
+3. **롤백**: `npm run ag:session:rollback -- --all --dry-run` → 사용자 확인 → `--yes`
+
+이 절차를 건너뛰고 프로덕션 명령을 실행하면 `real_data_guard.py`가 차단합니다.

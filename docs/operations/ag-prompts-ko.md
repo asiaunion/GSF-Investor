@@ -76,6 +76,7 @@ UI/디자인이 확정됐다. AG Safe Session 체크포인트를 갱신하고,
 
 ```
 이 프로젝트는 AG Safe Session 규칙이 있다.
+먼저 GEMINI.md §2.5 "프로젝트 AGENTS.md 자동 준수"가 로드됐는지 확인한다. 로드됐으면 AGENTS.md를 따라.
 Cursor 훅이 없으므로, 세션 시작·checkpoint·롤백을 전부 네가 직접 npm 스크립트로 실행한다.
 규칙: docs/operations/ag-safe-session-for-ag.md, AGENTS.md
 절대 main 에서 작업하지 말고, Vercel 대시보드 browser MCP 로 시크릿을 가져오지 마라.

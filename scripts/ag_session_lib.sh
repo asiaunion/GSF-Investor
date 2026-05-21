@@ -68,10 +68,17 @@ print(u)
     echo "⚠️  no production deployment URL found"
     return 1
   fi
-  id="$(npx vercel inspect "$url" 2>/dev/null | awk -F'\t' '/^[[:space:]]*id[[:space:]]*$/ {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2; exit}')"
-  if [[ -z "$id" ]]; then
-    id="$(npx vercel inspect "$url" 2>/dev/null | sed -n 's/^[[:space:]]*id[[:space:]]*\(.*\)/\1/p' | head -1 | tr -d '[:space:]')"
+  # 2) vercel inspect -F json for deployment ID (stable JSON parsing)
+  local inspect_json
+  inspect_json="$(npx vercel inspect "$url" -F json 2>/dev/null)" || inspect_json=""
+  if [[ -n "$inspect_json" ]]; then
+    id="$(python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+print(data.get('id') or data.get('uid') or '')
+" "$inspect_json")" || id=""
   fi
+
   if [[ -n "$id" ]]; then
     python3 "$ROOT/scripts/ag_session_manifest.py" update --vercel-url "$url" --vercel-id "$id"
   else

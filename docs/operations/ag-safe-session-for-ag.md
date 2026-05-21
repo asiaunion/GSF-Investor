@@ -1,7 +1,7 @@
 # AG Safe Session — 에이전트용 전체 흐름
 
 사람용 요약: [ag-safe-session.md](./ag-safe-session.md)  
-사후 수동 복구: [ag-restore-guide-2026-05-21.md](./ag-restore-guide-2026-05-21.md)
+사후 수동 복구: [ag-postmortem-2026-05-21.md](./ag-postmortem-2026-05-21.md)
 
 ---
 

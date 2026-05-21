@@ -27,7 +27,7 @@ danger_patterns = [
     r"update_dividends\.py",
     r"import_wealth_from_sheets\.py",
     r"reset_trade_journal\.py",
-    r"turso\s+db\s+import\b",
+    r"turso\s+db\s+(import|execute|shell)\b",
 ]
 if not any(re.search(p, command) for p in danger_patterns):
     print(json.dumps({"permission": "allow"}))
