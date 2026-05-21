@@ -14,6 +14,7 @@ const NAV_LINKS = [
   { href: "/journal", label: "매매 일지" },
   { href: "/reports", label: "AI 보고서" },
   { href: "/discover", label: "종목 발굴" },
+  { href: "/dividends", label: "배당" },
   { href: "/settings", label: "설정" },
 ];
 
