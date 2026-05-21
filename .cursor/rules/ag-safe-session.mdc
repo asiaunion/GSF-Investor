@@ -1,0 +1,24 @@
+---
+description: AG safe session — auto start, checkpoint before prod, rollback protocol
+alwaysApply: true
+---
+
+# AG Safe Session (GSF-Investor)
+
+**Full guide for agents:** [docs/operations/ag-safe-session-for-ag.md](docs/operations/ag-safe-session-for-ag.md)
+
+## Automation (Cursor hooks)
+
+- **sessionStart:** If no `.ag-session.json`, runs `npm run ag:session:start -- cursor-auto`.
+- **beforeShellExecution:** Before prod Turso / `vercel deploy --prod`, runs `npm run ag:session:checkpoint` if not yet checkpointed.
+
+## You must still know
+
+| User says | You do |
+|-----------|--------|
+| 작업 시작 / 세션 시작 | Confirm hook ran start; read `ag:session:status` |
+| 배포해줘 / prod seed | Hook runs checkpoint; then deploy/seed |
+| 원상복구 / 롤백 | `npm run ag:session:rollback -- --all --dry-run` → user OK → `--yes` |
+| 뭐가 바뀌었어? | `npm run ag:session:status` |
+
+Never partial `git checkout origin/main -- files` for rollback. Never browser MCP for Vercel secrets.

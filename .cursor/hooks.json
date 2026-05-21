@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/ag-session-on-start.sh",
+        "timeout": 120
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/ag-gate-prod-commands.sh",
+        "matcher": "REAL_DATA_RUN_ACK|vercel deploy.*--prod|seed_financials_only|seed_portfolio\\.py|update_dividends|import_wealth_from_sheets|reset_trade_journal|turso db import",
+        "timeout": 180
+      }
+    ]
+  }
+}

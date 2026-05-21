@@ -24,12 +24,18 @@ Full guide: [docs/operations/secret-handling.md](docs/operations/secret-handling
 
 ## AG safe session (mandatory for multi-file or prod work)
 
-Full guide: [docs/operations/ag-safe-session.md](docs/operations/ag-safe-session.md)
+Full guide: [docs/operations/ag-safe-session.md](docs/operations/ag-safe-session.md)  
+Agent flow + user prompts: [docs/operations/ag-safe-session-for-ag.md](docs/operations/ag-safe-session-for-ag.md), [docs/operations/ag-prompts-ko.md](docs/operations/ag-prompts-ko.md)
+
+### Automation (Cursor)
+
+- **sessionStart** hook runs `ag:session:start` when no manifest (see `.cursor/hooks.json`).
+- **beforeShellExecution** hook runs `ag:session:checkpoint` before prod Turso / `vercel deploy --prod`.
 
 ### Session workflow
 
-1. **Start** — Before the first code change in a session: `npm run ag:session:start` (creates `ui/ag-*` branch, git tag, Turso export, `.ag-session.json`).
-2. **Checkpoint** — Immediately before `REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE` scripts or `npx vercel deploy --prod`: `npm run ag:session:checkpoint`.
+1. **Start** — On session start, hook runs start if needed; otherwise confirm with `npm run ag:session:status`.
+2. **Checkpoint** — Hook auto-runs before prod writes/deploy; if hooks unavailable (e.g. Antigravity-only), run `npm run ag:session:checkpoint` manually before those commands.
 3. **Status** — `npm run ag:session:status` to inspect diff vs checkpoint.
 4. **Rollback** — If the user says revert / restore / 원상복구: `npm run ag:session:rollback -- --all --dry-run` first, then `--yes` after confirmation. Do **not** use partial `git checkout origin/main -- <files>` unless the user explicitly names paths and a documented tag.
 
