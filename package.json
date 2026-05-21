@@ -2,6 +2,7 @@
   "name": "gsf-investor",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.12.1",
   "scripts": {
     "dev": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 next dev",
     "dev:preview": "env -u AUTH_URL -u VERCEL -u VERCEL_ENV -u VERCEL_URL AUTH_URL=http://localhost:3000 DEV_PREVIEW_AUTH=true NEXT_PUBLIC_DEV_PREVIEW_AUTH=true TURSO_DATABASE_URL=file:local.db next dev",

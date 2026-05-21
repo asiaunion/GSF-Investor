@@ -26,7 +26,11 @@ jobs:
           node -e "console.log('lint script:', require('./package.json').scripts.lint)"
 
       - name: Install
-        run: npm ci
+        run: |
+          # package-lock.json is generated with npm 11; Node 20 ships npm 10 which fails npm ci (EUSAGE / missing @esbuild/*).
+          npm install -g npm@11.12.1
+          npm --version
+          npm ci
 
       - name: Lint
         run: |
