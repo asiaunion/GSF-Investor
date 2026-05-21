@@ -8,6 +8,9 @@ import DashboardClient from "./DashboardClient";
 import type { ActivityItem } from "@/components/ActivityTimeline";
 import AppPageLayout from "@/components/AppPageLayout";
 import { computeNetWorth, formatKrw } from "@/lib/net-worth";
+import { userPreferences } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import type { BaseCurrency, FxRates } from "@/lib/format-money";
 
 export const dynamic = "force-dynamic";
 
@@ -256,6 +259,32 @@ async function fetchActivityTimeline(): Promise<ActivityItem[]> {
   return merged.slice(0, 10);
 }
 
+async function fetchDisplayCurrency(): Promise<{ baseCurrency: BaseCurrency; fx: FxRates }> {
+  const usdRow = await db.run(sql`
+    SELECT rate FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1
+  `);
+  const jpyRow = await db.run(sql`
+    SELECT rate FROM exchange_rates WHERE pair = 'JPYKRW' ORDER BY date DESC LIMIT 1
+  `).catch(() => ({ rows: [] }));
+
+  const usdKrw = usdRow.rows.length > 0 ? Number(usdRow.rows[0][0]) : 1350;
+  const jpyKrw = jpyRow.rows.length > 0 ? Number(jpyRow.rows[0][0]) : null;
+
+  let baseCurrency: BaseCurrency = "KRW";
+  try {
+    const rows = await db
+      .select({ baseCurrency: userPreferences.baseCurrency })
+      .from(userPreferences)
+      .where(eq(userPreferences.id, 1));
+    const c = rows[0]?.baseCurrency;
+    if (c === "KRW" || c === "USD" || c === "JPY") baseCurrency = c;
+  } catch {
+    /* table missing on old DB */
+  }
+
+  return { baseCurrency, fx: { usdKrw, jpyKrw } };
+}
+
 async function fetchLoans() {
   const rows = await db.run(sql`
     SELECT
@@ -284,7 +313,7 @@ export default async function HomePage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [rawData, recentSignals, unresolvedCount, loans, netWorth, activityItems] =
+  const [rawData, recentSignals, unresolvedCount, loans, netWorth, activityItems, displayCurrency] =
     await Promise.all([
       fetchDashboardData(),
       fetchRecentSignals(),
@@ -292,6 +321,7 @@ export default async function HomePage() {
       fetchLoans(),
       computeNetWorth().catch(() => null),
       fetchActivityTimeline(),
+      fetchDisplayCurrency(),
     ]);
   const { contribData, sectorData, ...data } = rawData;
 
@@ -335,6 +365,8 @@ export default async function HomePage() {
           sectorData={sectorData}
           loans={loans}
           activityItems={activityItems}
+          baseCurrency={displayCurrency.baseCurrency}
+          fxRates={displayCurrency.fx}
         />
       </Suspense>
     </AppPageLayout>

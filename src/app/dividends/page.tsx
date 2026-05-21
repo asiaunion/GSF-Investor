@@ -28,6 +28,9 @@ export default async function DividendsPage() {
         <p className="text-xs text-text-muted mb-6">
           적재가 완료되면 이 페이지에 배당락·지급일 캘린더와 보유 종목 필터가 표시됩니다.
         </p>
+        <p className="text-xs text-text-muted mb-4">
+          상세 일정: 레포 <span className="text-brand-green/90">docs/operations/phase-2b-backlog.md</span>
+        </p>
         <div className="flex flex-wrap justify-center gap-3 text-xs">
           <Link href="/" className="text-brand-green hover:underline">
             대시보드
