@@ -5,9 +5,9 @@
 | | 경로 |
 |---|---|
 | **안티그래비티 (정본)** | `/Users/gsf/.gemini/antigravity/scratch/projects/GSF-Investor` |
-| **Cursor (symlink)** | `/Users/gsf/dev/Cursor/gsf-investor` → 정본 |
+| **Cursor (symlink)** | `/Users/gsf/dev/Cursor/GSF-Investor` → 정본 |
 | **아카이브 (2026-05-19)** | `/Users/gsf/dev/_archive-20260519/gsf-investor-cursor-clone` |
-| **Git remote** | `git@github.com:asiaunion/gsf-investor.git` |
+| **Git remote** | `git@github.com:asiaunion/GSF-Investor.git` |
 
 ## 로컬 실행
 

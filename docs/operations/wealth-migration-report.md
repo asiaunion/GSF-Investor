@@ -15,7 +15,7 @@
 
 | 항목 | Investor | Portfolio (폐기 예정) |
 |------|----------|------------------------|
-| Repo | `asiaunion/gsf-investor` | `asiaunion/gsf-portfolio-web` |
+| Repo | `asiaunion/GSF-Investor` | `asiaunion/gsf-portfolio-web` |
 | DB | Turso `TURSO_DATABASE_URL` | 동일 URL 가능 — `portfolio_snapshots` 레거시 |
 | 인증 | NextAuth Google | PIN + `APP_SESSION_TOKEN` |
 | 순자산 UI | `/wealth` | `/` |
