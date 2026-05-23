@@ -8,9 +8,7 @@ import DashboardClient from "./DashboardClient";
 import type { ActivityItem } from "@/components/ActivityTimeline";
 import AppPageLayout from "@/components/AppPageLayout";
 import { computeNetWorth, formatKrw } from "@/lib/net-worth";
-import { userPreferences } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import type { BaseCurrency, FxRates } from "@/lib/format-money";
+import { fetchDisplayCurrency } from "@/lib/display-currency";
 
 export const dynamic = "force-dynamic";
 
@@ -257,32 +255,6 @@ async function fetchActivityTimeline(): Promise<ActivityItem[]> {
 
   merged.sort((a, b) => b.at.localeCompare(a.at));
   return merged.slice(0, 10);
-}
-
-async function fetchDisplayCurrency(): Promise<{ baseCurrency: BaseCurrency; fx: FxRates }> {
-  const usdRow = await db.run(sql`
-    SELECT rate FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1
-  `);
-  const jpyRow = await db.run(sql`
-    SELECT rate FROM exchange_rates WHERE pair = 'JPYKRW' ORDER BY date DESC LIMIT 1
-  `).catch(() => ({ rows: [] }));
-
-  const usdKrw = usdRow.rows.length > 0 ? Number(usdRow.rows[0][0]) : 1350;
-  const jpyKrw = jpyRow.rows.length > 0 ? Number(jpyRow.rows[0][0]) : null;
-
-  let baseCurrency: BaseCurrency = "KRW";
-  try {
-    const rows = await db
-      .select({ baseCurrency: userPreferences.baseCurrency })
-      .from(userPreferences)
-      .where(eq(userPreferences.id, 1));
-    const c = rows[0]?.baseCurrency;
-    if (c === "KRW" || c === "USD" || c === "JPY") baseCurrency = c;
-  } catch {
-    /* table missing on old DB */
-  }
-
-  return { baseCurrency, fx: { usdKrw, jpyKrw } };
 }
 
 async function fetchLoans() {

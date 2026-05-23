@@ -266,39 +266,37 @@ def _legacy_yahoo_get(yahoo_sym: str) -> Optional[dict]:
 # 4. 환율 수집 및 저장
 # ──────────────────────────────────────────────────────────────────────────────
 
-def collect_exchange_rate() -> dict:
-    """
-    data_provider 어댑터로 USDKRW 환율 수집 (Yahoo → FMP 폴백) → exchange_rates INSERT OR IGNORE.
-    반환: {"date": "2026-05-15", "rate": 1380.5, "inserted": True}
-    """
+def _collect_fx_pair(pair: str) -> dict:
+    """단일 환율 pair → exchange_rates INSERT OR IGNORE."""
     if DATA_PROVIDER_AVAILABLE:
-        r = _dp_get_fx("USDKRW")
-    else:
-        # 레거시 직접 호출
+        r = _dp_get_fx(pair)
+    elif pair == "USDKRW":
         try:
             import yfinance as yf
             import pandas as pd
             hist = yf.download("USDKRW=X", period="5d", auto_adjust=True, progress=False)
             if hist.empty:
-                return {"error": "empty"}
+                return {"pair": pair, "error": "empty"}
             if isinstance(hist.columns, pd.MultiIndex):
                 hist.columns = hist.columns.droplevel(1)
             latest = hist.iloc[-1]
             rate = float(latest["Close"].item()) if hasattr(latest["Close"], "item") else float(latest["Close"])
             r = {"rate": rate, "date": hist.index[-1].strftime("%Y-%m-%d"), "source": "yahoo_legacy"}
         except Exception as e:
-            return {"error": str(e)}
+            return {"pair": pair, "error": str(e)}
+    else:
+        return {"pair": pair, "error": "data_provider_required"}
 
     if r is None:
-        return {"error": "all_providers_failed"}
+        return {"pair": pair, "error": "all_providers_failed"}
 
     stmt = [{
         "q": "INSERT OR IGNORE INTO exchange_rates (pair, date, rate) VALUES (?,?,?)",
-        "params": ["USDKRW", r["date"], r["rate"]],
+        "params": [pair, r["date"], r["rate"]],
     }]
     inserted = turso_batch(stmt)
-
     return {
+        "pair":     pair,
         "date":     r["date"],
         "rate":     r["rate"],
         "source":   r.get("source", "unknown"),
@@ -306,11 +304,18 @@ def collect_exchange_rate() -> dict:
     }
 
 
+def collect_exchange_rates() -> dict:
+    """USDKRW + JPYKRW 수집. JPY 실패는 경고만 (USD는 필수)."""
+    usd = _collect_fx_pair("USDKRW")
+    jpy = _collect_fx_pair("JPYKRW")
+    return {"USDKRW": usd, "JPYKRW": jpy}
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 5. 결과 요약 출력
 # ──────────────────────────────────────────────────────────────────────────────
 
-def print_summary(price_results: dict, fx_result: dict) -> None:
+def print_summary(price_results: dict, fx_results: dict) -> None:
     print("\n" + "=" * 55)
     print("  📊 daily_price.py 실행 결과 요약")
     print("=" * 55)
@@ -325,11 +330,14 @@ def print_summary(price_results: dict, fx_result: dict) -> None:
             print(f"  ✅ {ticker}: {r['date']} | close={r['close']:,.0f} | vol={vol:,}")
 
     print("\n  [환율]")
-    if "error" in fx_result:
-        print(f"  ❌ USDKRW: {fx_result['error']}")
-    else:
-        status = "신규" if fx_result.get("inserted") else "기존(SKIP)"
-        print(f"  ✅ USDKRW: {fx_result['date']} | rate={fx_result['rate']:.2f} | {status}")
+    for pair in ("USDKRW", "JPYKRW"):
+        fx_result = fx_results.get(pair, {})
+        if "error" in fx_result:
+            mark = "⚠️ " if pair == "JPYKRW" else "❌"
+            print(f"  {mark} {pair}: {fx_result['error']}")
+        else:
+            status = "신규" if fx_result.get("inserted") else "기존(SKIP)"
+            print(f"  ✅ {pair}: {fx_result['date']} | rate={fx_result['rate']:.4f} | {status}")
 
     print("\n" + "=" * 55)
 
@@ -367,13 +375,14 @@ def main():
 
     # 환율 수집
     print("\n[STEP 2] 환율 수집")
-    fx_result = collect_exchange_rate()
+    fx_results = collect_exchange_rates()
 
     # 결과 요약
-    print_summary(price_results, fx_result)
+    print_summary(price_results, fx_results)
 
     # 오류가 하나라도 있으면 exit code 1 (GitHub Actions에서 실패 표시)
-    has_error = any("error" in r for r in price_results.values()) or "error" in fx_result
+    usd_fx = fx_results.get("USDKRW", {})
+    has_error = any("error" in r for r in price_results.values()) or "error" in usd_fx
     if has_error:
         print("\n⚠️  일부 수집 실패 — GitHub Actions에서 경고로 처리됩니다.")
         sys.exit(1)

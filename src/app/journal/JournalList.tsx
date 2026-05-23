@@ -22,9 +22,15 @@ type JournalRow = {
 export default function JournalList({ rows }: { rows: JournalRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="text-center py-16">
+      <div className="text-center py-16 px-4">
         <p className="text-text-secondary font-medium text-sm">아직 매매 일지가 없습니다</p>
-        <p className="text-text-muted text-xs mt-1">위 버튼에서 첫 번째 거래를 기록해 보세요</p>
+        <p className="text-text-muted text-xs mt-1 max-w-md mx-auto leading-relaxed">
+          Portfolio 통합 후 주식 포지션은 여기서 <strong>INIT</strong>으로 다시 입력합니다. 위
+          「거래 추가」에서 종목·증권사·수량·평균단가를 넣으면 대시보드·순자산에 반영됩니다.
+        </p>
+        <Link href="/settings" className="text-xs text-brand-green hover:underline mt-3 inline-block">
+          관심 종목 확인 →
+        </Link>
       </div>
     );
   }

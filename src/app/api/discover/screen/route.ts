@@ -2,6 +2,10 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import {
+  fetchFyGrowthByStockId,
+  fetchPriceMetricsByStockId,
+} from "@/lib/screener-metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +18,8 @@ export const dynamic = "force-dynamic";
  * - perMin, perMax
  * - pbrMin, pbrMax
  * - roeMin, roeMax (단위: %)
+ * - return1mMin, pct52wMin (단위: %, Week 2)
+ * - revenueYoYMin, epsYoYMin (단위: %, FY 2기 필요)
  */
 export async function GET(req: NextRequest) {
   let session = await auth();
@@ -37,6 +43,18 @@ export async function GET(req: NextRequest) {
   const pbrMax = searchParams.get("pbrMax") ? parseFloat(searchParams.get("pbrMax")!) : null;
   const roeMin = searchParams.get("roeMin") ? parseFloat(searchParams.get("roeMin")!) : null;
   const roeMax = searchParams.get("roeMax") ? parseFloat(searchParams.get("roeMax")!) : null;
+  const return1mMin = searchParams.get("return1mMin")
+    ? parseFloat(searchParams.get("return1mMin")!)
+    : null;
+  const pct52wMin = searchParams.get("pct52wMin")
+    ? parseFloat(searchParams.get("pct52wMin")!)
+    : null;
+  const revenueYoYMin = searchParams.get("revenueYoYMin")
+    ? parseFloat(searchParams.get("revenueYoYMin")!)
+    : null;
+  const epsYoYMin = searchParams.get("epsYoYMin")
+    ? parseFloat(searchParams.get("epsYoYMin")!)
+    : null;
 
   try {
     // 1. v_portfolio에서 보유중인 stock_id 조회
@@ -65,6 +83,12 @@ export async function GET(req: NextRequest) {
     }
 
     const stockRes = await db.run(querySql);
+    const stockIds = stockRes.rows.map((r) => Number(r[0]));
+    const [priceMetricsMap, fyGrowthMap] = await Promise.all([
+      fetchPriceMetricsByStockId(stockIds),
+      fetchFyGrowthByStockId(stockIds),
+    ]);
+
     const results = [];
 
     for (const row of stockRes.rows) {
@@ -128,6 +152,30 @@ export async function GET(req: NextRequest) {
       if (roeMin != null && (roe == null || roe < roeMin)) continue;
       if (roeMax != null && (roe == null || roe > roeMax)) continue;
 
+      const priceMetrics = priceMetricsMap.get(stockId);
+      const fyGrowth = fyGrowthMap.get(stockId);
+      if (
+        return1mMin != null &&
+        (priceMetrics?.return1m == null || priceMetrics.return1m < return1mMin)
+      ) {
+        continue;
+      }
+      if (
+        pct52wMin != null &&
+        (priceMetrics?.pctFrom52wHigh == null || priceMetrics.pctFrom52wHigh < pct52wMin)
+      ) {
+        continue;
+      }
+      if (
+        revenueYoYMin != null &&
+        (fyGrowth?.revenueYoY == null || fyGrowth.revenueYoY < revenueYoYMin)
+      ) {
+        continue;
+      }
+      if (epsYoYMin != null && (fyGrowth?.epsYoY == null || fyGrowth.epsYoY < epsYoYMin)) {
+        continue;
+      }
+
       results.push({
         stockId,
         ticker,
@@ -143,6 +191,13 @@ export async function GET(req: NextRequest) {
         dividendYield: dividendYield != null ? Math.round(dividendYield * 100) / 100 : null,
         isHeld,
         finPeriod,
+        return1m: priceMetrics?.return1m ?? null,
+        return3m: priceMetrics?.return3m ?? null,
+        return6m: priceMetrics?.return6m ?? null,
+        return1y: priceMetrics?.return1y ?? null,
+        pctFrom52wHigh: priceMetrics?.pctFrom52wHigh ?? null,
+        revenueYoY: fyGrowth?.revenueYoY ?? null,
+        epsYoY: fyGrowth?.epsYoY ?? null,
       });
     }
 

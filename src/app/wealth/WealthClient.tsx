@@ -11,16 +11,20 @@ import {
   inputClass,
 } from "@/lib/economist-ui";
 import { WEALTH_CATEGORY_OPTIONS } from "@/lib/wealth-categories";
+import {
+  formatMoney,
+  type BaseCurrency,
+  type FxRates,
+} from "@/lib/format-money";
 
 type Props = {
   initial: NetWorthSummary;
+  baseCurrency: BaseCurrency;
+  fxRates: FxRates;
 };
 
-function formatKrw(n: number) {
-  return new Intl.NumberFormat("ko-KR").format(Math.round(n)) + "원";
-}
-
-export default function WealthClient({ initial }: Props) {
+export default function WealthClient({ initial, baseCurrency, fxRates }: Props) {
+  const fmt = (n: number) => formatMoney(n, baseCurrency, fxRates);
   const [summary, setSummary] = useState(initial);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     "유가증권 및 현금": true,
@@ -114,25 +118,25 @@ export default function WealthClient({ initial }: Props) {
         <div>
           <p className="text-xs text-text-muted uppercase tracking-wide">순자산</p>
           <p className="text-2xl font-bold text-text-primary mt-1">
-            {formatKrw(summary.netWorthKrw)}
+            {fmt(summary.netWorthKrw)}
           </p>
         </div>
         <div>
           <p className="text-xs text-text-muted">총자산</p>
           <p className="text-lg font-semibold text-gain-400 mt-1">
-            {formatKrw(summary.totalAssetsKrw)}
+            {fmt(summary.totalAssetsKrw)}
           </p>
           <p className="text-xs text-text-muted mt-1">
-            주식 {formatKrw(summary.securitiesKrw)} · 비주식 {formatKrw(summary.wealthAssetsKrw)}
+            주식 {fmt(summary.securitiesKrw)} · 비주식 {fmt(summary.wealthAssetsKrw)}
           </p>
         </div>
         <div>
           <p className="text-xs text-text-muted">총부채</p>
           <p className="text-lg font-semibold text-loss-400 mt-1">
-            {formatKrw(summary.totalDebtKrw)}
+            {fmt(summary.totalDebtKrw)}
           </p>
           <p className="text-xs text-text-muted mt-1">
-            담보대출 {formatKrw(summary.stockLoansKrw)} 포함
+            담보대출 {fmt(summary.stockLoansKrw)} 포함
           </p>
         </div>
       </section>
@@ -151,7 +155,7 @@ export default function WealthClient({ initial }: Props) {
                   />
                 </div>
                 <span className="w-20 text-right text-text-muted">{d.pct.toFixed(1)}%</span>
-                <span className="w-28 text-right font-medium">{formatKrw(d.value)}</span>
+                <span className="w-28 text-right font-medium">{fmt(d.value)}</span>
               </div>
             ))}
           </div>
@@ -179,7 +183,7 @@ export default function WealthClient({ initial }: Props) {
             >
               <span className="font-bold text-text-primary">{big}</span>
               <span className="text-sm text-text-muted">
-                {items.length}건 · {formatKrw(subtotal)}
+                {items.length}건 · {fmt(subtotal)}
               </span>
             </button>
             {expanded[big] && (
@@ -187,7 +191,7 @@ export default function WealthClient({ initial }: Props) {
                 {big === "유가증권 및 현금" && summary.securitiesKrw > 0 && (
                   <div className="px-4 py-3 flex justify-between text-sm">
                     <span className="text-text-secondary">주식 (매매 일지)</span>
-                    <span className="font-medium">{formatKrw(summary.securitiesKrw)}</span>
+                    <span className="font-medium">{fmt(summary.securitiesKrw)}</span>
                   </div>
                 )}
                 {items.length === 0 && big !== "유가증권 및 현금" && (
@@ -270,7 +274,7 @@ export default function WealthClient({ initial }: Props) {
                               p.isLiability ? "text-loss-400 font-semibold" : "font-semibold"
                             }
                           >
-                            {formatKrw(p.valueKrw)}
+                            {fmt(p.valueKrw)}
                           </p>
                           <div className="flex gap-2 mt-2 justify-end">
                             <button

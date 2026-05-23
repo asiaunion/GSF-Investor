@@ -8,7 +8,8 @@ Investor 통합 코드 배포·검증 후 수행합니다.
 - [x] `npm run db:wealth-schema` (또는 동일 SQL) **프로덕션 Turso** 적용 완료
 - [x] `scripts/import_wealth_from_sheets.py` 프로덕션 seed 완료 (mock; `/wealth`에서 검토 권장)
 - [x] Vercel `CRON_SECRET` 설정 + `/api/cron/net-worth-snapshot` 스모크 200
-- [ ] Telegram 순자산 알림 수신 확인 (선택 — Investor env 미설정)
+- [ ] Telegram 순자산 알림 수신 확인 (선택 — `TELEGRAM_*` Vercel env)
+- [ ] 순자산 cron 스모크: `./scripts/smoke_net_worth_cron.sh` (로컬 또는 `BASE_URL`+`CRON_SECRET`)
 
 ## Vercel
 
@@ -19,7 +20,11 @@ Investor 통합 코드 배포·검증 후 수행합니다.
 
 ## GitHub
 
-- [ ] `asiaunion/gsf-portfolio-web` → **Archive** (수동: GitHub → Settings → Archive)
+- [ ] `asiaunion/gsf-portfolio-web` → **Archive**
+  ```bash
+  gh auth login   # 최초 1회
+  ./scripts/archive_portfolio_repo.sh
+  ```
 - [x] README: Investor `/wealth`, `/journal` 안내 (`d26fe7a`)
 
 ## 로컬

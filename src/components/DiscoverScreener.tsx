@@ -28,9 +28,25 @@ type ScreenStock = {
   dividendYield: number | null;
   isHeld: boolean;
   finPeriod: string | null;
+  return1m: number | null;
+  return3m: number | null;
+  return6m: number | null;
+  return1y: number | null;
+  pctFrom52wHigh: number | null;
+  revenueYoY: number | null;
+  epsYoY: number | null;
 };
 
-type SortKey = "name" | "per" | "pbr" | "roe" | "dividendYield";
+type SortKey =
+  | "name"
+  | "per"
+  | "pbr"
+  | "roe"
+  | "dividendYield"
+  | "return1m"
+  | "return1y"
+  | "pctFrom52wHigh"
+  | "revenueYoY";
 
 function ScreenerSortTh({
   label,
@@ -63,6 +79,9 @@ export default function DiscoverScreener() {
   const [perMax, setPerMax] = useState("");
   const [pbrMax, setPbrMax] = useState("");
   const [roeMin, setRoeMin] = useState("");
+  const [return1mMin, setReturn1mMin] = useState("");
+  const [pct52wMin, setPct52wMin] = useState("");
+  const [revenueYoYMin, setRevenueYoYMin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stocks, setStocks] = useState<ScreenStock[]>([]);
@@ -77,6 +96,9 @@ export default function DiscoverScreener() {
     if (perMax.trim()) params.set("perMax", perMax.trim());
     if (pbrMax.trim()) params.set("pbrMax", pbrMax.trim());
     if (roeMin.trim()) params.set("roeMin", roeMin.trim());
+    if (return1mMin.trim()) params.set("return1mMin", return1mMin.trim());
+    if (pct52wMin.trim()) params.set("pct52wMin", pct52wMin.trim());
+    if (revenueYoYMin.trim()) params.set("revenueYoYMin", revenueYoYMin.trim());
     try {
       const res = await fetch(`/api/discover/screen?${params}`);
       const data = await res.json();
@@ -89,7 +111,7 @@ export default function DiscoverScreener() {
     } finally {
       setLoading(false);
     }
-  }, [market, held, perMax, pbrMax, roeMin]);
+  }, [market, held, perMax, pbrMax, roeMin, return1mMin, pct52wMin, revenueYoYMin]);
 
   const toggleSelect = (ticker: string) => {
     setSelected((prev) => {
@@ -128,7 +150,9 @@ export default function DiscoverScreener() {
   return (
     <div className="space-y-4">
       <div className={`${economistCard} p-4 space-y-3`}>
-        <p className="text-xs text-text-muted">FY 기준 PER/PBR · 보유 필터 · 최대 5종목 비교</p>
+        <p className="text-xs text-text-muted">
+          FY PER/PBR · 1M/1Y 수익률 · 52주 고점 대비 · 매출 YoY · 최대 5종목 비교
+        </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label className="text-xs text-text-muted">
             시장
@@ -172,13 +196,40 @@ export default function DiscoverScreener() {
               onChange={(e) => setPbrMax(e.target.value)}
             />
           </label>
-          <label className="text-xs text-text-muted sm:col-span-2">
+          <label className="text-xs text-text-muted">
             ROE ≥ (%)
             <input
               className={`${inputClass} mt-1 tabular-nums`}
               placeholder="예: 10"
               value={roeMin}
               onChange={(e) => setRoeMin(e.target.value)}
+            />
+          </label>
+          <label className="text-xs text-text-muted">
+            1M 수익 ≥ (%)
+            <input
+              className={`${inputClass} mt-1 tabular-nums`}
+              placeholder="예: 5"
+              value={return1mMin}
+              onChange={(e) => setReturn1mMin(e.target.value)}
+            />
+          </label>
+          <label className="text-xs text-text-muted">
+            52주고점 대비 ≥ (%)
+            <input
+              className={`${inputClass} mt-1 tabular-nums`}
+              placeholder="예: -20"
+              value={pct52wMin}
+              onChange={(e) => setPct52wMin(e.target.value)}
+            />
+          </label>
+          <label className="text-xs text-text-muted sm:col-span-2">
+            매출 YoY ≥ (%)
+            <input
+              className={`${inputClass} mt-1 tabular-nums`}
+              placeholder="예: 0"
+              value={revenueYoYMin}
+              onChange={(e) => setRevenueYoYMin(e.target.value)}
             />
           </label>
         </div>
@@ -226,6 +277,10 @@ export default function DiscoverScreener() {
                   <ScreenerSortTh label="PBR" col="pbr" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
                   <ScreenerSortTh label="ROE" col="roe" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
                   <ScreenerSortTh label="배당%" col="dividendYield" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="1M%" col="return1m" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="1Y%" col="return1y" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="52주%" col="pctFrom52wHigh" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
+                  <ScreenerSortTh label="매출YoY" col="revenueYoY" sortKey={sortKey} sortAsc={sortAsc} onToggle={toggleSort} />
                 </tr>
               </thead>
               <tbody>
@@ -266,6 +321,18 @@ export default function DiscoverScreener() {
                     </td>
                     <td className="text-right px-2 py-1.5 tabular-nums text-text-secondary">
                       {s.dividendYield != null ? `${s.dividendYield}%` : "—"}
+                    </td>
+                    <td className="text-right px-2 py-1.5 tabular-nums text-text-secondary">
+                      {s.return1m != null ? `${s.return1m}%` : "—"}
+                    </td>
+                    <td className="text-right px-2 py-1.5 tabular-nums text-text-secondary">
+                      {s.return1y != null ? `${s.return1y}%` : "—"}
+                    </td>
+                    <td className="text-right px-2 py-1.5 tabular-nums text-text-secondary">
+                      {s.pctFrom52wHigh != null ? `${s.pctFrom52wHigh}%` : "—"}
+                    </td>
+                    <td className="text-right px-2 py-1.5 tabular-nums text-text-secondary">
+                      {s.revenueYoY != null ? `${s.revenueYoY}%` : "—"}
                     </td>
                   </tr>
                 ))}

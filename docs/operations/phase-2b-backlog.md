@@ -2,34 +2,38 @@
 
 정본: [investor-upgrade-design-v2.md](../specs/2026-05-21-investor-upgrade-design-v2.md)
 
-Week 1–2(백엔드 PR #1–#3, UI PR #4) 완료 후 남은 항목입니다.
-
 ## 배당 (`dividend_events`)
 
 | 상태 | 내용 |
 |------|------|
 | 완료 | Drizzle 스키마 + prod migrate |
-| 연기 | 적재 스크립트·데이터 소스 (Yahoo / SEIBRO / 수동) 미확정 |
-| UI | `/dividends` empty state (Phase 2b 안내) |
+| 완료 | `scripts/update_dividend_calendar.py` (yfinance, 2024-01-01~) |
+| 완료 | `.github/workflows/update_dividend_calendar.yml` (일요일 22:00 KST) |
+| 완료 | `/dividends` 목록 UI (예정/지난/전체, 보유 필터, 추정 배당금) |
+| 한계 | `pay_date` — yfinance 미제공 → NULL |
+| 선택 | SEIBRO·수동 보정, 캘린더 월뷰 UI |
 
-**AG 착수 조건:** 데이터 소스 1개 확정 + 샘플 3종목 seed 검증.
+**운영:** workflow_dispatch 또는 주간 cron 후 `/dividends`에서 건수 확인.
 
 ## 기준 통화 표시 확장
 
 | 상태 | 내용 |
 |------|------|
-| 완료 | `user_preferences`, Settings UI, `formatMoney` 헬퍼, 대시보드 KPI |
-| 연기 | `/wealth` 전역·차트 축·JPY (`JPYKRW` in `daily_price`) |
+| 완료 | `user_preferences`, Settings UI, `formatMoney`, 대시보드 KPI |
+| 완료 | `/wealth` KPI·자산 구성·항목 금액 (`fetchDisplayCurrency`) |
+| 완료 | `daily_price.py` → `JPYKRW` pair 적재 (Yahoo `JPYKRW=X`) |
+| 완료 | 대시보드 순자산 차트 Y축·툴팁 (`NetWorthHistoryChart` + `formatChartAxisKrw`) |
+| 연기 | 포트폴리오 수익률·Compare 등 나머지 Recharts |
 
 ## 벤치마크 정책 B/C
 
-| 옵션 | 설명 |
-|------|------|
-| A (현재) | 069500 오버레이 (`compare-prices`) |
-| B | ^KS11, ^GSPC `daily_price` 확장 |
-| C | 보유 시장별 자동 선택 |
+사용자·AG 합의 전 B/C 구현 금지. 현재 **A (069500)**.
 
-사용자·AG 합의 전 B/C 구현 금지.
+## Discover Week 2 필터
+
+| 상태 | 내용 |
+|------|------|
+| 완료 | `return1m/3m/6m/1y`, `pctFrom52wHigh`, `revenueYoY`, `epsYoY` — `screener-metrics.ts` + screen API + UI |
 
 ## 기타 (Phase 3)
 
@@ -39,5 +43,7 @@ Week 1–2(백엔드 PR #1–#3, UI PR #4) 완료 후 남은 항목입니다.
 
 ## 운영
 
-- `holding_snapshots` **2일+** 쌓이면 포트폴리오 수익률 차트 자동 표시
+- `holding_snapshots` **2일+** → 포트폴리오 수익률 차트 표시
+- [wealth-migration-report.md](./wealth-migration-report.md) — 일지 재입력 2단계 컷오버
+- [portfolio-decommission.md](./portfolio-decommission.md) — GitHub archive (수동)
 - cron 표: [README.md](../../README.md#데이터-수집-cron-kst)

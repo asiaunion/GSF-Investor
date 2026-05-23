@@ -173,7 +173,7 @@ export default function DashboardClient({
         </div>
       </div>
 
-      <NetWorthHistoryChart />
+      <NetWorthHistoryChart baseCurrency={baseCurrency} fxRates={fxRates} />
 
       <PortfolioPerformanceChart />
 

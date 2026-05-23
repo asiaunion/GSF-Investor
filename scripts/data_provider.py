@@ -237,7 +237,8 @@ def get_fx_rate(pair: str = "USDKRW") -> Optional[dict]:
     Returns:
         {"rate": float, "date": str, "source": str} 또는 None
     """
-    yahoo_pair = "USDKRW=X" if pair == "USDKRW" else pair
+    _yahoo_pairs = {"USDKRW": "USDKRW=X", "JPYKRW": "JPYKRW=X"}
+    yahoo_pair = _yahoo_pairs.get(pair, pair if pair.endswith("=X") else f"{pair}=X")
 
     print(f"  📥 {pair} 환율 조회 중...", end=" ", flush=True)
 
@@ -247,13 +248,14 @@ def get_fx_rate(pair: str = "USDKRW") -> Optional[dict]:
         print(f"✅ [{result['source']}] {result['date']} rate={result['rate']:.2f}")
         return result
 
-    # 2차: FMP
-    print(f"  ⚠️  Yahoo 실패 → FMP 폴백...", end=" ", flush=True)
-    time.sleep(RETRY_DELAY)
-    result = _fmp_get_fx()
-    if result:
-        print(f"✅ [{result['source']}] {result['date']} rate={result['rate']:.2f}")
-        return result
+    # 2차: FMP (USDKRW만)
+    if pair == "USDKRW":
+        print(f"  ⚠️  Yahoo 실패 → FMP 폴백...", end=" ", flush=True)
+        time.sleep(RETRY_DELAY)
+        result = _fmp_get_fx()
+        if result:
+            print(f"✅ [{result['source']}] {result['date']} rate={result['rate']:.2f}")
+            return result
 
     print(f"  ❌ {pair}: 모든 공급자 실패")
     return None

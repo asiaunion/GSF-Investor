@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AppPageLayout from "@/components/AppPageLayout";
 import { computeNetWorth } from "@/lib/net-worth";
+import { fetchDisplayCurrency } from "@/lib/display-currency";
 import WealthClient from "./WealthClient";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,10 @@ export default async function WealthPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const summary = await computeNetWorth();
+  const [summary, displayCurrency] = await Promise.all([
+    computeNetWorth(),
+    fetchDisplayCurrency(),
+  ]);
 
   return (
     <AppPageLayout
@@ -27,7 +31,11 @@ export default async function WealthPage() {
         </Link>
       }
     >
-      <WealthClient initial={summary} />
+      <WealthClient
+        initial={summary}
+        baseCurrency={displayCurrency.baseCurrency}
+        fxRates={displayCurrency.fx}
+      />
     </AppPageLayout>
   );
 }

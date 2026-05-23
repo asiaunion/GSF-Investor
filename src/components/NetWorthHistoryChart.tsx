@@ -5,10 +5,13 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { economistCard } from "@/lib/economist-ui";
 import { ChartPeriodTabs, type ChartPeriod } from "@/components/ChartPeriodTabs";
+import { formatChartAxisKrw } from "@/lib/chart-money";
+import { formatMoney, type BaseCurrency, type FxRates } from "@/lib/format-money";
 
-function formatKrw(n: number): string {
-  return new Intl.NumberFormat("ko-KR").format(Math.round(n)) + "원";
-}
+type ChartMoneyProps = {
+  baseCurrency?: BaseCurrency;
+  fxRates?: FxRates;
+};
 
 const ResponsiveContainer = dynamic(
   () => import("recharts").then((m) => m.ResponsiveContainer),
@@ -39,38 +42,39 @@ type ChartRow = {
   totalDebt: number;
 };
 
-function formatAxisKrw(v: number): string {
-  const abs = Math.abs(v);
-  if (abs >= 1e8) return `${(v / 1e8).toFixed(1)}억`;
-  if (abs >= 1e4) return `${(v / 1e4).toFixed(0)}만`;
-  return String(Math.round(v));
-}
-
 function NetWorthTooltip({
   active,
   payload,
   label,
+  baseCurrency,
+  fxRates,
 }: {
   active?: boolean;
   payload?: { payload: ChartRow }[];
   label?: string;
+  baseCurrency: BaseCurrency;
+  fxRates: FxRates;
 }) {
   if (!active || !payload?.[0]) return null;
   const p = payload[0].payload;
+  const fmt = (n: number) => formatMoney(n, baseCurrency, fxRates);
   return (
     <div className="bg-bg-surface border border-border-strong rounded-sm px-3 py-2 text-xs shadow-lg">
       <p className="font-semibold text-text-primary mb-1">{label}</p>
       <p className="text-text-secondary">
-        순자산 <span className="text-text-primary font-bold tabular-nums">{formatKrw(p.netWorth)}</span>
+        순자산 <span className="text-text-primary font-bold tabular-nums">{fmt(p.netWorth)}</span>
       </p>
-      <p className="text-text-muted tabular-nums">주식 {formatKrw(p.securities)}</p>
-      <p className="text-text-muted tabular-nums">비주식·기타 {formatKrw(p.wealth)}</p>
-      <p className="text-text-muted tabular-nums">부채 {formatKrw(p.totalDebt)}</p>
+      <p className="text-text-muted tabular-nums">주식 {fmt(p.securities)}</p>
+      <p className="text-text-muted tabular-nums">비주식·기타 {fmt(p.wealth)}</p>
+      <p className="text-text-muted tabular-nums">부채 {fmt(p.totalDebt)}</p>
     </div>
   );
 }
 
-export default function NetWorthHistoryChart() {
+export default function NetWorthHistoryChart({
+  baseCurrency = "KRW",
+  fxRates = { usdKrw: 1350, jpyKrw: null },
+}: ChartMoneyProps) {
   const [period, setPeriod] = useState<ChartPeriod>("3M");
   const [points, setPoints] = useState<HistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,13 +163,17 @@ export default function NetWorthHistoryChart() {
                 tickLine={false}
               />
               <YAxis
-                tickFormatter={formatAxisKrw}
+                tickFormatter={(v) => formatChartAxisKrw(Number(v), baseCurrency, fxRates)}
                 tick={{ fontSize: 10, fill: "var(--color-text-muted)" }}
                 axisLine={false}
                 tickLine={false}
-                width={48}
+                width={52}
               />
-              <Tooltip content={<NetWorthTooltip />} />
+              <Tooltip
+                content={
+                  <NetWorthTooltip baseCurrency={baseCurrency} fxRates={fxRates} />
+                }
+              />
               <Area
                 type="monotone"
                 dataKey="securities"
