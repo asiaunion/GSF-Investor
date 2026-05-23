@@ -18,6 +18,7 @@ import {
   EconomistPanelHeader,
   EconomistStatGrid,
 } from "@/components/EconomistPage";
+import StockIdentity from "@/components/StockIdentity";
 import type { SignalRow } from "./page";
 
 interface Props {
@@ -184,7 +185,7 @@ function SignalCard({
               >
                 {sevConfig.label}
               </span>
-              <span className="text-xs font-medium text-[var(--color-text-primary)]">{s.ticker}</span>
+              <StockIdentity name={s.stockName} ticker={s.ticker} href={`/stocks/${s.ticker}`} size="sm" />
               <span className="text-xs text-[var(--color-text-disabled)]">·</span>
               <span className="text-xs text-[var(--color-text-muted)]">{typeLabel}</span>
               <span className="text-xs text-[var(--color-text-disabled)]">·</span>

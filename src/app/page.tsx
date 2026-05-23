@@ -181,6 +181,7 @@ async function fetchRecentSignals() {
     SELECT
       sg.id,
       s.ticker,
+      s.name AS stock_name,
       sg.type,
       sg.severity,
       sg.description,
@@ -198,11 +199,12 @@ async function fetchRecentSignals() {
   return rows.rows.map((r) => ({
     id: Number(r[0]),
     ticker: String(r[1]),
-    type: String(r[2]),
-    severity: String(r[3]),
-    description: String(r[4]),
-    detectedAt: String(r[5]),
-    isResolved: Number(r[6]),
+    stockName: String(r[2]),
+    type: String(r[3]),
+    severity: String(r[4]),
+    description: String(r[5]),
+    detectedAt: String(r[6]),
+    isResolved: Number(r[7]),
   }));
 }
 

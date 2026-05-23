@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import StockIdentity from "@/components/StockIdentity";
 import { gradeBadge, linkMuted, marketBadge, tabActive, tabInactive } from "@/lib/economist-ui";
 import { SCREENING_PRESETS, type ScreeningPresetId } from "@/lib/screening-presets";
 
@@ -270,13 +271,16 @@ export default function DiscoverScoreboard() {
 
                 {/* 종목 정보 */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{stock.name}</span>
-                    <span className="text-xs text-[var(--color-text-disabled)] font-mono">{stock.ticker}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
-                      {stock.market}
-                    </span>
-                  </div>
+                  <StockIdentity
+                    name={stock.name}
+                    ticker={stock.ticker}
+                    size="sm"
+                    trailing={
+                      <span className={`text-[10px] px-1 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
+                        {stock.market}
+                      </span>
+                    }
+                  />
                   {/* 점수 바 */}
                   <div className="mt-1.5">
                     <ScoreBar score={stock.totalScore} grade={stock.grade} />

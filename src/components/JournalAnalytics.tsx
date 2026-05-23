@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import StockIdentity from "@/components/StockIdentity";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 
 const ConfidenceTrend = dynamic(
@@ -382,10 +383,11 @@ export default function JournalAnalytics() {
                   <tr key={t.id} className="hover:bg-[var(--color-bg-elevated)]/20 transition-colors">
                     <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">{t.tradedAt}</td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-col">
-                        <span className="text-[var(--color-text-primary)] font-mono font-semibold">{t.ticker}</span>
-                        <span className="text-[var(--color-text-disabled)]">{t.name}</span>
-                      </div>
+                      <StockIdentity
+                        name={t.name ?? t.ticker ?? "—"}
+                        ticker={t.ticker ?? ""}
+                        size="sm"
+                      />
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-primary)] tabular-nums">
                       {t.quantity.toLocaleString("ko-KR")}주

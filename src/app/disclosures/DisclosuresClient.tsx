@@ -10,6 +10,7 @@ import {
   EconomistPanelHeader,
   EconomistStatGrid,
 } from "@/components/EconomistPage";
+import StockIdentity from "@/components/StockIdentity";
 import { economistCard } from "@/lib/economist-ui";
 import type { DisclosureRow } from "./page";
 
@@ -117,8 +118,7 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="text-xs font-semibold text-text-primary">{d.ticker}</span>
-              <span className="text-xs text-text-muted">{d.stockName}</span>
+              <StockIdentity name={d.stockName} ticker={d.ticker} href={`/stocks/${d.ticker}`} size="sm" />
               <span className={`text-xs px-1.5 py-0.5 rounded border font-medium ${sourceColor}`}>
                 {d.source}
               </span>

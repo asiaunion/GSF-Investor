@@ -255,7 +255,7 @@ export default function ReportDetailClient({ report }: { report: ReportDetail })
               href={`/stocks/${report.ticker}`}
               className="text-xs text-brand-green hover:text-brand-green transition-colors"
             >
-              {report.ticker} 종목 상세 →
+              {report.stockName || report.ticker} 종목 상세 →
             </Link>
           </div>
         </div>

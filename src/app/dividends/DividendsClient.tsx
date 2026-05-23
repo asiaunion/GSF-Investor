@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import StockIdentity from "@/components/StockIdentity";
 import {
   economistCard,
   tabActive,
@@ -191,16 +192,17 @@ export default function DividendsClient({ rows, baseCurrency, fxRates }: Props) 
                         {r.exDate}
                       </td>
                       <td className="px-4 py-3">
-                        <Link
+                        <StockIdentity
+                          name={r.stockName}
+                          ticker={r.ticker}
                           href={`/stocks/${r.ticker}`}
-                          className="text-brand-green hover:underline font-medium"
-                        >
-                          {r.ticker}
-                        </Link>
-                        <span className="block text-xs text-text-muted truncate max-w-[12rem]">
-                          {r.stockName}
-                          {r.isHeld ? ` · ${r.quantity}주` : ""}
-                        </span>
+                          size="sm"
+                          trailing={
+                            r.isHeld ? (
+                              <span className="text-[10px] text-brand-green">{r.quantity}주</span>
+                            ) : undefined
+                          }
+                        />
                       </td>
                       <td className="px-4 py-3 text-text-secondary whitespace-nowrap">
                         {formatAmount(r)}

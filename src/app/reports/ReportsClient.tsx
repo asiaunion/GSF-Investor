@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import StockIdentity from "@/components/StockIdentity";
 import {
   btnPrimary,
   economistCard,
@@ -84,15 +85,18 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
       {/* 헤더 행 */}
       <div className="flex items-start gap-4 px-6 py-4">
         {/* 종목 배지 */}
-        <div className="shrink-0 w-10 h-10 rounded-sm bg-brand-green/10 border border-brand-green/25 flex items-center justify-center text-brand-green text-xs font-bold">
-          {report.ticker.slice(0, 4)}
+        <div className="shrink-0 w-10 h-10 rounded-sm bg-brand-green/10 border border-brand-green/25 flex items-center justify-center text-brand-green text-sm font-bold">
+          {(report.stockName || report.ticker).slice(0, 1)}
         </div>
 
-        {/* 내용 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{report.stockName}</span>
-            <span className="text-xs text-[var(--color-text-muted)]">{report.ticker}</span>
+            <StockIdentity
+              name={report.stockName}
+              ticker={report.ticker}
+              href={`/stocks/${report.ticker}`}
+              size="sm"
+            />
             <span
               className={`text-xs px-1.5 py-0.5 rounded font-medium ${
                 report.trigger === "SIGNAL_AUTO"

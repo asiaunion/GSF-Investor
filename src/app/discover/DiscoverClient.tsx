@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import StockIdentity from "@/components/StockIdentity";
 import {
   btnNeutral,
   btnPrimary,
@@ -297,31 +298,32 @@ export default function DiscoverClient({ stocks: initialStocks }: Props) {
                     }
                   >
                     {/* 배지 */}
-                    <div className="shrink-0 w-10 h-10 rounded-lg bg-bg-elevated border border-border-strong flex items-center justify-center text-xs font-bold text-text-primary">
-                      {stock.ticker.slice(0, 4)}
+                    <div className="shrink-0 w-10 h-10 rounded-lg bg-bg-elevated border border-border-strong flex items-center justify-center text-sm font-bold text-text-primary">
+                      {(stock.name || stock.ticker).slice(0, 1)}
                     </div>
 
-                    {/* 정보 */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Link
-                          href={`/stocks/${stock.ticker}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-sm font-semibold text-text-primary hover:text-brand-green transition-colors"
-                        >
-                          {stock.name}
-                        </Link>
-                        <span className="text-xs text-text-muted">{stock.ticker}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
-                          {stock.market}
-                        </span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${categoryBadge(stock.category)}`}>
-                          {stock.category}
-                        </span>
-                        {inactive && (
-                          <span className="text-xs bg-bg-elevated text-text-disabled px-1.5 py-0.5 rounded">비활성</span>
-                        )}
-                      </div>
+                    <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                      <StockIdentity
+                        name={stock.name}
+                        ticker={stock.ticker}
+                        href={`/stocks/${stock.ticker}`}
+                        size="sm"
+                        trailing={
+                          <>
+                            <span className={`text-[10px] px-1 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
+                              {stock.market}
+                            </span>
+                            <span className={`text-[10px] px-1 py-0.5 rounded font-medium ${categoryBadge(stock.category)}`}>
+                              {stock.category}
+                            </span>
+                            {inactive && (
+                              <span className="text-[10px] bg-bg-elevated text-text-disabled px-1 py-0.5 rounded">
+                                비활성
+                              </span>
+                            )}
+                          </>
+                        }
+                      />
                       <p className="text-xs text-text-disabled mt-0.5 truncate">
                         추가일: {new Date(stock.addedAt).toLocaleDateString("ko-KR")}
                       </p>

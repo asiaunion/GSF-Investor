@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import StockIdentity from "@/components/StockIdentity";
 import dynamic from "next/dynamic";
 import { economistCard, linkMuted, marketBadge } from "@/lib/economist-ui";
 import { ChartPeriodTabs, type ChartPeriod } from "@/components/ChartPeriodTabs";
@@ -194,13 +195,17 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
                 ? metrics.map((m) => (
                     <tr key={m.ticker} className="border-b border-border-default/50">
                       <td className="px-3 py-2">
-                        <Link href={`/stocks/${m.ticker}`} className="font-medium text-text-primary hover:text-brand-green">
-                          {m.name}
-                        </Link>
-                        <span className="text-text-muted text-xs ml-1">{m.ticker}</span>
-                        <span className={`ml-1 text-[10px] ${marketBadge[m.market] ?? ""}`}>
-                          {m.market}
-                        </span>
+                        <StockIdentity
+                          name={m.name}
+                          ticker={m.ticker}
+                          href={`/stocks/${m.ticker}`}
+                          size="sm"
+                          trailing={
+                            <span className={`text-[10px] px-1 py-0.5 rounded ${marketBadge[m.market] ?? ""}`}>
+                              {m.market}
+                            </span>
+                          }
+                        />
                       </td>
                       <td className="text-right px-2 py-2 tabular-nums">
                         {m.latestPrice?.toLocaleString() ?? "—"}
@@ -218,7 +223,7 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
                 : meta.map((m) => (
                     <tr key={m.ticker} className="border-b border-border-default/50">
                       <td className="px-3 py-2" colSpan={6}>
-                        <Link href={`/stocks/${m.ticker}`}>{m.name}</Link> ({m.ticker})
+                        <StockIdentity name={m.name} ticker={m.ticker} href={`/stocks/${m.ticker}`} size="sm" />
                       </td>
                     </tr>
                   ))}

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { emotionBadge, linkMuted, tradeActionBadge } from "@/lib/economist-ui";
+import StockIdentity from "@/components/StockIdentity";
+import { emotionBadge, tradeActionBadge } from "@/lib/economist-ui";
 
 type JournalRow = {
   id: number;
@@ -55,10 +56,12 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
               <tr key={row.id} className="group hover:bg-bg-elevated/30 transition-colors">
                 <td className="py-3 pr-4 text-text-secondary whitespace-nowrap">{row.tradedAt}</td>
                 <td className="py-3 pr-4">
-                  <div className="flex flex-col">
-                    <span className="text-text-primary font-mono text-xs font-semibold">{row.ticker}</span>
-                    <span className="text-text-muted text-xs">{row.name}</span>
-                  </div>
+                  <StockIdentity
+                    name={row.name ?? row.ticker ?? "—"}
+                    ticker={row.ticker ?? ""}
+                    href={row.ticker ? `/stocks/${row.ticker}` : undefined}
+                    size="sm"
+                  />
                 </td>
                 <td className="py-3 pr-4">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${tradeActionBadge[row.action] ?? "text-text-secondary bg-bg-elevated border border-border-default"}`}>
@@ -102,10 +105,14 @@ export default function JournalList({ rows }: { rows: JournalRow[] }) {
           return (
             <Link key={row.id} href={`/journal/${row.id}`}>
               <div className="bg-bg-elevated/40 border border-border-default/50 rounded-sm p-4 hover:border-zinc-600 transition-colors">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <span className="text-text-primary font-mono font-semibold text-sm">{row.ticker}</span>
-                    <span className="text-text-muted text-xs ml-2">{row.tradedAt}</span>
+                <div className="flex items-start justify-between mb-2 gap-2">
+                  <div className="min-w-0 flex-1">
+                    <StockIdentity
+                      name={row.name ?? row.ticker ?? "—"}
+                      ticker={row.ticker ?? ""}
+                      size="sm"
+                    />
+                    <span className="text-text-muted text-xs mt-1 block">{row.tradedAt}</span>
                   </div>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border ${tradeActionBadge[row.action] ?? "text-text-secondary bg-bg-elevated border border-border-default"}`}>
                     {row.action}

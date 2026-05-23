@@ -43,6 +43,7 @@ export async function GET() {
     count: scores.length,
     // 마지막 항목의 정보를 대표로 사용
     ticker: entries[entries.length - 1].ticker,
+    stockName: entries[entries.length - 1].name,
     emotionTag: entries[entries.length - 1].emotionTag,
   }));
 

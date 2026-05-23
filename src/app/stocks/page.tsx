@@ -154,7 +154,7 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-text-primary font-semibold text-sm">{stock.name}</span>
+              <span className="text-text-primary font-semibold text-base leading-snug">{stock.name}</span>
               <MarketBadge market={stock.market} />
             </div>
             <span className="text-text-muted text-xs mt-0.5 block">{stock.ticker}</span>

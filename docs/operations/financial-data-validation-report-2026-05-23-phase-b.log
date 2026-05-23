@@ -1,0 +1,241 @@
+/Users/gsf/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+
+--- 026960 (동서) corp=00144395 ---
+  ✓ 2026Q1 L1 revenue: PASS
+  ✓ 2026Q1 L1 op_income: PASS
+  ✗ 2026Q1 L1 net_income: FAIL
+  ✓ 2026Q1 L1 total_assets: PASS
+  ✗ 2026Q1 L1 total_equity: FAIL
+  ? 2026Q1 L1 dividend_per_share: SKIP
+  ✓ 2026Q1 L2 eps: PASS
+  ✓ 2026Q1 L2 bps: PASS
+  ✓ 2026Q1 L2 debt_ratio: PASS
+  ✓ 2025Q3 L1 revenue: PASS
+  ✓ 2025Q3 L1 op_income: PASS
+  ✗ 2025Q3 L1 net_income: FAIL
+  ✓ 2025Q3 L1 total_assets: PASS
+  ✗ 2025Q3 L1 total_equity: FAIL
+  ? 2025Q3 L1 dividend_per_share: SKIP
+  ✓ 2025Q3 L2 eps: PASS
+  ✓ 2025Q3 L2 bps: PASS
+  ✓ 2025Q3 L2 debt_ratio: PASS
+  ✓ 2025Q2 L1 revenue: PASS
+  ✓ 2025Q2 L1 op_income: PASS
+  ✗ 2025Q2 L1 net_income: FAIL
+  ✓ 2025Q2 L1 total_assets: PASS
+  ✗ 2025Q2 L1 total_equity: FAIL
+  ? 2025Q2 L1 dividend_per_share: SKIP
+  ✓ 2025Q2 L2 eps: PASS
+  ✓ 2025Q2 L2 bps: PASS
+  ✓ 2025Q2 L2 debt_ratio: PASS
+  ✓ 2025Q1 L1 revenue: PASS
+  ✓ 2025Q1 L1 op_income: PASS
+  ✗ 2025Q1 L1 net_income: FAIL
+  ✓ 2025Q1 L1 total_assets: PASS
+  ✗ 2025Q1 L1 total_equity: FAIL
+  ? 2025Q1 L1 dividend_per_share: SKIP
+  ✓ 2025Q1 L2 eps: PASS
+  ✓ 2025Q1 L2 bps: PASS
+  ✓ 2025Q1 L2 debt_ratio: PASS
+  ✓ 2025FY L1 revenue: PASS
+  ✓ 2025FY L1 op_income: PASS
+  ✗ 2025FY L1 net_income: FAIL
+  ✓ 2025FY L1 total_assets: PASS
+  ✗ 2025FY L1 total_equity: FAIL
+  ✗ 2025FY L1 dividend_per_share: FAIL
+  ✓ 2025FY L2 eps: PASS
+  ✓ 2025FY L2 bps: PASS
+  ✓ 2025FY L2 debt_ratio: PASS
+  ✓ 2024Q3 L1 revenue: PASS
+  ✓ 2024Q3 L1 op_income: PASS
+  ✗ 2024Q3 L1 net_income: FAIL
+  ✓ 2024Q3 L1 total_assets: PASS
+  ✗ 2024Q3 L1 total_equity: FAIL
+  ? 2024Q3 L1 dividend_per_share: SKIP
+  ✓ 2024Q3 L2 eps: PASS
+  ✓ 2024Q3 L2 bps: PASS
+  ✓ 2024Q3 L2 debt_ratio: PASS
+  ✓ 2024Q2 L1 revenue: PASS
+  ✓ 2024Q2 L1 op_income: PASS
+  ✗ 2024Q2 L1 net_income: FAIL
+  ✓ 2024Q2 L1 total_assets: PASS
+  ✗ 2024Q2 L1 total_equity: FAIL
+  ? 2024Q2 L1 dividend_per_share: SKIP
+  ✓ 2024Q2 L2 eps: PASS
+  ✓ 2024Q2 L2 bps: PASS
+  ✓ 2024Q2 L2 debt_ratio: PASS
+  ✓ 2024FY L1 revenue: PASS
+  ✓ 2024FY L1 op_income: PASS
+  ✗ 2024FY L1 net_income: FAIL
+  ✓ 2024FY L1 total_assets: PASS
+  ✗ 2024FY L1 total_equity: FAIL
+  ✗ 2024FY L1 dividend_per_share: FAIL
+  ✓ 2024FY L2 eps: PASS
+  ✓ 2024FY L2 bps: PASS
+  ✓ 2024FY L2 debt_ratio: PASS
+  ✓ 2023FY L1 revenue: PASS
+  ✓ 2023FY L1 op_income: PASS
+  ✗ 2023FY L1 net_income: FAIL
+  ✓ 2023FY L1 total_assets: PASS
+  ✗ 2023FY L1 total_equity: FAIL
+  ✗ 2023FY L1 dividend_per_share: FAIL
+  ✓ 2023FY L2 eps: PASS
+  ✓ 2023FY L2 bps: PASS
+  ✓ 2023FY L2 debt_ratio: PASS
+  ✓ 2022FY L1 revenue: PASS
+  ✓ 2022FY L1 op_income: PASS
+  ✓ 2022FY L1 net_income: PASS
+  ✓ 2022FY L1 total_assets: PASS
+  ✓ 2022FY L1 total_equity: PASS
+  ✗ 2022FY L1 dividend_per_share: FAIL
+  ✓ 2022FY L2 eps: PASS
+  ✓ 2022FY L2 bps: PASS
+  ✓ 2022FY L2 debt_ratio: PASS
+  ✓ 2021FY L1 revenue: PASS
+  ✓ 2021FY L1 op_income: PASS
+  ✓ 2021FY L1 net_income: PASS
+  ✓ 2021FY L1 total_assets: PASS
+  ✓ 2021FY L1 total_equity: PASS
+  ✗ 2021FY L1 dividend_per_share: FAIL
+  ✓ 2021FY L2 eps: PASS
+  ✓ 2021FY L2 bps: PASS
+  ✓ 2021FY L2 debt_ratio: PASS
+
+--- 059090 (미코) corp=00366942 ---
+  ✓ 2026Q1 L1 revenue: PASS
+  ✓ 2026Q1 L1 op_income: PASS
+  ✗ 2026Q1 L1 net_income: FAIL
+  ✓ 2026Q1 L1 total_assets: PASS
+  ✗ 2026Q1 L1 total_equity: FAIL
+  ? 2026Q1 L1 dividend_per_share: SKIP
+  ✓ 2026Q1 L2 eps: PASS
+  ✓ 2026Q1 L2 bps: PASS
+  ✓ 2026Q1 L2 debt_ratio: PASS
+  ✓ 2025Q3 L1 revenue: PASS
+  ✓ 2025Q3 L1 op_income: PASS
+  ? 2025Q3 L1 net_income: SKIP
+  ✓ 2025Q3 L1 total_assets: PASS
+  ✗ 2025Q3 L1 total_equity: FAIL
+  ? 2025Q3 L1 dividend_per_share: SKIP
+  ? 2025Q3 L2 eps: SKIP
+  ✓ 2025Q3 L2 bps: PASS
+  ✓ 2025Q3 L2 debt_ratio: PASS
+  ✓ 2025Q2 L1 revenue: PASS
+  ✓ 2025Q2 L1 op_income: PASS
+  ? 2025Q2 L1 net_income: SKIP
+  ✓ 2025Q2 L1 total_assets: PASS
+  ✗ 2025Q2 L1 total_equity: FAIL
+  ? 2025Q2 L1 dividend_per_share: SKIP
+  ? 2025Q2 L2 eps: SKIP
+  ✓ 2025Q2 L2 bps: PASS
+  ✓ 2025Q2 L2 debt_ratio: PASS
+  ✓ 2025Q1 L1 revenue: PASS
+  ✓ 2025Q1 L1 op_income: PASS
+  ✗ 2025Q1 L1 net_income: FAIL
+  ✓ 2025Q1 L1 total_assets: PASS
+  ✗ 2025Q1 L1 total_equity: FAIL
+  ? 2025Q1 L1 dividend_per_share: SKIP
+  ✓ 2025Q1 L2 eps: PASS
+  ✓ 2025Q1 L2 bps: PASS
+  ✓ 2025Q1 L2 debt_ratio: PASS
+  ✓ 2025FY L1 revenue: PASS
+  ✓ 2025FY L1 op_income: PASS
+  ✗ 2025FY L1 net_income: FAIL
+  ✓ 2025FY L1 total_assets: PASS
+  ✗ 2025FY L1 total_equity: FAIL
+  ? 2025FY L1 dividend_per_share: SKIP
+  ✓ 2025FY L2 eps: PASS
+  ✓ 2025FY L2 bps: PASS
+  ✓ 2025FY L2 debt_ratio: PASS
+  ✓ 2024Q3 L1 revenue: PASS
+  ✓ 2024Q3 L1 op_income: PASS
+  ✗ 2024Q3 L1 net_income: FAIL
+  ✓ 2024Q3 L1 total_assets: PASS
+  ✗ 2024Q3 L1 total_equity: FAIL
+  ? 2024Q3 L1 dividend_per_share: SKIP
+  ✓ 2024Q3 L2 eps: PASS
+  ✓ 2024Q3 L2 bps: PASS
+  ✓ 2024Q3 L2 debt_ratio: PASS
+  ✓ 2024Q2 L1 revenue: PASS
+  ✓ 2024Q2 L1 op_income: PASS
+  ? 2024Q2 L1 net_income: SKIP
+  ✓ 2024Q2 L1 total_assets: PASS
+  ✗ 2024Q2 L1 total_equity: FAIL
+  ? 2024Q2 L1 dividend_per_share: SKIP
+  ✗ 2024Q2 L2 eps: FAIL
+  ✓ 2024Q2 L2 bps: PASS
+  ✓ 2024Q2 L2 debt_ratio: PASS
+  ✓ 2024FY L1 revenue: PASS
+  ✓ 2024FY L1 op_income: PASS
+  ✗ 2024FY L1 net_income: FAIL
+  ✓ 2024FY L1 total_assets: PASS
+  ✗ 2024FY L1 total_equity: FAIL
+  ? 2024FY L1 dividend_per_share: SKIP
+  ✓ 2024FY L2 eps: PASS
+  ✓ 2024FY L2 bps: PASS
+  ✓ 2024FY L2 debt_ratio: PASS
+  ✓ 2023FY L1 revenue: PASS
+  ✓ 2023FY L1 op_income: PASS
+  ✗ 2023FY L1 net_income: FAIL
+  ✓ 2023FY L1 total_assets: PASS
+  ✗ 2023FY L1 total_equity: FAIL
+  ? 2023FY L1 dividend_per_share: SKIP
+  ✓ 2023FY L2 eps: PASS
+  ✓ 2023FY L2 bps: PASS
+  ✓ 2023FY L2 debt_ratio: PASS
+  ✓ 2022FY L1 revenue: PASS
+  ✓ 2022FY L1 op_income: PASS
+  ? 2022FY L1 net_income: SKIP
+  ✓ 2022FY L1 total_assets: PASS
+  ✓ 2022FY L1 total_equity: PASS
+  ? 2022FY L1 dividend_per_share: SKIP
+  ✗ 2022FY L2 eps: FAIL
+  ✓ 2022FY L2 bps: PASS
+  ✓ 2022FY L2 debt_ratio: PASS
+  ✓ 2021FY L1 revenue: PASS
+  ✓ 2021FY L1 op_income: PASS
+  ✗ 2021FY L1 net_income: FAIL
+  ✓ 2021FY L1 total_assets: PASS
+  ✓ 2021FY L1 total_equity: PASS
+  ✗ 2021FY L1 dividend_per_share: FAIL
+  ✓ 2021FY L2 eps: PASS
+  ✓ 2021FY L2 bps: PASS
+  ✓ 2021FY L2 debt_ratio: PASS
+
+=== Summary ===
+  PASS: 134
+  FAIL: 42
+  SKIP: 22
+
+=== FAIL details (first 30) ===
+  026960 2026Q1 L1 net_income: db=43627599313.0 ref=43127571723.0 
+  026960 2026Q1 L1 total_equity: db=1694821764353.0 ref=14183310129.0 
+  026960 2025Q3 L1 net_income: db=34035597867.0 ref=118117273220.0 
+  026960 2025Q3 L1 total_equity: db=1706720512871.0 ref=14750358388.0 
+  026960 2025Q2 L1 net_income: db=41003607078.0 ref=84343567816.0 
+  026960 2025Q2 L1 total_equity: db=1693693818440.0 ref=14487889332.0 
+  026960 2025Q1 L1 net_income: db=44253331345.0 ref=43874876347.0 
+  026960 2025Q1 L1 total_equity: db=1662728072241.0 ref=1532017784463.0 
+  026960 2025FY L1 net_income: db=146463695390.0 ref=144876386111.0 
+  026960 2025FY L1 total_equity: db=1737278347482.0 ref=1609766686947.0 
+  026960 2025FY L1 dividend_per_share: db=1140.0 ref=None 
+  026960 2024Q3 L1 net_income: db=32789972138.0 ref=131698844321.0 
+  026960 2024Q3 L1 total_equity: db=1674558462138.0 ref=1552736180181.0 
+  026960 2024Q2 L1 net_income: db=47042696005.0 ref=99131613214.0 
+  026960 2024Q2 L1 total_equity: db=1643858605247.0 ref=1520174915083.0 
+  026960 2024FY L1 net_income: db=159046264652.0 ref=1795121876.0 
+  026960 2024FY L1 total_equity: db=1709476549885.0 ref=1694360738168.0 
+  026960 2024FY L1 dividend_per_share: db=890.0 ref=None 
+  026960 2023FY L1 net_income: db=146302302445.0 ref=144859290393.0 
+  026960 2023FY L1 total_equity: db=1622874727791.0 ref=1498046591827.0 
+  026960 2023FY L1 dividend_per_share: db=780.0 ref=None 
+  026960 2022FY L1 dividend_per_share: db=730.0 ref=None 
+  026960 2021FY L1 dividend_per_share: db=700.0 ref=None 
+  059090 2026Q1 L1 net_income: db=-1354888883.0 ref=0.0 
+  059090 2026Q1 L1 total_equity: db=713330508801.0 ref=224064824466.0 
+  059090 2025Q3 L1 total_equity: db=535586575206.0 ref=186915608229.0 
+  059090 2025Q2 L1 total_equity: db=552563093345.0 ref=-23306145707.0 
+  059090 2025Q1 L1 net_income: db=25296513981.0 ref=11362091015.0 
+  059090 2025Q1 L1 total_equity: db=538166003408.0 ref=111823083476.0 
+  059090 2025FY L1 net_income: db=74949266372.0 ref=0.0 

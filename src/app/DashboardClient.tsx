@@ -13,6 +13,7 @@ import NetWorthHistoryChart from "@/components/NetWorthHistoryChart";
 import PortfolioPerformanceChart from "@/components/PortfolioPerformanceChart";
 import ActivityTimeline, { type ActivityItem } from "@/components/ActivityTimeline";
 import Link from "next/link";
+import StockIdentity from "@/components/StockIdentity";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 import { economistCard, severityConfig } from "@/lib/economist-ui";
 
@@ -51,6 +52,7 @@ interface Summary {
 interface RecentSignal {
   id: number;
   ticker: string;
+  stockName: string;
   type: string;
   severity: string;
   description: string;
@@ -242,13 +244,17 @@ export default function DashboardClient({
                       <td className="px-3 py-1.5">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className={`w-0.5 h-8 shrink-0 rounded-sm ${h.category === "Core" ? "bg-brand-green" : "bg-brand-blue"}`} />
-                          <div className="min-w-0">
-                            <p className="font-medium text-text-primary truncate">{h.name}</p>
-                            <p className="text-xs text-text-muted">
-                              <span className="tabular-nums">{h.ticker}</span>
-                              {h.sector && <span className="ml-1.5">· {h.sector}</span>}
-                            </p>
-                          </div>
+                          <StockIdentity
+                            name={h.name}
+                            ticker={h.ticker}
+                            href={`/stocks/${h.ticker}`}
+                            size="sm"
+                            trailing={
+                              h.sector ? (
+                                <span className="text-[10px] text-text-muted">{h.sector}</span>
+                              ) : undefined
+                            }
+                          />
                         </div>
                       </td>
                       <td className="text-right px-2 py-1.5 text-text-secondary tabular-nums hidden sm:table-cell">
@@ -349,9 +355,17 @@ export default function DashboardClient({
                   >
                     <span className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${sev.dot}`} />
                     <div className="min-w-0 flex-1">
-                      <span className={`text-xs font-semibold ${sev.text}`}>{s.severity}</span>
-                      <span className="text-text-muted text-xs ml-1.5">{s.ticker}</span>
-                      <span className="text-text-muted text-xs ml-1.5">{s.detectedAt?.slice(0, 10)}</span>
+                      <div className="flex items-start gap-2 flex-wrap">
+                        <span className={`text-xs font-semibold shrink-0 ${sev.text}`}>{s.severity}</span>
+                        <StockIdentity
+                          name={s.stockName}
+                          ticker={s.ticker}
+                          href={`/stocks/${s.ticker}`}
+                          size="sm"
+                          className="flex-1 min-w-[8rem]"
+                        />
+                        <span className="text-text-muted text-xs shrink-0">{s.detectedAt?.slice(0, 10)}</span>
+                      </div>
                       <p className="text-text-secondary text-xs mt-0.5 line-clamp-2">{s.description}</p>
                     </div>
                   </div>

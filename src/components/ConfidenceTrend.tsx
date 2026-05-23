@@ -20,6 +20,7 @@ interface TrendPoint {
   avgScore: number;
   count: number;
   ticker: string | null;
+  stockName: string | null;
   emotionTag: string | null;
 }
 
@@ -59,12 +60,18 @@ function scoreDotColor(score: number) {
 function CustomTooltip({
   active,
   payload,
+  raw,
 }: {
   active?: boolean;
   payload?: { payload: TrendPoint }[];
+  raw: RawEntry[];
 }) {
   if (!active || !payload?.[0]) return null;
   const p = payload[0].payload;
+  const displayName =
+    p.stockName ??
+    raw.find((r) => r.ticker === p.ticker)?.name ??
+    p.ticker;
   return (
     <div className="bg-[var(--color-bg-surface)] border border-[var(--color-border-strong)] rounded-xl px-4 py-3 text-xs shadow-xl min-w-[140px]">
       <div className="text-[var(--color-text-secondary)] mb-1">{p.date}</div>
@@ -81,7 +88,10 @@ function CustomTooltip({
       <div className="text-[var(--color-text-muted)]">{scoreLabel(p.avgScore)}</div>
       {p.ticker && (
         <div className="mt-1 text-[var(--color-text-secondary)]">
-          종목: <span className="text-[var(--color-text-primary)] font-mono">{p.ticker}</span>
+          <span className="block text-[var(--color-text-primary)] font-semibold text-sm">{displayName}</span>
+          {displayName !== p.ticker && (
+            <span className="text-[11px] text-[var(--color-text-muted)] font-mono">{p.ticker}</span>
+          )}
         </div>
       )}
       {p.emotionTag && (
@@ -240,7 +250,7 @@ export default function ConfidenceTrend() {
             tickLine={false}
             width={24}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip raw={raw} />} />
           {/* 기준선 3점 */}
           <ReferenceLine
             y={3}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StockIdentity from "@/components/StockIdentity";
 import { economistCard } from "@/lib/economist-ui";
 
 export type ActivityItem = {
@@ -36,12 +37,14 @@ export default function ActivityTimeline({ items }: { items: ActivityItem[] }) {
                   {KIND_ICON[item.kind]}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-text-primary tabular-nums">
-                      {item.ticker}
-                    </span>
-                    <span className="text-xs text-text-muted truncate">{item.stockName}</span>
-                    <span className="text-xs text-text-disabled">{item.at.slice(0, 10)}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <StockIdentity
+                      name={item.stockName}
+                      ticker={item.ticker}
+                      size="sm"
+                      className="flex-1"
+                    />
+                    <span className="text-xs text-text-disabled shrink-0">{item.at.slice(0, 10)}</span>
                   </div>
                   <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{item.title}</p>
                   {item.detail && (

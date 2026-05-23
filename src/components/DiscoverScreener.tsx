@@ -8,10 +8,10 @@ import {
   btnPrimary,
   economistCard,
   inputClass,
-  linkMuted,
   marketBadge,
 } from "@/lib/economist-ui";
 import { EconomistAlert } from "@/components/EconomistPage";
+import StockIdentity from "@/components/StockIdentity";
 
 type ScreenStock = {
   stockId: number;
@@ -299,16 +299,22 @@ export default function DiscoverScreener() {
                       />
                     </td>
                     <td className="px-2 py-1.5">
-                      <Link href={`/stocks/${s.ticker}`} className={linkMuted}>
-                        <span className="font-medium text-text-primary">{s.name}</span>
-                        <span className="text-text-muted ml-1 text-xs">{s.ticker}</span>
-                      </Link>
-                      <span className={`ml-1 text-[10px] ${marketBadge[s.market] ?? ""}`}>
-                        {s.market}
-                      </span>
-                      {s.isHeld && (
-                        <span className="ml-1 text-[10px] text-brand-green">보유</span>
-                      )}
+                      <StockIdentity
+                        name={s.name}
+                        ticker={s.ticker}
+                        href={`/stocks/${s.ticker}`}
+                        size="sm"
+                        trailing={
+                          <>
+                            <span className={`text-[10px] px-1 py-0.5 rounded ${marketBadge[s.market] ?? ""}`}>
+                              {s.market}
+                            </span>
+                            {s.isHeld && (
+                              <span className="text-[10px] text-brand-green">보유</span>
+                            )}
+                          </>
+                        }
+                      />
                     </td>
                     <td className="text-right px-2 py-1.5 tabular-nums text-text-secondary">
                       {s.per ?? "—"}

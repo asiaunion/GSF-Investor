@@ -11,6 +11,7 @@ import {
 } from "@/lib/economist-ui";
 import type { StockSetting, LoanSetting } from "./page";
 import CurrencyPreferenceSection from "@/components/CurrencyPreferenceSection";
+import StockIdentity from "@/components/StockIdentity";
 
 type Props = {
   stocks: StockSetting[];
@@ -396,25 +397,31 @@ export default function SettingsClient({ stocks: initialStocks, loans: initialLo
                   onClick={() => handleExpand(stock)}
                 >
                   {/* 배지 */}
-                  <div className="shrink-0 w-10 h-10 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] flex items-center justify-center text-xs font-bold text-[var(--color-text-primary)]">
-                    {stock.ticker.slice(0, 4)}
+                  <div className="shrink-0 w-10 h-10 rounded-lg bg-[var(--color-bg-elevated)] border border-[var(--color-border-strong)] flex items-center justify-center text-sm font-bold text-[var(--color-text-primary)]">
+                    {(stock.name || stock.ticker).slice(0, 1)}
                   </div>
 
-                  {/* 정보 */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-semibold text-[var(--color-text-primary)]">{stock.name}</span>
-                      <span className="text-xs text-[var(--color-text-muted)]">{stock.ticker}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
-                        {stock.market}
-                      </span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${categoryBadge(stock.category)}`}>
-                        {stock.category}
-                      </span>
-                      {inactive && (
-                        <span className="text-xs bg-[var(--color-bg-elevated)] text-[var(--color-text-disabled)] px-1.5 py-0.5 rounded">비활성</span>
-                      )}
-                    </div>
+                    <StockIdentity
+                      name={stock.name}
+                      ticker={stock.ticker}
+                      size="sm"
+                      trailing={
+                        <>
+                          <span className={`text-[10px] px-1 py-0.5 rounded font-medium ${marketBadge[stock.market] ?? ""}`}>
+                            {stock.market}
+                          </span>
+                          <span className={`text-[10px] px-1 py-0.5 rounded font-medium ${categoryBadge(stock.category)}`}>
+                            {stock.category}
+                          </span>
+                          {inactive && (
+                            <span className="text-[10px] bg-[var(--color-bg-elevated)] text-[var(--color-text-disabled)] px-1 py-0.5 rounded">
+                              비활성
+                            </span>
+                          )}
+                        </>
+                      }
+                    />
                     <p className="text-xs text-[var(--color-text-disabled)] mt-0.5 truncate">
                       {stock.thesis || "테제 미입력"}
                     </p>

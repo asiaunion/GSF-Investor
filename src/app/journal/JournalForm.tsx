@@ -128,7 +128,7 @@ export default function JournalForm({ onSuccess }: Props) {
             <option value="">종목 선택...</option>
             {stocks.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.ticker} — {s.name}
+                {s.name} ({s.ticker})
               </option>
             ))}
           </select>

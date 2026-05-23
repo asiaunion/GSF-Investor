@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import StockIdentity from "@/components/StockIdentity";
 import { btnDanger, btnPrimary, emotionBadge } from "@/lib/economist-ui";
 
 type JournalRow = {
@@ -96,8 +97,13 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
       <div className="bg-bg-surface border border-border-default rounded-2xl p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-xl font-bold font-mono text-text-primary">{initial.ticker}</span>
+            <div className="flex items-center gap-3 flex-wrap mb-1">
+              <StockIdentity
+                name={initial.name ?? initial.ticker ?? "—"}
+                ticker={initial.ticker ?? ""}
+                href={initial.ticker ? `/stocks/${initial.ticker}` : undefined}
+                size="lg"
+              />
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border ${actionColor}`}>
                 {initial.action}
               </span>
@@ -107,7 +113,6 @@ export default function JournalDetailClient({ initial }: { initial: JournalRow }
                 </span>
               )}
             </div>
-            <p className="text-text-muted text-sm">{initial.name}</p>
           </div>
           <div className="flex gap-2 items-center">
             {!editing ? (
