@@ -8,12 +8,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-if [[ -f .env.local ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source <(grep -E '^(CRON_SECRET|VERCEL_URL)=' .env.local 2>/dev/null | sed 's/^/export /') || true
-  set +a
-fi
+for envfile in .env.local .env.vercel.tmp; do
+  if [[ -f "$envfile" && -z "${CRON_SECRET:-}" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source "$envfile" 2>/dev/null || true
+    set +a
+  fi
+done
 
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 SECRET="${CRON_SECRET:-}"
