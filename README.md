@@ -1,3 +1,15 @@
+## 📸 Live Demo
+
+> 🔐 Google OAuth 인증 전용 시스템입니다. 스크린샷으로 확인해주세요.
+
+**▶ [https://gsf-investor.vercel.app](https://gsf-investor.vercel.app)**
+
+| 포트폴리오 대시보드 | AI 분석 보고서 |
+|---|---|
+| ![dashboard](docs/screenshots/dashboard.png) | ![reports](docs/screenshots/reports.png) |
+
+---
+
 # GSF-Investor
 
 개인 투자 시스템 — 자동 모니터링 + AI 분석 + 매매 일지 + 종목 발굴
