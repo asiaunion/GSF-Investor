@@ -27,8 +27,8 @@
 | snapshot-history API | 완료 | holding_snapshots 테이블 직접 조회, returnPct 파생 계산 |
 | HoldingReturnChart UI | 완료 | Phase 4 |
 | DB 마이그레이션 (로컬) | 미확인 | sqlite3 local.db ".tables" 확인 필요 |
-| prod 마이그레이션 | 미실행 | Step 3 — Joseph 승인 필요 |
-| 첫 데이터 적재 | 미실행 | prod 마이그레이션 후 workflow_dispatch 수동 1회 |
+| prod 마이그레이션 | ✅ 완료 | prod `holding_snapshots` 테이블 존재 (86 rows, 2026-06-21) |
+| 첫 데이터 적재 | ✅ 완료 | 2026-06-21 4종목 스냅샷 적재됨 |
 
 ### 다음 액션 순서
 1. 로컬: sqlite3 local.db ".tables" | grep snapshot → 없으면 db:generate + db:migrate
@@ -39,4 +39,16 @@
 
 ### 주의 사항
 - REAL_DATA_RUN_ACK가 yml에 하드코딩 — 현재 허용 가능 수준이나 향후 GitHub Secrets 이관 권장
-- v2 스펙 잔여 항목 (net-worth/history Stacked Area, /discover 스크리너) 별도 우선순위 확정 필요
+- v2 스펙 잔여: UI 수동 검증(B.5), CRON_SECRET 스모크, P1 백로그
+
+---
+
+## 2026-06-21 — Cursor 후속 (커밋·CI·prod 검증)
+
+| 항목 | 결과 |
+|------|------|
+| 커밋·push | `2990a52` 6-Phase, `1071897` CI/YAML fix |
+| prod holding_snapshots | 86 rows, 오늘 4건 — migrate 불필요 |
+| ag:session:checkpoint | 2026-06-21 갱신, Vercel dpl_CKjwfbNac… |
+| CI 수정 | workflow YAML + package-lock vitest@3 sync |
+| 미완 | B.5 UI 수동 검증, CRON_SECRET 스모크, Telegram Secrets 확인 |
