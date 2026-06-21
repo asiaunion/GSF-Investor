@@ -177,7 +177,7 @@ python3 scripts/holding_snapshot.py
 | 5 | Discover compare | `/discover?compare=TICK1,TICK2` | 비교 차트 | ✅ 026960 vs 069500 정규화 % + 지표 테이블 |
 | 6 | AI 보고서 생성 | `/reports` → Generate | Gemini streaming; 실패 시 Claude fallback | ✅ 동서(026960), Gemini 2.5 Flash, 저장 완료 |
 | 7 | 배당 캘린더 | `/dividends` | 목록·필터 | ✅ 19건, yfinance, 보유 추정 표시 |
-| 8 | Settings 통화 | `/settings` | base_currency 변경 → 대시보드 KPI 반영 | 🟡 설정 UI·KRW 선택 확인 — **통화 변경 후 KPI 반영** 미확인 |
+| 8 | Settings 통화 | `/settings` | base_currency 변경 → 대시보드 KPI 반영 | ✅ USD·JPY 변경 시 KPI·순자산 차트 Y축 반영 (2026-06-21) |
 
 **추가 페이지 (B.5 외, Joseph 2026-06-21 확인):**
 
@@ -191,8 +191,7 @@ python3 scripts/holding_snapshot.py
 | `/discover` 스크리너 | ✅ 필터 UI — 결과 0건(조건 미실행 또는 미보유 필터) |
 | `/discover` AI 스코어보드 | ✅ 동서 A(93), 레이더·순위 |
 
-- [x] B.5 핵심 8항목 중 **7/8 확인** (#8 통화 변경 후 KPI만 미확인)
-- [ ] #8 USD/JPY 변경 → 대시보드 KPI 재확인
+- [x] B.5 핵심 8항목 **전부 확인** (2026-06-21 Joseph)
 
 **스크리너 범위 (Joseph 확인 2026-06-21):**
 

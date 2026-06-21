@@ -61,7 +61,7 @@
 
 - **커밋:** `2990a52` → `e04e548` → `76fe367` (main push 완료, CI ✅)
 - **prod:** holding_snapshots 86 rows, AI 보고서·Compare·대시보드 등 Joseph UI 검증
-- **B.5:** 7/8 완료 — #8 Settings 통화 변경 → KPI 반영만 미확인
+- **B.5:** **8/8 완료** — #8 USD/JPY 통화 변경 → 대시보드 KPI·순자산 차트 Y축 반영 확인
 - **스크리너:** KRX 전체 아님 = 등록 관심종목(4활성)만 — UI 안내 문구 반영 (`76fe367`)
 - **미완:** CRON_SECRET 스모크, Telegram Secrets UI 확인, P2(시그널 KPI·배당 집계·MDLZ 통화)
 - **다음 세션:** `docs/operations/prod-deploy-checklist-2026-06-21.md` §B.6·#8
