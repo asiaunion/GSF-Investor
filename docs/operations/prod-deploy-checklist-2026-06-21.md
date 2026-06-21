@@ -86,7 +86,8 @@ npm run build
 ### A.3 push 후
 
 - [x] Vercel production deploy 성공 확인 (2990a52 push → 자동 배포)
-- [ ] GitHub Actions secrets 존재 확인: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (gh PAT 403 — Vercel/GitHub UI에서 확인)
+- [x] GitHub Actions secrets 존재 확인: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (Joseph 2026-06-21 UI)
+- [x] Vercel Production: `CRON_SECRET`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` 존재 (Sensitive — 값 비표시)
 - [ ] (선택) `quarterly_financials.yml` workflow_dispatch 1회 — KR 재무 적재 테스트
 - [x] CI lockfile sync + workflow YAML 수정 (2026-06-21 follow-up)
 
@@ -101,7 +102,8 @@ npm run build
 
 - [ ] Turso 콘솔에서 **복구/스냅샷** 수단 확인
 - [x] `.env.local`의 `TURSO_DATABASE_URL` = `libsql://gsf-investor-asiaunion.aws-ap-northeast-1.turso.io` (2026-06-21 확인)
-- [ ] `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`가 GitHub Secrets + Vercel env에 설정됨
+- [x] `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` GitHub Secrets + Vercel Production (Joseph 2026-06-21)
+- [x] `CRON_SECRET` Vercel Production 등록 확인 (값은 Sensitive라 UI 비표시)
 - [x] 로컬에서 `npm run build` / `npm run test` 통과 (§A.2)
 
 ### B.1 AG Safe Session checkpoint
@@ -214,16 +216,14 @@ python3 scripts/holding_snapshot.py
 
 ### B.6 크론·알림 스모크
 
-```bash
-# 순자산 cron (Vercel)
-bash scripts/smoke_net_worth_cron.sh
+> **2026-06-21 Joseph:** Secrets UI 확인 완료. `CRON_SECRET` 값은 Vercel Sensitive라 재열람 불가 → **smoke 스크립트 보류** (재발급·rotate 시 `scripts/smoke_net_worth_cron.sh`).
 
-# (선택) 배당 workflow 트리거
-bash scripts/trigger_dividend_workflow.sh
-```
-
-- [ ] `smoke_net_worth_cron.sh` exit 0
-- [ ] (의도적 실패 테스트 시) Telegram 알림 수신 확인 — **prod에서 실패 유도 금지**, staging 또는 로컬만
+- [x] GitHub `TELEGRAM_*` 존재
+- [x] Vercel `CRON_SECRET` + `TELEGRAM_*` 존재
+- [x] SEC/DART 등 Telegram 알림 **과거 수신** (실사용 확인)
+- [ ] `smoke_net_worth_cron.sh` HTTP 200 — **보류** (CRON_SECRET 재발급 시)
+- [ ] 순자산 `📊 [GSF 순자산 스냅샷]` Telegram — **보류** (선택)
+- [ ] (선택) 크론 실패 Telegram — prod 실패 유도 금지
 
 ### B.7 2일 후 후속 (포트폴리오 수익률 차트)
 
@@ -245,9 +245,11 @@ turso db restore gsf-investor backups/ag-sessions/<session_id>.db
 
 ## D. 완료 후
 
-- [ ] `_handoff.md`에 prod migrate·첫 스냅샷 결과 append
-- [ ] `WEEKLY_STATUS.md` P0 항목 체크
-- [ ] `docs/specs/2026-05-21-investor-upgrade-design-v2.md` §3.3·§12 DoD 체크박스 갱신 (선택)
+- [x] `_handoff.md` prod 검증·B.5·B.6(부분) 기록
+- [x] `WEEKLY_STATUS.md` — (선택) 다음 세션 갱신
+- [ ] v2 spec DoD 체크박스 갱신 (선택)
+
+**prod 배포 검증 종료 (2026-06-21):** B.5 8/8 ✅ · B.6 Secrets UI ✅ · smoke 보류
 
 ---
 

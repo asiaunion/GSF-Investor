@@ -63,6 +63,17 @@
 - **prod:** holding_snapshots 86 rows, AI 보고서·Compare·대시보드 등 Joseph UI 검증
 - **B.5:** **8/8 완료** — #8 USD/JPY 통화 변경 → 대시보드 KPI·순자산 차트 Y축 반영 확인
 - **스크리너:** KRX 전체 아님 = 등록 관심종목(4활성)만 — UI 안내 문구 반영 (`76fe367`)
-- **미완:** CRON_SECRET 스모크, Telegram Secrets UI 확인, P2(시그널 KPI·배당 집계·MDLZ 통화)
-- **다음 세션:** `docs/operations/prod-deploy-checklist-2026-06-21.md` §B.6·#8
-- **Claude 부재:** Cursor 단독 세션
+- **미완(보류):** CRON smoke (Sensitive 값 재열람 불가), P2 백로그
+- **다음 세션:** P2 또는 CRON_SECRET rotate 후 smoke 1회 (선택)
+
+---
+
+## [2026-06-21] prod 검증 종료 (Joseph)
+
+| 구간 | 상태 |
+|------|------|
+| B.5 UI 8/8 | ✅ 통화 USD/JPY 포함 |
+| B.6 Secrets | ✅ GitHub + Vercel UI (CRON/TELEGRAM 존재) |
+| B.6 smoke | ⏸ 보류 — Vercel Sensitive, 재발급 번거로움 |
+| Telegram | SEC/DART 과거 수신 OK · 순자산 smoke 미실행 |
+
