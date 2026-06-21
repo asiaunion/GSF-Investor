@@ -85,9 +85,10 @@ npm run build
 
 ### A.3 push 후
 
-- [ ] Vercel production deploy 성공 확인
-- [ ] GitHub Actions secrets 존재 확인: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`
+- [x] Vercel production deploy 성공 확인 (2990a52 push → 자동 배포)
+- [ ] GitHub Actions secrets 존재 확인: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (gh PAT 403 — Vercel/GitHub UI에서 확인)
 - [ ] (선택) `quarterly_financials.yml` workflow_dispatch 1회 — KR 재무 적재 테스트
+- [x] CI lockfile sync + workflow YAML 수정 (2026-06-21 follow-up)
 
 ---
 
@@ -99,9 +100,9 @@ npm run build
 ### B.0 사전 확인
 
 - [ ] Turso 콘솔에서 **복구/스냅샷** 수단 확인
-- [ ] `.env.local`의 `TURSO_DATABASE_URL`이 **운영 gsf-investor** 인스턴스인지 사람이 확인
+- [x] `.env.local`의 `TURSO_DATABASE_URL` = `libsql://gsf-investor-asiaunion.aws-ap-northeast-1.turso.io` (2026-06-21 확인)
 - [ ] `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`가 GitHub Secrets + Vercel env에 설정됨
-- [ ] 로컬에서 `npm run build` / `npm run test` 통과 (§A.2)
+- [x] 로컬에서 `npm run build` / `npm run test` 통과 (§A.2)
 
 ### B.1 AG Safe Session checkpoint
 
@@ -129,7 +130,7 @@ DRY_RUN=1 python3 scripts/holding_snapshot.py
 ```
 
 - [ ] `local.db`에 `holding_snapshots` 테이블 존재
-- [ ] DRY_RUN 로그에 종가·환산값 오류 없음
+- [x] DRY_RUN 로그에 종가·환산값 오류 없음 (prod URL, 4종목, 2026-06-21)
 
 ### B.3 prod 스키마 migrate
 
@@ -138,8 +139,8 @@ REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE npm run db:migrate
 REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE npm run db:views   # v_portfolio 재적용
 ```
 
-- [ ] migrate exit 0
-- [ ] Turso 콘솔 또는 CLI로 `holding_snapshots` 테이블 존재 확인
+- [x] migrate exit 0 — **prod `holding_snapshots` 테이블 이미 존재** (2026-06-21 확인)
+- [x] Turso prod: 86 rows, 최근 `2026-06-21` 4건
 
 ```bash
 # Turso CLI 예시
@@ -162,8 +163,8 @@ export REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE
 python3 scripts/holding_snapshot.py
 ```
 
-- [ ] `holding_snapshots`에 오늘 날짜 행 ≥ 1건
-- [ ] `market_value_krw`, `unrealized_pnl_krw` NULL 아님 (보유 종목 있는 경우)
+- [x] `holding_snapshots`에 오늘 날짜 행 ≥ 1건 (2026-06-21, 4 rows)
+- [x] `market_value_krw`, `unrealized_pnl_krw` 값 존재 (보유 4종목)
 
 ### B.5 prod UI 수동 검증
 

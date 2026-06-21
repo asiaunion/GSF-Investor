@@ -43,8 +43,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          TEXT="🔴 <b>크론 실패: holding_snapshot</b> | Run ${{ github.run_id }} | $(date '+%Y-%m-%d %H:%M UTC')"
           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             -d chat_id="${TELEGRAM_CHAT_ID}" \
             -d parse_mode="HTML" \
-            --data-urlencode text="🔴 <b>크론 실패: holding_snapshot</b>
-실행: $(date '+%Y-%m-%d %H:%M UTC') | Run: ${{ github.run_id }}"
+            --data-urlencode "text=${TEXT}"
