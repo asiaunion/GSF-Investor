@@ -54,3 +54,15 @@
 | 미완 | B.5 #4·#5·#8(통화 변경), CRON_SECRET 스모크, Telegram Secrets |
 | **B.5 prod UI** | ✅ 6/8 + 추가 7페이지 (2026-06-21 Joseph 스크린샷) |
 | **B.7 포트폴리오 차트** | ✅ 2일+ 스냅샷·수익률 라인 확인 |
+
+---
+
+## [2026-06-21 세션 종료] Cursor — GSF-Investor prod 안정화
+
+- **커밋:** `2990a52` → `e04e548` → `76fe367` (main push 완료, CI ✅)
+- **prod:** holding_snapshots 86 rows, AI 보고서·Compare·대시보드 등 Joseph UI 검증
+- **B.5:** 7/8 완료 — #8 Settings 통화 변경 → KPI 반영만 미확인
+- **스크리너:** KRX 전체 아님 = 등록 관심종목(4활성)만 — UI 안내 문구 반영 (`76fe367`)
+- **미완:** CRON_SECRET 스모크, Telegram Secrets UI 확인, P2(시그널 KPI·배당 집계·MDLZ 통화)
+- **다음 세션:** `docs/operations/prod-deploy-checklist-2026-06-21.md` §B.6·#8
+- **Claude 부재:** Cursor 단독 세션
