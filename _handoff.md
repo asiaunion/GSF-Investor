@@ -51,4 +51,6 @@
 | prod holding_snapshots | 86 rows, 오늘 4건 — migrate 불필요 |
 | ag:session:checkpoint | 2026-06-21 갱신, Vercel dpl_CKjwfbNac… |
 | CI 수정 | workflow YAML + package-lock vitest@3 sync |
-| 미완 | B.5 UI 수동 검증, CRON_SECRET 스모크, Telegram Secrets 확인 |
+| 미완 | B.5 #4·#5·#8(통화 변경), CRON_SECRET 스모크, Telegram Secrets |
+| **B.5 prod UI** | ✅ 6/8 + 추가 7페이지 (2026-06-21 Joseph 스크린샷) |
+| **B.7 포트폴리오 차트** | ✅ 2일+ 스냅샷·수익률 라인 확인 |

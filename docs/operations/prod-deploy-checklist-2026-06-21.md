@@ -168,18 +168,50 @@ python3 scripts/holding_snapshot.py
 
 ### B.5 prod UI 수동 검증
 
-| # | 확인 항목 | URL / 방법 | 기대 |
-|---|-----------|------------|------|
-| 1 | 대시보드 로드 | `/` | KPI·NetWorthHistoryChart 표시 |
-| 2 | 순자산 차트 | `/` Stacked Area | `net_worth_snapshots` 데이터 있으면 곡선 |
-| 3 | 포트폴리오 수익률 | `/` PortfolioPerformanceChart | **2일+** 스냅샷 후 곡선 (1일만이면 empty state 정상) |
-| 4 | 종목 상세 수익률 | `/stocks/[ticker]` | HoldingReturnChart (스냅샷 후) |
-| 5 | Discover compare | `/discover?compare=TICK1,TICK2` | 비교 차트 |
-| 6 | AI 보고서 생성 | `/reports` → Generate | Gemini streaming; 실패 시 Claude fallback |
-| 7 | 배당 캘린더 | `/dividends` | 목록·필터 |
-| 8 | Settings 통화 | `/settings` | base_currency 변경 → 대시보드 KPI 반영 |
+| # | 확인 항목 | URL / 방법 | 기대 | prod 검증 |
+|---|-----------|------------|------|-----------|
+| 1 | 대시보드 로드 | `/` | KPI·NetWorthHistoryChart 표시 | ✅ 2026-06-21 — KPI·보유 4종목·시그널·대출 |
+| 2 | 순자산 차트 | `/` Stacked Area | `net_worth_snapshots` 데이터 있으면 곡선 | ✅ 순자산 추이 Area 표시 |
+| 3 | 포트폴리오 수익률 | `/` PortfolioPerformanceChart | **2일+** 스냅샷 후 곡선 | ✅ 수익률 라인 + 벤치마크(069500) 오버레이 |
+| 4 | 종목 상세 수익률 | `/stocks/[ticker]` | HoldingReturnChart (스냅샷 후) | ✅ `/stocks/026960` 보유 수익률 추이 |
+| 5 | Discover compare | `/discover?compare=TICK1,TICK2` | 비교 차트 | ✅ 026960 vs 069500 정규화 % + 지표 테이블 |
+| 6 | AI 보고서 생성 | `/reports` → Generate | Gemini streaming; 실패 시 Claude fallback | ✅ 동서(026960), Gemini 2.5 Flash, 저장 완료 |
+| 7 | 배당 캘린더 | `/dividends` | 목록·필터 | ✅ 19건, yfinance, 보유 추정 표시 |
+| 8 | Settings 통화 | `/settings` | base_currency 변경 → 대시보드 KPI 반영 | 🟡 설정 UI·KRW 선택 확인 — **통화 변경 후 KPI 반영** 미확인 |
 
-- [ ] 위 8항목 중 실패 항목 없음 (또는 empty state가 데이터 부재로 정당한 경우 문서화)
+**추가 페이지 (B.5 외, Joseph 2026-06-21 확인):**
+
+| URL | 결과 |
+|-----|------|
+| `/wealth` | ✅ 순자산 75,500,967원, 부동산·유가증권·부채 breakdown |
+| `/stocks` | ✅ 관심종목 4개, Core/Satellite, 평가금액 |
+| `/disclosures` | ✅ 공시 목록 정상 |
+| `/signals` | ✅ 시그널 18건 (HIGH/MEDIUM/LOW) — ⚠️ 상단 KPI 카운트 불일치 가능 |
+| `/journal` | ✅ 거래 4건 (INIT 3 + BUY 1) |
+| `/discover` 스크리너 | ✅ 필터 UI — 결과 0건(조건 미실행 또는 미보유 필터) |
+| `/discover` AI 스코어보드 | ✅ 동서 A(93), 레이더·순위 |
+
+- [x] B.5 핵심 8항목 중 **7/8 확인** (#8 통화 변경 후 KPI만 미확인)
+- [ ] #8 USD/JPY 변경 → 대시보드 KPI 재확인
+
+**스크리너 범위 (Joseph 확인 2026-06-21):**
+
+| 질문 | 답 |
+|------|-----|
+| KRX/전체 시장 검색? | ❌ **미지원** — `stocks` 테이블(관심종목)만 대상 |
+| prod 등록 종목 | 5개 (활성 4: 026960, 059090, 069500, MDLZ) |
+| 「보유: 전체」 의미 | 관심종목 중 보유/미보유 필터 (시장 전체 아님) |
+| 새 종목 추가 | 설정 → 신규 종목 추가 (또는 `/api/discover/add`) |
+| 전체 시장 스크리너 | Phase 3 백로그 (종목 마스터 DB 필요) |
+
+**관찰된 P2 이슈 (prod 동작은 OK, 개선 후보):**
+
+| 이슈 | 페이지 | 비고 |
+|------|--------|------|
+| 시그널 KPI 카운트 | `/signals` | 목록에 HIGH/MEDIUM 있으나 상단 카드 0 표시 |
+| 배당 2024 추정 합계 | `/dividends` | KPI 1,291원 vs 테이블 동서 12월 2,314,000원 — 집계 로직 점검 |
+| pay_date 공백 | `/dividends` | yfinance 한계 (문서화됨) |
+| MDLZ 단가 표기 | `/journal` | $60 → ₩60 표기 (통화 심볼) |
 
 ### B.6 크론·알림 스모크
 
@@ -196,8 +228,8 @@ bash scripts/trigger_dividend_workflow.sh
 
 ### B.7 2일 후 후속 (포트폴리오 수익률 차트)
 
-- [ ] holding_snapshot cron 2영업일 연속 실행 확인
-- [ ] `/` PortfolioPerformanceChart에 수익률 라인 표시
+- [x] holding_snapshot cron 2영업일+ 데이터 존재 (prod 86 rows, 6/16~6/21)
+- [x] `/` PortfolioPerformanceChart에 수익률 라인 표시 (Joseph 2026-06-21 스크린샷)
 - [ ] WEEKLY_STATUS.md §B.7 완료 체크
 
 ---

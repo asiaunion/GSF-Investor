@@ -151,7 +151,8 @@ export default function DiscoverScreener() {
     <div className="space-y-4">
       <div className={`${economistCard} p-4 space-y-3`}>
         <p className="text-xs text-text-muted">
-          FY PER/PBR · 1M/1Y 수익률 · 52주 고점 대비 · 매출 YoY · 최대 5종목 비교
+          <strong className="text-text-secondary">등록 관심종목</strong> 중 PER/PBR · 1M/1Y · 52주 · 매출 YoY 필터
+          (KRX 전체가 아님 — 설정 → 신규 종목 추가 후 스크리닝) · 최대 5종목 비교
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label className="text-xs text-text-muted">
