@@ -6,6 +6,7 @@ import {
   fetchFyGrowthByStockId,
   fetchPriceMetricsByStockId,
 } from "@/lib/screener-metrics";
+import { toObjs, toObj } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -57,14 +58,12 @@ export async function GET(req: NextRequest) {
     : null;
 
   try {
-    // 1. v_portfolio에서 보유중인 stock_id 조회
+    // 1. v_portfolio에서 보유중인 stock_id 조회 (stock_id 직접 사용)
     const portfolioRes = await db.run(sql`
-      SELECT s.id AS stock_id
-      FROM v_portfolio vp
-      JOIN stocks s ON s.ticker = vp.ticker AND s.is_active = 1
+      SELECT stock_id FROM v_portfolio
     `);
     const heldStockIds = new Set<number>(
-      portfolioRes.rows.map((r) => Number(r[0]))
+      toObjs(portfolioRes as unknown as import("@/lib/db-utils").RawResult).map((r) => Number(r.stock_id))
     );
 
     // 2. 기본 stocks 조회 (is_active = 1)
@@ -83,7 +82,8 @@ export async function GET(req: NextRequest) {
     }
 
     const stockRes = await db.run(querySql);
-    const stockIds = stockRes.rows.map((r) => Number(r[0]));
+    const stockObjs = toObjs(stockRes as unknown as import("@/lib/db-utils").RawResult);
+    const stockIds = stockObjs.map((r) => Number(r.id));
     const [priceMetricsMap, fyGrowthMap] = await Promise.all([
       fetchPriceMetricsByStockId(stockIds),
       fetchFyGrowthByStockId(stockIds),
@@ -91,13 +91,13 @@ export async function GET(req: NextRequest) {
 
     const results = [];
 
-    for (const row of stockRes.rows) {
-      const stockId = Number(row[0]);
-      const ticker = String(row[1]);
-      const name = String(row[2]);
-      const stockMarket = String(row[3]);
-      const category = String(row[4] ?? "");
-      const sector = String(row[5] ?? "");
+    for (const row of stockObjs) {
+      const stockId = Number(row.id);
+      const ticker = String(row.ticker);
+      const name = String(row.name);
+      const stockMarket = String(row.market);
+      const category = String(row.category ?? "");
+      const sector = String(row.sector ?? "");
 
       // held 필터링
       const isHeld = heldStockIds.has(stockId);
@@ -110,7 +110,9 @@ export async function GET(req: NextRequest) {
         WHERE stock_id = ${stockId}
         ORDER BY date DESC LIMIT 1
       `);
-      const latestPrice = priceRes.rows.length ? Number(priceRes.rows[0][0]) : null;
+      const latestPrice = priceRes.rows.length
+        ? Number(toObj(priceRes as unknown as import("@/lib/db-utils").RawResult).close_price)
+        : null;
 
       // 최신 FY 재무 데이터 조회 ( period LIKE '%FY' )
       const finRes = await db.run(sql`
@@ -128,13 +130,13 @@ export async function GET(req: NextRequest) {
       let finPeriod: string | null = null;
 
       if (finRes.rows.length) {
-        const fr = finRes.rows[0];
-        eps = fr[0] != null ? Number(fr[0]) : null;
-        bps = fr[1] != null ? Number(fr[1]) : null;
-        roe = fr[2] != null ? Number(fr[2]) : null;
-        operatingMargin = fr[3] != null ? Number(fr[3]) : null;
-        dividendPerShare = fr[4] != null ? Number(fr[4]) : null;
-        finPeriod = fr[5] != null ? String(fr[5]) : null;
+        const fr = toObj(finRes as unknown as import("@/lib/db-utils").RawResult);
+        eps = fr.eps != null ? Number(fr.eps) : null;
+        bps = fr.bps != null ? Number(fr.bps) : null;
+        roe = fr.roe != null ? Number(fr.roe) : null;
+        operatingMargin = fr.operating_margin != null ? Number(fr.operating_margin) : null;
+        dividendPerShare = fr.dividend_per_share != null ? Number(fr.dividend_per_share) : null;
+        finPeriod = fr.period != null ? String(fr.period) : null;
       }
 
       // 지표 계산

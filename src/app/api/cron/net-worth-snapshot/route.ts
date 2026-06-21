@@ -35,7 +35,10 @@ export async function GET(request: Request) {
 
     const chatId = process.env.TELEGRAM_CHAT_ID;
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    if (chatId && botToken) {
+    const telegramConfigured = Boolean(chatId && botToken);
+    let telegramSent = false;
+
+    if (telegramConfigured) {
       const fmt = (n: number) => Math.round(n).toLocaleString("ko-KR");
       const message =
         `📊 [GSF 순자산 스냅샷]\n\n` +
@@ -44,11 +47,22 @@ export async function GET(request: Request) {
         `🔻 총부채: ${fmt(summary.totalDebtKrw)}원\n` +
         `(주식 ${fmt(summary.securitiesKrw)} / 비주식자산 ${fmt(summary.wealthAssetsKrw)})`;
 
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: message }),
-      });
+      const tgRes = await fetch(
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: message }),
+        },
+      );
+      telegramSent = tgRes.ok;
+      if (!tgRes.ok) {
+        console.error(
+          "[cron/net-worth-snapshot] Telegram send failed",
+          tgRes.status,
+          await tgRes.text(),
+        );
+      }
     }
 
     return NextResponse.json({
@@ -56,6 +70,8 @@ export async function GET(request: Request) {
       netWorth: summary.netWorthKrw,
       totalAssets: summary.totalAssetsKrw,
       totalDebt: summary.totalDebtKrw,
+      telegramConfigured,
+      telegramSent,
     });
   } catch (e) {
     console.error("[cron/net-worth-snapshot]", e);

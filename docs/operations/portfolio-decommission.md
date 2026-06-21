@@ -1,6 +1,6 @@
-# GSF-Portfolio 폐기 체크리스트 (Phase 5)
+# GSF-Portfolio 폐기 체크리스트 (Phase 5) — 완료
 
-Investor 통합 코드 배포·검증 후 수행합니다.
+Investor 통합·GitHub/Vercel/로컬 정리 완료 (2026-05-23).
 
 ## 사전 조건
 
@@ -8,32 +8,29 @@ Investor 통합 코드 배포·검증 후 수행합니다.
 - [x] `npm run db:wealth-schema` (또는 동일 SQL) **프로덕션 Turso** 적용 완료
 - [x] `scripts/import_wealth_from_sheets.py` 프로덕션 seed 완료 (mock; `/wealth`에서 검토 권장)
 - [x] Vercel `CRON_SECRET` 설정 + `/api/cron/net-worth-snapshot` 스모크 200
-- [ ] Telegram 순자산 알림 수신 확인 (선택 — `TELEGRAM_*` Vercel env)
-- [ ] 순자산 cron 스모크: `./scripts/smoke_net_worth_cron.sh` (로컬 또는 `BASE_URL`+`CRON_SECRET`)
+- [x] Telegram 순자산 알림 — `gsf_investor` (2026-05-23)
+- [x] 순자산 cron 스모크: HTTP 200 (2026-05-23, prod `netWorth` 스냅샷 INSERT 확인)
 
 ## Vercel
 
-- [x] `gsf-portfolio-web` — cron 제거, **308 →** `https://gsf-investor.vercel.app/wealth` (2026-05-20 배포)
-- [x] 커스텀 도메인 없음 (`gsf-portfolio-web.vercel.app`만 사용)
+- [x] `gsf-portfolio-web` — cron 제거, **308 →** Investor `/wealth` (2026-05-20 배포)
+- [x] **Vercel 프로젝트 삭제** (2026-05-23) — `gsf-portfolio-web.vercel.app` 더 이상 사용 안 함
 - [x] Portfolio cron (`/api/cron/snapshot`) 비활성 — Investor `vercel.json` cron만 유지
 - [x] `APP_PIN` Production env 제거
 
 ## GitHub
 
-- [ ] `asiaunion/gsf-portfolio-web` → **Archive**
-  ```bash
-  gh auth login   # 최초 1회
-  ./scripts/archive_portfolio_repo.sh
-  ```
+- [x] `asiaunion/gsf-portfolio-web` — Archive 후 **Delete** (2026-05-23)
 - [x] README: Investor `/wealth`, `/journal` 안내 (`d26fe7a`)
+
+**정본 URL:** https://gsf-investor.vercel.app (`/wealth`, `/journal`, `/`)
 
 ## 로컬
 
-```bash
-tar -czf ~/backup-gsf-portfolio-$(date +%Y%m%d).tar.gz \
-  /Users/gsf/.gemini/antigravity/scratch/projects/GSF-Portfolio
-# 검증 후 폴더 삭제 (선택)
-```
+- [x] 백업 (`~/backup-gsf-portfolio-*.tar.gz`)
+- [x] `GSF-Portfolio` 폴더 삭제 (2026-05-23)
+
+정본 경로만 유지: `/Users/gsf/.gemini/antigravity/scratch/projects/GSF-Investor` · Cursor `GSF-Investor`
 
 ## 시크릿 정리
 

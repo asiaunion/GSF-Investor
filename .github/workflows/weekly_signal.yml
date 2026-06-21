@@ -34,3 +34,15 @@ jobs:
           TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
           REAL_DATA_RUN_ACK: I_ACK_PROD_WRITE
         run: python3 scripts/weekly_signal.py
+
+      - name: Notify failure via Telegram
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode="HTML" \
+            --data-urlencode text="🔴 <b>크론 실패: weekly_signal</b>
+실행: $(date '+%Y-%m-%d %H:%M UTC') | Run: ${{ github.run_id }}"

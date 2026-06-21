@@ -2,29 +2,19 @@ import { auth } from "@/auth";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { toObjs, toObj } from "@/lib/db-utils";
 
 export const runtime = "nodejs";
 
-// 실제 v_portfolio 컬럼: ticker, name, market, category, broker, quantity, avg_price, currency
 export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    // v_portfolio + stocks JOIN → stock_id 확보
+    // v_portfolio는 이미 stock_id를 포함하므로 JOIN 불필요
     const portfolioRows = await db.run(sql`
-      SELECT
-        s.id AS stock_id,
-        vp.ticker,
-        vp.name,
-        vp.market,
-        vp.category,
-        vp.broker,
-        vp.quantity,
-        vp.avg_price,
-        vp.currency
-      FROM v_portfolio vp
-      JOIN stocks s ON s.ticker = vp.ticker
+      SELECT stock_id, ticker, name, market, category, broker, quantity, avg_price, currency
+      FROM v_portfolio
     `);
 
     // 최신 종가
@@ -48,28 +38,31 @@ export async function GET() {
     `);
 
     const latestPriceMap = new Map<number, { closePrice: number; currency: string; date: string }>();
-    for (const row of latestPricesRows.rows) {
-      latestPriceMap.set(Number(row[0]), {
-        closePrice: Number(row[1]),
-        currency: String(row[2]),
-        date: String(row[3]),
+    for (const r of toObjs(latestPricesRows as unknown as import("@/lib/db-utils").RawResult)) {
+      latestPriceMap.set(Number(r.stock_id), {
+        closePrice: Number(r.close_price),
+        currency: String(r.currency),
+        date: String(r.date),
       });
     }
 
-    const usdkrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
-    const fxDate = fxRow.rows.length > 0 ? String(fxRow.rows[0][1]) : null;
+    if (!fxRow.rows.length) {
+      return NextResponse.json({ error: "환율 데이터 없음 — daily_price.py를 먼저 실행하세요" }, { status: 500 });
+    }
+    const fxObjs = toObjs(fxRow as unknown as import("@/lib/db-utils").RawResult);
+    const usdkrw = Number(fxObjs[0].rate);
+    const fxDate = String(fxObjs[0].date);
 
-    // 컬럼 인덱스: stock_id(0), ticker(1), name(2), market(3), category(4), broker(5), quantity(6), avg_price(7), currency(8)
-    const holdings = portfolioRows.rows.map((row) => {
-      const stockId = Number(row[0]);
-      const ticker = String(row[1]);
-      const name = String(row[2]);
-      const market = String(row[3]);
-      const category = String(row[4]);
-      const broker = row[5] ? String(row[5]) : null;
-      const quantity = Number(row[6]);
-      const avgPrice = Number(row[7]);
-      const currency = String(row[8]);
+    const holdings = toObjs(portfolioRows as unknown as import("@/lib/db-utils").RawResult).map((row) => {
+      const stockId = Number(row.stock_id);
+      const ticker = String(row.ticker);
+      const name = String(row.name);
+      const market = String(row.market);
+      const category = String(row.category);
+      const broker = row.broker ? String(row.broker) : null;
+      const quantity = Number(row.quantity);
+      const avgPrice = Number(row.avg_price);
+      const currency = String(row.currency);
 
       const latest = latestPriceMap.get(stockId);
       const currentPrice = latest?.closePrice ?? avgPrice;

@@ -1,0 +1,42 @@
+# GSF-Investor — _handoff.md
+> Claude Code 작업 결과 기록 (Claude.ai 부트 시 §7A 읽기)
+> 마지막 갱신: 2026-06-21
+
+---
+
+## 2026-06-21 — Claude Code 6-Phase 개선 완료
+
+| Phase | 작업 내용 | 효과 |
+|-------|-----------|------|
+| 1 | all-scores N+1 쿼리 최적화 | 종목당 5쿼리 → 전체 7쿼리 (배치) |
+| 2 | auto_financials.py 신규 + quarterly_financials.yml | DB의 모든 KR 종목 재무 자동 수집 (분기 4회 크론) |
+| 3 | Gemini Search Grounding + 프롬프트 업데이트 | AI 보고서에 최신 뉴스·시황·공시 반영 |
+| 4 | snapshot-history API + HoldingReturnChart | 종목 상세 → 보유 수익률 추이 차트 |
+| 5 | GitHub Actions 5개 워크플로우 Telegram 알림 추가 | 크론 실패 즉시 알림 |
+| 6 | ai-provider.ts + Claude fallback in generate/route.ts | Gemini 장애 시 Claude Sonnet 4.6 자동 전환 |
+
+---
+
+## holding_snapshots 파이프라인 검증 완료 (2026-06-21)
+
+| 항목 | 상태 | 비고 |
+|------|------|------|
+| 스키마 정의 (schema.ts:210) | 완료 | uniqueIndex on (stock_id, date) |
+| holding_snapshot.py | 완료 | v_portfolio + stocks 방어 JOIN, INSERT OR REPLACE, REAL_DATA_RUN_ACK 가드 |
+| holding_snapshot.yml | 완료 | KST 18:00 평일 크론, workflow_dispatch, REAL_DATA_RUN_ACK 하드코딩 (향후 Secrets 이관 권장) |
+| snapshot-history API | 완료 | holding_snapshots 테이블 직접 조회, returnPct 파생 계산 |
+| HoldingReturnChart UI | 완료 | Phase 4 |
+| DB 마이그레이션 (로컬) | 미확인 | sqlite3 local.db ".tables" 확인 필요 |
+| prod 마이그레이션 | 미실행 | Step 3 — Joseph 승인 필요 |
+| 첫 데이터 적재 | 미실행 | prod 마이그레이션 후 workflow_dispatch 수동 1회 |
+
+### 다음 액션 순서
+1. 로컬: sqlite3 local.db ".tables" | grep snapshot → 없으면 db:generate + db:migrate
+2. 로컬: DRY_RUN=1 python3 scripts/holding_snapshot.py — 종가·환산값 확인
+3. prod: ag:session:checkpoint → REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE npm run db:migrate
+4. GitHub Actions → holding_snapshot.yml → workflow_dispatch 수동 1회 실행
+5. 종목 상세 → HoldingReturnChart 데이터 표시 확인
+
+### 주의 사항
+- REAL_DATA_RUN_ACK가 yml에 하드코딩 — 현재 허용 가능 수준이나 향후 GitHub Secrets 이관 권장
+- v2 스펙 잔여 항목 (net-worth/history Stacked Area, /discover 스크리너) 별도 우선순위 확정 필요

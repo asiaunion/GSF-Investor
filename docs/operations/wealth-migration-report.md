@@ -42,11 +42,11 @@ REAL_DATA_RUN_ACK=I_ACK_PROD_WRITE python3 scripts/import_wealth_from_sheets.py 
 
 ## 주식 포지션 재입력 체크리스트
 
-1. [ ] `/settings`에서 관심 종목·`yahoo_ticker` 확인
-2. [ ] `/journal` → 종목별 **INIT** (증권사·수량·평균단가·통화)
-3. [ ] `/` 대시보드에 보유·평가·수익률 표시 확인
-4. [ ] `/wealth` 순자산에 **주식 평가** 합산 반영 확인
-5. [ ] `scripts/daily_price.py` 또는 크론으로 주가 갱신
+1. [x] `/settings`에서 관심 종목·`yahoo_ticker` 확인 (2026-05-23)
+2. [x] `/journal` → 종목별 **INIT** (증권사·수량·평균단가·통화) (2026-05-23)
+3. [x] `/` 대시보드에 보유·평가·수익률 표시 확인 (2026-05-23)
+4. [x] `/wealth` 순자산에 **주식 평가** 합산 반영 확인 (2026-05-23)
+5. [ ] `scripts/daily_price.py` 또는 크론으로 주가 갱신 (Actions 평일 cron)
 
 ## 검증 (컷오버)
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { toObj } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const stockId = Number(stockRow.rows[0][0]);
+  const stockId = Number(toObj(stockRow as unknown as import("@/lib/db-utils").RawResult).id);
 
   await db.run(sql`
     INSERT INTO stock_notes (stock_id, content_md, created_at, updated_at)

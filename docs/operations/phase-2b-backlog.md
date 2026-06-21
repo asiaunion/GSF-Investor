@@ -39,11 +39,12 @@
 
 - 종목 상세 인라인 레이더
 - TYO·업종 레이더
-- 스냅샷 cron 실패 알림 (Telegram 등)
+- [x] 스냅샷 cron 실패 알림 (Telegram) — 6-Phase 로컬, 5 workflows (미커밋)
 
 ## 운영
 
-- `holding_snapshots` **2일+** → 포트폴리오 수익률 차트 표시
-- [wealth-migration-report.md](./wealth-migration-report.md) — 일지 재입력 2단계 컷오버
-- [portfolio-decommission.md](./portfolio-decommission.md) — GitHub archive (수동)
+- `holding_snapshots` **2일+** → 포트폴리오 수익률 차트 표시 (cron 2일 후 자동)
+- [ ] [wealth-migration-report.md](./wealth-migration-report.md) — `/journal` **INIT** 재입력 (사용자 데이터)
+- [x] [portfolio-decommission.md](./portfolio-decommission.md) — GitHub/Vercel/로컬 삭제 (2026-05-23)
+- [ ] 순자산 cron 스모크 · Telegram 알림 확인 (선택)
 - cron 표: [README.md](../../README.md#데이터-수집-cron-kst)

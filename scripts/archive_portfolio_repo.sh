@@ -13,10 +13,12 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 echo "→ Archive $REPO"
-read -r -p "계속할까요? [y/N] " ans
-if [[ "${ans,,}" != "y" ]]; then
-  echo "취소됨"
-  exit 0
+if [[ "${ARCHIVE_YES:-}" != "1" ]]; then
+  read -r -p "계속할까요? [y/N] " ans
+  if [[ "${ans,,}" != "y" ]]; then
+    echo "취소됨"
+    exit 0
+  fi
 fi
 
 gh repo archive "$REPO" --yes

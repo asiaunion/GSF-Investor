@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 import {
   GEMINI_MODEL,
   GEMINI_MAX_TOKENS,
+  GEMINI_TOOLS_WITH_SEARCH,
   buildAnalysisPrompt,
   buildChartsJson,
   type FinancialData,
@@ -13,6 +14,7 @@ import {
   type SignalData,
   type DisclosureData,
 } from "@/lib/gemini";
+import { toObjs, toObj } from "@/lib/db-utils";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // allow longer execution for batch processing
@@ -48,13 +50,22 @@ export async function POST(req: NextRequest) {
 
   const reportsCreated: { ticker: string; inserted: boolean }[] = [];
 
-  for (const row of stockRows.rows) {
-    const stockId = Number(row[0]);
-    const ticker = String(row[1]);
-    const name = String(row[2]);
-    const market = String(row[3]);
-    const category = String(row[4]);
-    const thesis = row[5] ? String(row[5]) : "투자 테제 미입력";
+  // 환율은 루프 밖에서 1회만 조회
+  const fxRow = await db.run(sql`
+    SELECT rate FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1`
+  );
+  if (!fxRow.rows.length) {
+    return NextResponse.json({ error: "환율 데이터 없음 — daily_price.py를 먼저 실행하세요" }, { status: 500 });
+  }
+  const usdkrw = Number(toObj(fxRow as unknown as import("@/lib/db-utils").RawResult).rate);
+
+  for (const row of toObjs(stockRows as unknown as import("@/lib/db-utils").RawResult)) {
+    const stockId = Number(row.id);
+    const ticker = String(row.ticker);
+    const name = String(row.name);
+    const market = String(row.market);
+    const category = String(row.category);
+    const thesis = row.thesis ? String(row.thesis) : "투자 테제 미입력";
 
     // 3️⃣ 데이터 수집
     const finRows = await db.run(sql`
@@ -63,18 +74,18 @@ export async function POST(req: NextRequest) {
       WHERE stock_id = ${stockId}
       ORDER BY period DESC LIMIT 4`
     );
-    const financials: FinancialData[] = finRows.rows.map((r) => ({
-      period: String(r[0] ?? ""),
-      revenue: r[1] != null ? Number(r[1]) : null,
-      opIncome: r[2] != null ? Number(r[2]) : null,
-      netIncome: r[3] != null ? Number(r[3]) : null,
-      debtRatio: r[4] != null ? Number(r[4]) : null,
-      eps: r[5] != null ? Number(r[5]) : null,
-      bps: r[6] != null ? Number(r[6]) : null,
-      roe: r[7] != null ? Number(r[7]) : null,
-      dividendPerShare: r[8] != null ? Number(r[8]) : null,
-      freeCashFlow: r[9] != null ? Number(r[9]) : null,
-      source: String(r[10] ?? ""),
+    const financials: FinancialData[] = toObjs(finRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      period: String(r.period ?? ""),
+      revenue: r.revenue != null ? Number(r.revenue) : null,
+      opIncome: r.op_income != null ? Number(r.op_income) : null,
+      netIncome: r.net_income != null ? Number(r.net_income) : null,
+      debtRatio: r.debt_ratio != null ? Number(r.debt_ratio) : null,
+      eps: r.eps != null ? Number(r.eps) : null,
+      bps: r.bps != null ? Number(r.bps) : null,
+      roe: r.roe != null ? Number(r.roe) : null,
+      dividendPerShare: r.dividend_per_share != null ? Number(r.dividend_per_share) : null,
+      freeCashFlow: r.free_cash_flow != null ? Number(r.free_cash_flow) : null,
+      source: String(r.source ?? ""),
     }));
 
     const priceRows = await db.run(sql`
@@ -82,7 +93,10 @@ export async function POST(req: NextRequest) {
       WHERE stock_id = ${stockId}
       ORDER BY date DESC LIMIT 30`
     );
-    const prices: PriceData[] = priceRows.rows.map((r) => ({ date: String(r[0]), close: Number(r[1]) }));
+    const prices: PriceData[] = toObjs(priceRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      date: String(r.date),
+      close: Number(r.close_price),
+    }));
 
     const sigRows = await db.run(sql`
       SELECT type, severity, description, detected_at
@@ -90,11 +104,11 @@ export async function POST(req: NextRequest) {
       WHERE stock_id = ${stockId} AND is_resolved = 0
       ORDER BY detected_at DESC LIMIT 5`
     );
-    const signals: SignalData[] = sigRows.rows.map((r) => ({
-      type: String(r[0]),
-      severity: String(r[1]),
-      description: String(r[2]),
-      detectedAt: String(r[3]),
+    const signals: SignalData[] = toObjs(sigRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      type: String(r.type),
+      severity: String(r.severity),
+      description: String(r.description),
+      detectedAt: String(r.detected_at),
     }));
 
     const discRows = await db.run(sql`
@@ -102,16 +116,11 @@ export async function POST(req: NextRequest) {
       WHERE stock_id = ${stockId}
       ORDER BY filed_at DESC LIMIT 5`
     );
-    const disclosures: DisclosureData[] = discRows.rows.map((r) => ({
-      title: String(r[0]),
-      filedAt: String(r[1]),
-      source: String(r[2]),
+    const disclosures: DisclosureData[] = toObjs(discRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      title: String(r.title),
+      filedAt: String(r.filed_at),
+      source: String(r.source),
     }));
-
-    const fxRow = await db.run(sql`
-      SELECT rate FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1`
-    );
-    const usdkrw = fxRow.rows.length ? Number(fxRow.rows[0][0]) : 1300;
 
     // 프롬프트 + chartsJson (공통 유틸 사용)
     const prompt = buildAnalysisPrompt({
@@ -125,14 +134,16 @@ export async function POST(req: NextRequest) {
     const chartsJson = buildChartsJson(prices, financials);
 
     // 4️⃣ Gemini 호출 (generateContent – 단일 호출)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
     let geminiResponse: Response;
     try {
       geminiResponse = await fetch(geminiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-goog-api-key": geminiKey },
+        signal: AbortSignal.timeout(280_000), // maxDuration 300s 기준 여유 20s
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
+          tools: GEMINI_TOOLS_WITH_SEARCH,
           generationConfig: { temperature: 0.7, maxOutputTokens: GEMINI_MAX_TOKENS },
         }),
       });

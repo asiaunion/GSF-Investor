@@ -446,3 +446,87 @@ function Empty({ label }: { label: string }) {
   );
 }
 
+// ── 종목별 보유 수익률 히스토리 차트 ─────────────────────────────────────────
+
+export interface HoldingSnapshotPoint {
+  date: string;
+  returnPct: number | null;
+  marketValueKrw: number | null;
+  unrealizedPnlKrw: number | null;
+}
+
+export function HoldingReturnChart({
+  data,
+  currency,
+}: {
+  data: HoldingSnapshotPoint[];
+  currency: string;
+}) {
+  if (!data.length) return <Empty label="보유 수익률 히스토리 없음 (스냅샷 데이터 없음)" />;
+
+  const validData = data.filter((d) => d.returnPct !== null);
+  if (!validData.length) return <Empty label="수익률 계산 불가 (원가 데이터 없음)" />;
+
+  const p = CHART_PALETTE;
+
+  const fmt = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+  const fmtKrw = (v: number | null) =>
+    v != null ? `${(v / 1e8).toFixed(1)}억원` : "-";
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <AreaChart data={validData} margin={{ top: 4, right: 8, bottom: 0, left: 8 }}>
+        <defs>
+          <linearGradient id="retGradPos" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#2d4a3e" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="#2d4a3e" stopOpacity={0.04} />
+          </linearGradient>
+          <linearGradient id="retGradNeg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#a83232" stopOpacity={0.04} />
+            <stop offset="100%" stopColor="#a83232" stopOpacity={0.3} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke={p.grid} vertical={false} />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 10, fill: p.axis }}
+          tickFormatter={(d) => d.slice(5)}
+          minTickGap={40}
+        />
+        <YAxis
+          tick={{ fontSize: 10, fill: p.axis }}
+          tickFormatter={(v) => `${v > 0 ? "+" : ""}${v.toFixed(0)}%`}
+          width={48}
+        />
+        <Tooltip
+          contentStyle={{ background: p.tooltipBg, border: `1px solid ${p.tooltipBorder}`, borderRadius: 6, fontSize: 11 }}
+          labelFormatter={(d) => `날짜: ${d}`}
+          formatter={(value, name) => {
+            if (name === "returnPct" && typeof value === "number") return [fmt(value), "수익률"];
+            return [String(value), String(name)];
+          }}
+        />
+        <Area
+          type="monotone"
+          dataKey="returnPct"
+          stroke="#2d4a3e"
+          fill="url(#retGradPos)"
+          strokeWidth={1.5}
+          dot={false}
+          activeDot={{ r: 3 }}
+        />
+        {/* 기준선 0% */}
+        <Line
+          type="monotone"
+          dataKey={() => 0}
+          stroke={p.debtStroke}
+          strokeWidth={1}
+          strokeDasharray="4 2"
+          dot={false}
+          legendType="none"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+

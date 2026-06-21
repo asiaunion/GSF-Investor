@@ -59,3 +59,4 @@ screenshots/*.html
 # AG safe session (manifest + Turso exports)
 .ag-session.json
 backups/ag-sessions/
+.telegram.env

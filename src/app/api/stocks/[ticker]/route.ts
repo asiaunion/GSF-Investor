@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { toObjs, toObj } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -26,16 +27,20 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const sr = stockRow.rows[0];
-  const stockId = Number(sr[0]);
-  const market = String(sr[3]);
+  const sr = toObj(stockRow as unknown as import("@/lib/db-utils").RawResult);
+  const stockId = Number(sr.id);
+  const market = String(sr.market);
   const currency = market === "US" ? "USD" : "KRW";
 
   // 환율
   const fxRow = await db.run(sql`
     SELECT rate, date FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1
   `);
-  const usdkrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
+  if (!fxRow.rows.length) {
+    return NextResponse.json({ error: "환율 데이터 없음 — daily_price.py를 먼저 실행하세요" }, { status: 500 });
+  }
+  const fxObj = toObj(fxRow as unknown as import("@/lib/db-utils").RawResult);
+  const usdkrw = Number(fxObj.rate);
 
   // 최신 주가
   const latestPriceRow = await db.run(sql`
@@ -94,37 +99,31 @@ export async function GET(
     ORDER BY created_at DESC LIMIT 10
   `);
 
-  // v_portfolio 보유 정보
+  // v_portfolio 보유 정보 (stock_id 직접 사용)
   const portfolioRow = await db.run(sql`
-    SELECT vp.quantity, vp.avg_price
-    FROM v_portfolio vp
-    JOIN stocks s ON s.ticker = vp.ticker
-    WHERE s.id = ${stockId}
-    LIMIT 1
+    SELECT quantity, avg_price FROM v_portfolio WHERE stock_id = ${stockId} LIMIT 1
   `);
 
-  const currentPrice =
-    latestPriceRow.rows.length > 0 ? Number(latestPriceRow.rows[0][0]) : null;
-  const priceDate =
-    latestPriceRow.rows.length > 0 ? String(latestPriceRow.rows[0][1]) : null;
-  const priceCurrency =
-    latestPriceRow.rows.length > 0 ? String(latestPriceRow.rows[0][2]) : currency;
+  const latestPriceObj = latestPriceRow.rows.length > 0
+    ? toObj(latestPriceRow as unknown as import("@/lib/db-utils").RawResult)
+    : null;
+  const currentPrice = latestPriceObj ? Number(latestPriceObj.close_price) : null;
+  const priceDate = latestPriceObj ? String(latestPriceObj.date) : null;
+  const priceCurrency = latestPriceObj ? String(latestPriceObj.currency) : currency;
 
-  const portfolio =
-    portfolioRow.rows.length > 0
-      ? {
-          quantity: Number(portfolioRow.rows[0][0]),
-          avgPrice: Number(portfolioRow.rows[0][1]),
-        }
-      : null;
+  const portfolioObj = portfolioRow.rows.length > 0
+    ? toObj(portfolioRow as unknown as import("@/lib/db-utils").RawResult)
+    : null;
+  const portfolio = portfolioObj
+    ? { quantity: Number(portfolioObj.quantity), avgPrice: Number(portfolioObj.avg_price) }
+    : null;
 
   // 재무 데이터 파싱 (ROE null시 netIncome/totalEquity 런타임 계산)
-  const financials = financialRows.rows
+  const financials = toObjs(financialRows as unknown as import("@/lib/db-utils").RawResult)
     .map((r) => {
-      const netIncome = r[3] != null ? Number(r[3]) : null;
-      const totalEquity = r[5] != null ? Number(r[5]) : null;
-      const roeStored = r[10] != null ? Number(r[10]) : null;
-      // ROE 폴백: DB에 null이면 순이익/자본 * 100으로 계산
+      const netIncome = r.net_income != null ? Number(r.net_income) : null;
+      const totalEquity = r.total_equity != null ? Number(r.total_equity) : null;
+      const roeStored = r.roe != null ? Number(r.roe) : null;
       const roeComputed =
         roeStored !== null
           ? roeStored
@@ -132,35 +131,37 @@ export async function GET(
           ? (netIncome / totalEquity) * 100
           : null;
       return {
-        period: String(r[0]),
-        revenue: r[1] != null ? Number(r[1]) : null,
-        opIncome: r[2] != null ? Number(r[2]) : null,
+        period: String(r.period),
+        revenue: r.revenue != null ? Number(r.revenue) : null,
+        opIncome: r.op_income != null ? Number(r.op_income) : null,
         netIncome,
-        totalAssets: r[4] != null ? Number(r[4]) : null,
+        totalAssets: r.total_assets != null ? Number(r.total_assets) : null,
         totalEquity,
-        cashAndEquivalents: r[6] != null ? Number(r[6]) : null,
-        debtRatio: r[7] != null ? Number(r[7]) : null,
-        eps: r[8] != null ? Number(r[8]) : null,
-        bps: r[9] != null ? Number(r[9]) : null,
+        cashAndEquivalents: r.cash_and_equivalents != null ? Number(r.cash_and_equivalents) : null,
+        debtRatio: r.debt_ratio != null ? Number(r.debt_ratio) : null,
+        eps: r.eps != null ? Number(r.eps) : null,
+        bps: r.bps != null ? Number(r.bps) : null,
         roe: roeComputed,
-        dividendPerShare: r[11] != null ? Number(r[11]) : null,
-        source: String(r[12]),
+        dividendPerShare: r.dividend_per_share != null ? Number(r.dividend_per_share) : null,
+        source: String(r.source),
       };
     })
     .reverse(); // 오래된 것부터 정렬 (차트용)
 
   // FY 재무 파싱 (PER/PBR/배당률 계산 기준)
-  const fyFinancial =
-    fyFinancialRow.rows.length > 0
-      ? {
-          eps: fyFinancialRow.rows[0][0] != null ? Number(fyFinancialRow.rows[0][0]) : null,
-          bps: fyFinancialRow.rows[0][1] != null ? Number(fyFinancialRow.rows[0][1]) : null,
-          roe: fyFinancialRow.rows[0][2] != null ? Number(fyFinancialRow.rows[0][2]) : null,
-          netIncome: fyFinancialRow.rows[0][3] != null ? Number(fyFinancialRow.rows[0][3]) : null,
-          totalEquity: fyFinancialRow.rows[0][4] != null ? Number(fyFinancialRow.rows[0][4]) : null,
-          dividendPerShare: fyFinancialRow.rows[0][5] != null ? Number(fyFinancialRow.rows[0][5]) : null,
-        }
-      : null;
+  const fyObj = fyFinancialRow.rows.length > 0
+    ? toObj(fyFinancialRow as unknown as import("@/lib/db-utils").RawResult)
+    : null;
+  const fyFinancial = fyObj
+    ? {
+        eps: fyObj.eps != null ? Number(fyObj.eps) : null,
+        bps: fyObj.bps != null ? Number(fyObj.bps) : null,
+        roe: fyObj.roe != null ? Number(fyObj.roe) : null,
+        netIncome: fyObj.net_income != null ? Number(fyObj.net_income) : null,
+        totalEquity: fyObj.total_equity != null ? Number(fyObj.total_equity) : null,
+        dividendPerShare: fyObj.dividend_per_share != null ? Number(fyObj.dividend_per_share) : null,
+      }
+    : null;
 
   // 최신 재무에서 PBR/배당률 (FY 우선, 없으면 최신 분기)
   const latestFinancial = financials.length > 0 ? financials[financials.length - 1] : null;
@@ -196,15 +197,15 @@ export async function GET(
   return NextResponse.json({
     stock: {
       id: stockId,
-      ticker: String(sr[1]),
-      name: String(sr[2]),
+      ticker: String(sr.ticker),
+      name: String(sr.name),
       market,
-      category: String(sr[4]),
-      broker: sr[5] ? String(sr[5]) : null,
-      thesis: sr[6] ? String(sr[6]) : null,
-      dartCorpCode: sr[7] ? String(sr[7]) : null,
-      secCik: sr[8] ? String(sr[8]) : null,
-      yahooTicker: sr[9] ? String(sr[9]) : null,
+      category: String(sr.category),
+      broker: sr.broker ? String(sr.broker) : null,
+      thesis: sr.thesis ? String(sr.thesis) : null,
+      dartCorpCode: sr.dart_corp_code ? String(sr.dart_corp_code) : null,
+      secCik: sr.sec_cik ? String(sr.sec_cik) : null,
+      yahooTicker: sr.yahoo_ticker ? String(sr.yahoo_ticker) : null,
     },
     overview: {
       currentPrice,
@@ -220,33 +221,33 @@ export async function GET(
       overviewBasis: financials.filter((f) => f.period.endsWith("FY")).pop()?.period ?? null,
       perBasis: "FY" as const,
     },
-    priceChart: priceChartRows.rows
-      .map((r) => ({ date: String(r[0]), price: Number(r[1]) }))
+    priceChart: toObjs(priceChartRows as unknown as import("@/lib/db-utils").RawResult)
+      .map((r) => ({ date: String(r.date), price: Number(r.close_price) }))
       .reverse(),
     financials,
-    disclosures: disclosureRows.rows.map((r) => ({
-      id: Number(r[0]),
-      source: String(r[1]),
-      filedAt: String(r[2]),
-      title: String(r[3]),
-      summaryAi: r[4] ? String(r[4]) : null,
-      rawUrl: r[5] ? String(r[5]) : null,
-      rcpNo: r[6] ? String(r[6]) : null,
+    disclosures: toObjs(disclosureRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      id: Number(r.id),
+      source: String(r.source),
+      filedAt: String(r.filed_at),
+      title: String(r.title),
+      summaryAi: r.summary_ai ? String(r.summary_ai) : null,
+      rawUrl: r.raw_url ? String(r.raw_url) : null,
+      rcpNo: r.rcp_no ? String(r.rcp_no) : null,
     })),
-    signals: signalRows.rows.map((r) => ({
-      id: Number(r[0]),
-      detectedAt: String(r[1]),
-      type: String(r[2]),
-      severity: String(r[3]),
-      description: String(r[4]),
-      isResolved: Number(r[5]),
-      resolvedNote: r[6] ? String(r[6]) : null,
+    signals: toObjs(signalRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      id: Number(r.id),
+      detectedAt: String(r.detected_at),
+      type: String(r.type),
+      severity: String(r.severity),
+      description: String(r.description),
+      isResolved: Number(r.is_resolved),
+      resolvedNote: r.resolved_note ? String(r.resolved_note) : null,
     })),
-    notes: noteRows.rows.map((r) => ({
-      id: Number(r[0]),
-      contentMd: String(r[1]),
-      createdAt: String(r[2]),
-      updatedAt: String(r[3]),
+    notes: toObjs(noteRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+      id: Number(r.id),
+      contentMd: String(r.content_md),
+      createdAt: String(r.created_at),
+      updatedAt: String(r.updated_at),
     })),
   });
 }

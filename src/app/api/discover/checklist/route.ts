@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { toObjs, toObj } from "@/lib/db-utils";
 import {
   computePerFy,
   computePbrFy,
@@ -38,23 +39,23 @@ export async function GET(req: NextRequest) {
   if (!stockRows.rows.length) {
     return NextResponse.json({ error: "종목 없음" }, { status: 404 });
   }
-  const stockRow = stockRows.rows[0];
-  const ticker = String(stockRow[0]);
-  const name = String(stockRow[1]);
-  const market = String(stockRow[2]);
+  const stockObj = toObj(stockRows as unknown as import("@/lib/db-utils").RawResult);
+  const ticker = String(stockObj.ticker);
+  const name = String(stockObj.name);
+  const market = String(stockObj.market);
 
-  // 최신 재무 (2분기)
+  // 최신 재무 (8분기)
   const finRows = await db.run(sql`
     SELECT period, debt_ratio, eps, bps, dividend_per_share
     FROM financials
     WHERE stock_id = ${stockId}
     ORDER BY period DESC LIMIT 8
   `);
-  const fins = finRows.rows.map((r) => ({
-    period: String(r[0] ?? ""),
-    debtRatio: r[1] != null ? Number(r[1]) : null,
-    eps: r[2] != null ? Number(r[2]) : null,
-    bps: r[3] != null ? Number(r[3]) : null,
+  const fins = toObjs(finRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+    period: String(r.period ?? ""),
+    debtRatio: r.debt_ratio != null ? Number(r.debt_ratio) : null,
+    eps: r.eps != null ? Number(r.eps) : null,
+    bps: r.bps != null ? Number(r.bps) : null,
   }));
   const metricFins: FinancialRow[] = fins.map((f) => ({
     period: f.period,
@@ -68,7 +69,9 @@ export async function GET(req: NextRequest) {
     WHERE stock_id = ${stockId}
     ORDER BY date DESC LIMIT 1
   `);
-  const latestPrice = priceRows.rows.length ? Number(priceRows.rows[0][0]) : null;
+  const latestPrice = priceRows.rows.length
+    ? Number(toObj(priceRows as unknown as import("@/lib/db-utils").RawResult).close_price)
+    : null;
 
   // 최근 6개월 시그널 (내부자 거래)
   const sixMonthsAgo = new Date();
@@ -93,9 +96,9 @@ export async function GET(req: NextRequest) {
     WHERE stock_id = ${stockId} AND filed_at >= ${thirtyDaysStr}
     ORDER BY filed_at DESC LIMIT 5
   `);
-  const recentDisclosures = discRows.rows.map((r) => ({
-    title: String(r[0]),
-    filedAt: String(r[1]),
+  const recentDisclosures = toObjs(discRows as unknown as import("@/lib/db-utils").RawResult).map((r) => ({
+    title: String(r.title),
+    filedAt: String(r.filed_at),
   }));
 
   // 배당 연속성 — 과거 5년 동안 배당이 지급된 연도의 수

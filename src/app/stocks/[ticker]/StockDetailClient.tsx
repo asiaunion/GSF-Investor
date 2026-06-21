@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 import {
@@ -21,6 +21,10 @@ const PriceAreaChart = dynamic(
 );
 const UnifiedFinancialChart = dynamic(
   () => import("@/components/StockCharts").then((m) => m.UnifiedFinancialChart),
+  { ssr: false }
+);
+const HoldingReturnChart = dynamic(
+  () => import("@/components/StockCharts").then((m) => m.HoldingReturnChart),
   { ssr: false }
 );
 
@@ -56,6 +60,7 @@ interface Note {
   id: number; contentMd: string; createdAt: string; updatedAt: string;
 }
 interface PricePoint { date: string; price: number; }
+interface HoldingSnapPoint { date: string; returnPct: number | null; marketValueKrw: number | null; unrealizedPnlKrw: number | null; }
 
 interface Props {
   stock: Stock;
@@ -116,6 +121,15 @@ function SeverityDot({ severity }: { severity: string }) {
 // ── Tab: Overview ────────────────────────────────────────────────────────────
 function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stock: Stock; priceChart: PricePoint[] }) {
   const { currentPrice, currency, per, pbr, dividendYield, roe, metricsPeriod, holdingReturn, portfolio, usdkrw } = overview;
+  const [snapHistory, setSnapHistory] = useState<HoldingSnapPoint[]>([]);
+
+  useEffect(() => {
+    if (!portfolio) return;
+    fetch(`/api/stocks/${stock.ticker}/snapshot-history`)
+      .then((r) => r.json())
+      .then((d) => { if (d.history) setSnapHistory(d.history); })
+      .catch(() => {});
+  }, [stock.ticker, portfolio]);
 
   return (
     <div className="space-y-6">
@@ -150,6 +164,14 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
         <div className="mt-4">
           <PriceAreaChart data={priceChart} currency={currency} />
         </div>
+
+        {/* 보유 수익률 히스토리 — 보유 종목에만 노출 */}
+        {portfolio && snapHistory.length > 0 && (
+          <div className="mt-5 pt-4 border-t border-border-subtle">
+            <div className="text-text-muted text-xs mb-2">보유 수익률 추이 (일별 스냅샷)</div>
+            <HoldingReturnChart data={snapHistory} currency={currency} />
+          </div>
+        )}
       </div>
 
       {/* Valuation metrics */}

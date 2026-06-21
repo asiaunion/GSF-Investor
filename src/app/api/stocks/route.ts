@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { toObjs, toObj } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -35,41 +36,39 @@ export async function GET() {
     ORDER BY s.category, s.ticker
   `);
 
-  // v_portfolio — 현재 보유 수량·평균단가
+  // v_portfolio — 현재 보유 수량·평균단가 (stock_id 직접 사용)
   const portfolioRows = await db.run(sql`
-    SELECT
-      s.id AS stock_id,
-      vp.quantity,
-      vp.avg_price
-    FROM v_portfolio vp
-    JOIN stocks s ON s.ticker = vp.ticker
+    SELECT stock_id, quantity, avg_price FROM v_portfolio
   `);
 
   const fxRow = await db.run(sql`
     SELECT rate FROM exchange_rates WHERE pair = 'USDKRW' ORDER BY date DESC LIMIT 1
   `);
-  const usdkrw = fxRow.rows.length > 0 ? Number(fxRow.rows[0][0]) : 1300;
+  if (!fxRow.rows.length) {
+    return NextResponse.json({ error: "환율 데이터 없음 — daily_price.py를 먼저 실행하세요" }, { status: 500 });
+  }
+  const usdkrw = Number(toObj(fxRow as unknown as import("@/lib/db-utils").RawResult).rate);
 
   const portfolioMap = new Map<number, { quantity: number; avgPrice: number }>();
-  for (const row of portfolioRows.rows) {
-    portfolioMap.set(Number(row[0]), {
-      quantity: Number(row[1]),
-      avgPrice: Number(row[2]),
+  for (const r of toObjs(portfolioRows as unknown as import("@/lib/db-utils").RawResult)) {
+    portfolioMap.set(Number(r.stock_id), {
+      quantity: Number(r.quantity),
+      avgPrice: Number(r.avg_price),
     });
   }
 
-  const stocks = stocksRows.rows.map((row) => {
-    const id = Number(row[0]);
-    const ticker = String(row[1]);
-    const name = String(row[2]);
-    const market = String(row[3]);
-    const category = String(row[4]);
-    const broker = row[5] ? String(row[5]) : null;
-    const thesis = row[6] ? String(row[6]) : null;
-    const isActive = Number(row[7]);
-    const currentPrice = row[8] != null ? Number(row[8]) : null;
-    const priceDate = row[9] ? String(row[9]) : null;
-    const currency = row[10] ? String(row[10]) : market === "US" ? "USD" : "KRW";
+  const stocks = toObjs(stocksRows as unknown as import("@/lib/db-utils").RawResult).map((row) => {
+    const id = Number(row.id);
+    const ticker = String(row.ticker);
+    const name = String(row.name);
+    const market = String(row.market);
+    const category = String(row.category);
+    const broker = row.broker ? String(row.broker) : null;
+    const thesis = row.thesis ? String(row.thesis) : null;
+    const isActive = Number(row.is_active);
+    const currentPrice = row.close_price != null ? Number(row.close_price) : null;
+    const priceDate = row.price_date ? String(row.price_date) : null;
+    const currency = row.currency ? String(row.currency) : market === "US" ? "USD" : "KRW";
 
     const portfolio = portfolioMap.get(id);
     const avgPrice = portfolio?.avgPrice ?? null;

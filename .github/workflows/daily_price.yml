@@ -38,11 +38,15 @@ jobs:
           REAL_DATA_RUN_ACK: I_ACK_PROD_WRITE
         run: python3 scripts/daily_price.py
 
-      # ── 5. 실패 시 알림 (선택 — Slack/Telegram 연동 시 활성화) ────────────
-      # - name: Notify on failure
-      #   if: failure()
-      #   uses: slackapi/slack-github-action@v2
-      #   with:
-      #     webhook: ${{ secrets.SLACK_WEBHOOK }}
-      #     payload: |
-      #       {"text": "❌ GSF-Investor daily_price 수집 실패!"}
+      - name: Notify failure via Telegram
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TELEGRAM_CHAT_ID}" \
+            -d parse_mode="HTML" \
+            --data-urlencode text="🔴 <b>크론 실패: daily_price</b>
+종가·환율 수집 실패 — 데이터 공백 발생 가능
+실행: $(date '+%Y-%m-%d %H:%M UTC') | Run: ${{ github.run_id }}"

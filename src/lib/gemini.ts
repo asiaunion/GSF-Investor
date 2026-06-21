@@ -6,6 +6,10 @@
 export const GEMINI_MODEL = "gemini-2.5-flash";
 export const GEMINI_MAX_TOKENS = 8192;
 
+// Google Search Grounding — 최신 뉴스·시황을 AI 보고서에 반영
+// Gemini 2.0+ 에서 지원. 프롬프트 내 최신 정보 검색을 허용.
+export const GEMINI_TOOLS_WITH_SEARCH = [{ google_search: {} }];
+
 // ── 팩트체크 레이어 ───────────────────────────────────────────────────────────
 
 export type FactCheckItem = {
@@ -64,15 +68,21 @@ export function factCheckReport(
     if (!isNaN(n) && n > 0) numsInReport.push(n);
   }
 
+  // 보고서에서 자주 쓰이는 단위 스케일 (억원 = 1e8, 조원 = 1e12, 백만원 = 1e6)
+  const UNIT_SCALES = [1, 1e8, 1e12, 1e6];
+
   for (const target of targets) {
     if (target.value === null || target.value === undefined) continue;
     const dbAbs = Math.abs(target.value);
     if (dbAbs < 0.01) continue; // 0에 가까운 값 스킵
 
-    // 보고서에서 ±5% 범위 내 숫자 찾기
+    // 보고서에서 ±5% 범위 내 숫자 찾기 (단위 스케일 보정 포함)
     const TOLERANCE = 0.05;
-    const found = numsInReport.some(
-      (n) => Math.abs(n - dbAbs) / dbAbs <= TOLERANCE
+    const found = numsInReport.some((n) =>
+      UNIT_SCALES.some((scale) => {
+        const scaled = dbAbs / scale;
+        return scaled > 0.01 && Math.abs(n - scaled) / scaled <= TOLERANCE;
+      })
     );
 
     let status: FactCheckItem["status"];
@@ -179,7 +189,7 @@ export function buildAnalysisPrompt(params: {
   const currentPrice = latestPrice?.close ?? 0;
   const { per, pbr } = calcPerPbr(currentPrice, financials);
 
-  return `당신은 전문 투자 분석가입니다. 다음 데이터를 바탕으로 ${name}(${ticker}, ${market} 시장)에 대한 투자 분석 보고서를 한국어로 작성하세요.
+  return `당신은 전문 투자 분석가입니다. 다음 내부 데이터와 함께 Google 검색을 통해 ${name}(${ticker})에 대한 최신 뉴스, 시장 동향, 업종 이슈를 반드시 조회한 후 투자 분석 보고서를 한국어로 작성하세요. 검색 결과를 인용할 때는 출처(날짜, 매체)를 명시하세요.
 
 ## 종목 정보
 - 종목: ${name} (${ticker})
@@ -228,6 +238,13 @@ ${
     : disclosures.map((d) => `- [${d.source}] ${d.filedAt} ${d.title}`).join("\n")
 }
 
+## 검색 지시사항
+Google 검색을 통해 다음을 반드시 조회하세요:
+1. "${name}" 또는 "${ticker}" 관련 최근 1개월 뉴스
+2. 해당 업종(${category}) 최신 트렌드 및 경쟁 동향
+3. ${market === "KR" ? "KOSPI/KOSDAQ 시장" : "미국 시장"} 매크로 환경 (금리, 환율, 수급)
+4. 실적 발표 예정일 또는 최근 IR 내용
+
 ---
 
 다음 구조로 투자 분석 보고서를 마크다운 형식으로 작성하세요:
@@ -237,18 +254,21 @@ ${
 ## 1. 요약 (3줄)
 [3줄 이내 핵심 요약]
 
-## 2. 시그널 해석
+## 2. 최신 시황 (검색 결과 기반)
+[최근 뉴스·업종 동향·매크로 환경 요약 — 출처(날짜) 명시]
+
+## 3. 시그널 해석
 [감지된 시그널의 투자 관점 해석]
 
-## 3. 재무 분석
+## 4. 재무 분석
 [매출/영업이익 추세, 부채비율, ROE 등 핵심 지표 분석]
 
-## 4. 시나리오 분석
+## 5. 시나리오 분석
 ### 낙관 시나리오
-### 기본 시나리오  
+### 기본 시나리오
 ### 비관 시나리오
 
-## 5. 투자 판단
+## 6. 투자 판단
 [현재 투자 테제 유효성 검토, 확신도 변화 (★★★★★ 중 선택), 주요 모니터링 포인트]
 
 분석 시 구체적인 수치를 인용하고 근거를 명확히 제시하세요.`;

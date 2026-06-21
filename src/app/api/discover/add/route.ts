@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { discoverAddSchema, validationErrorResponse } from "@/lib/validations";
+import { toObj } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
   const stockRows = await db.run(sql`
     SELECT id FROM stocks WHERE ticker = ${ticker}
   `);
-  const stockId = Number(stockRows.rows[0][0]);
+  const stockId = Number(toObj(stockRows as unknown as import("@/lib/db-utils").RawResult).id);
 
   return NextResponse.json({ success: true, stockId, ticker });
 }
