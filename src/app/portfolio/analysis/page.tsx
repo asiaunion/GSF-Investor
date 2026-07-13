@@ -9,6 +9,7 @@ export default async function AnalysisPage() {
 
   return (
     <AppPageLayout
+       wide
       subNav={<PortfolioSubNav />} email={session.user?.email} title="Analysis" subtitle="포트폴리오 분석">
       <div className="flex flex-col items-center justify-center py-24 text-text-muted">
         <p className="text-lg font-medium">곧 제공됩니다</p>

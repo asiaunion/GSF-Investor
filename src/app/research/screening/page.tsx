@@ -44,6 +44,7 @@ export default async function DiscoverPage() {
 
   return (
     <AppPageLayout
+       wide
       subNav={<ResearchSubNav />}
       email={session.user?.email}
       title="Screening"

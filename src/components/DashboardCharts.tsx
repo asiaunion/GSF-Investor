@@ -48,10 +48,13 @@ function estimateYAxisWidth(names: string[], compact: boolean): number {
 
 function returnAxisTicks(values: number[]): number[] {
   const max = Math.max(0, ...values);
-  const step = max <= 25 ? 5 : 10;
+  const min = Math.min(0, ...values);
+  const maxAbs = Math.max(Math.abs(max), Math.abs(min));
+  const step = maxAbs <= 25 ? 5 : maxAbs <= 50 ? 10 : 25;
   const top = Math.max(step, Math.ceil(max / step) * step);
+  const bottom = Math.min(0, Math.floor(min / step) * step);
   const ticks: number[] = [];
-  for (let v = 0; v <= top; v += step) ticks.push(v);
+  for (let v = bottom; v <= top; v += step) ticks.push(v);
   return ticks;
 }
 
@@ -106,6 +109,7 @@ export function ReturnBarChart({ data, compact = true }: { data: ReturnBarData[]
   const sorted = [...data].sort((a, b) => b.returnRate - a.returnRate);
   const yWidth = estimateYAxisWidth(sorted.map((d) => d.name), compact);
   const xTicks = returnAxisTicks(sorted.map((d) => d.returnRate));
+  const xDomainMin = xTicks[0] ?? -5;
   const xDomainMax = xTicks[xTicks.length - 1] ?? 20;
   const barThickness = compact ? 24 : 28;
 
@@ -119,7 +123,7 @@ export function ReturnBarChart({ data, compact = true }: { data: ReturnBarData[]
             margin={{ ...BAR_CHART_MARGIN, left: 2 }}
             barCategoryGap="28%"
           >
-            <XAxis type="number" domain={[0, xDomainMax]} hide />
+            <XAxis type="number" domain={[xDomainMin, xDomainMax]} hide />
             <YAxis
               type="category"
               dataKey="name"

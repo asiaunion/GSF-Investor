@@ -60,6 +60,7 @@ export default async function DividendsPage() {
 
   return (
     <AppPageLayout
+       wide
       subNav={<PortfolioSubNav />}
       email={session.user?.email}
       title="Dividends"

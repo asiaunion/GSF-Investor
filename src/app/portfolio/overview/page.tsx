@@ -19,6 +19,7 @@ export default async function WealthPage() {
 
   return (
     <AppPageLayout
+       wide
       subNav={<PortfolioSubNav />}
       email={session.user?.email}
       title="Overview"
