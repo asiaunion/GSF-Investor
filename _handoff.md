@@ -94,3 +94,7 @@
 - 커밋 해시: 524da34
 - 배포 URL: https://gsf-investor.vercel.app/
 - 특이사항: feature/ui-design-refresh 브랜치를 main으로 병합 (사용자 라이브 Vercel 확인)
+## [2026-07-13 17:37] Vercel Build Error 핫픽스
+- 작업 내용: watchlist/page.tsx의 "use client" 지시어 위치 수정 (빌드 에러 픽스)
+- 커밋 해시: bf772af
+- 배포 URL: https://gsf-investor.vercel.app/
