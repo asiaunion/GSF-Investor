@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AppPageLayout from "@/components/AppPageLayout";
-import { economistCard, marketBadge, tabActive, tabInactive } from "@/lib/economist-ui";
+import { swsCard, marketBadge, tabActive, tabInactive } from "@/lib/economist-ui";
 import { useSession } from "next-auth/react";
 
 interface StockItem {
@@ -116,7 +116,7 @@ export default function StocksPage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className={`h-48 ${economistCard} animate-pulse`} />
+            <div key={i} className={`h-48 ${swsCard} animate-pulse`} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -151,7 +151,7 @@ function StockCard({ stock, usdkrw }: { stock: StockItem; usdkrw: number }) {
 
   return (
     <Link href={`/stocks/${stock.ticker}`} className="group block">
-      <div className={`${economistCard} p-5 h-full hover:border-brand-green/40 transition-all duration-200`}>
+      <div className={`${swsCard} p-5 h-full hover:border-brand-green/40 transition-all duration-200`}>
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">

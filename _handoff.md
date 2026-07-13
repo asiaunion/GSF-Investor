@@ -84,3 +84,8 @@
 - 배포 URL: https://gsf-investor.vercel.app (자동 배포 트리거)
 - Claude 부재 여부: 아니오 (Claude 검증 완료 후 AG 배포)
 - 특이사항: UI 리프레시 명세 100% 적용, 도넛 차트 3종 삭제, Decision/Loan 패널 신설
+
+## [$(date '+%Y-%m-%d %H:%M')] AG 배포 완료 (IA Refactor)
+- 작업 내용: UI/IA Refactor 완료 (feature/ia-refactor -> main 병합 완료). SWS 스타일 다크모드 적용, 네비게이션 분리 (Portfolio, Research), 레거시 페이지 리디렉트 적용. TypeScript 빌드(noEmit) 에러 수정 완료.
+- 브랜치: main (from feature/ia-refactor)
+- 배포 상태: Vercel Production 배포 중 (https://gsf-investor-i6qlrxf35-asiaunions-projects.vercel.app)

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import StockIdentity from "@/components/StockIdentity";
 import {
-  economistCard,
+  swsCard,
   tabActive,
   tabInactive,
 } from "@/lib/economist-ui";
@@ -95,7 +95,7 @@ export default function DividendsClient({ rows, baseCurrency, fxRates }: Props) 
 
   if (rows.length === 0) {
     return (
-      <div className={`${economistCard} p-8 text-center max-w-lg mx-auto`}>
+      <div className={`${swsCard} p-8 text-center max-w-lg mx-auto`}>
         <p className="text-sm text-text-secondary leading-relaxed mb-4">
           배당 일정이 아직 없습니다. GitHub Actions{" "}
           <code className="text-brand-green/90">update_dividend_calendar</code> 워크플로를
@@ -112,7 +112,7 @@ export default function DividendsClient({ rows, baseCurrency, fxRates }: Props) 
 
   return (
     <div className="space-y-4">
-      <section className={`${economistCard} p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm`}>
+      <section className={`${swsCard} p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm`}>
         <div>
           <p className="text-xs text-text-muted uppercase tracking-wide">전체 이벤트</p>
           <p className="text-xl font-bold text-text-primary mt-1">{rows.length}건</p>
@@ -160,7 +160,7 @@ export default function DividendsClient({ rows, baseCurrency, fxRates }: Props) 
         </label>
       </div>
 
-      <div className={`${economistCard} overflow-hidden`}>
+      <div className={`${swsCard} overflow-hidden`}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

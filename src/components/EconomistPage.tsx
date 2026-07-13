@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import {
-  economistCard,
-  economistStatCard,
+  swsCard,
+  swsStatCard,
   tabActive,
   tabInactive,
 } from "@/lib/economist-ui";
@@ -15,7 +15,7 @@ export function EconomistStatGrid({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {items.map((item) => (
-        <div key={item.label} className={economistStatCard}>
+        <div key={item.label} className={swsStatCard}>
           <p className="text-xs text-text-muted mb-1">{item.label}</p>
           <p className={`text-2xl font-bold ${item.valueClassName ?? "text-text-primary"}`}>
             {item.value}
@@ -33,7 +33,7 @@ export function EconomistPanel({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={`${economistCard} overflow-hidden ${className}`}>{children}</div>;
+  return <div className={`${swsCard} overflow-hidden ${className}`}>{children}</div>;
 }
 
 export function EconomistPanelHeader({

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   btnNeutral,
   btnPrimary,
-  economistCard,
+  swsCard,
   inputClass,
   marketBadge,
 } from "@/lib/economist-ui";
@@ -149,7 +149,7 @@ export default function DiscoverScreener() {
 
   return (
     <div className="space-y-4">
-      <div className={`${economistCard} p-4 space-y-3`}>
+      <div className={`${swsCard} p-4 space-y-3`}>
         <p className="text-xs text-text-muted">
           <strong className="text-text-secondary">등록 관심종목</strong> 중 PER/PBR · 1M/1Y · 52주 · 매출 YoY 필터
           (KRX 전체가 아님 — 설정 → 신규 종목 추가 후 스크리닝) · 최대 5종목 비교
@@ -252,7 +252,7 @@ export default function DiscoverScreener() {
 
       {error && <EconomistAlert variant="error">{error}</EconomistAlert>}
 
-      <div className={`${economistCard} overflow-hidden`}>
+      <div className={`${swsCard} overflow-hidden`}>
         <div className="px-4 py-2 border-b border-border-default flex justify-between items-center">
           <span className="text-sm font-semibold text-text-primary">
             결과 {stocks.length}건

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import StockIdentity from "@/components/StockIdentity";
 import dynamic from "next/dynamic";
-import { economistCard, linkMuted, marketBadge } from "@/lib/economist-ui";
+import { swsCard, linkMuted, marketBadge } from "@/lib/economist-ui";
 import { ChartPeriodTabs, type ChartPeriod } from "@/components/ChartPeriodTabs";
 import { EconomistAlert } from "@/components/EconomistPage";
 
@@ -121,7 +121,7 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
 
       {error && <EconomistAlert variant="error">{error}</EconomistAlert>}
 
-      <div className={`${economistCard} px-3 pt-3 pb-2`}>
+      <div className={`${swsCard} px-3 pt-3 pb-2`}>
         <h2 className="text-sm font-semibold text-text-primary mb-1">수익률 비교 (정규화 %)</h2>
         <p className="text-[11px] text-text-muted mb-2">기간 시작 = 100</p>
         {loading ? (
@@ -174,7 +174,7 @@ export default function DiscoverCompare({ tickers }: { tickers: string[] }) {
         )}
       </div>
 
-      <div className={`${economistCard} overflow-hidden`}>
+      <div className={`${swsCard} overflow-hidden`}>
         <div className="px-4 py-2 border-b border-border-default">
           <h2 className="text-sm font-semibold text-text-primary">지표 비교</h2>
         </div>

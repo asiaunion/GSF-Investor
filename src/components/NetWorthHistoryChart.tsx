@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { economistCard } from "@/lib/economist-ui";
+import { swsCard } from "@/lib/economist-ui";
 import { ChartPeriodTabs, type ChartPeriod } from "@/components/ChartPeriodTabs";
 import { formatChartAxisKrw } from "@/lib/chart-money";
 import { formatMoney, type BaseCurrency, type FxRates } from "@/lib/format-money";
@@ -113,7 +113,7 @@ export default function NetWorthHistoryChart({
   const hasEnough = chartData.length >= 2;
 
   return (
-    <div className={`${economistCard} px-3 pt-3 pb-2 min-h-[260px] flex flex-col`}>
+    <div className={`${swsCard} px-3 pt-3 pb-2 min-h-[260px] flex flex-col`}>
       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
         <div>
           <h2 className="text-sm font-semibold text-text-primary">순자산 추이</h2>

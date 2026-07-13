@@ -11,7 +11,7 @@ import {
   EconomistStatGrid,
 } from "@/components/EconomistPage";
 import StockIdentity from "@/components/StockIdentity";
-import { economistCard } from "@/lib/economist-ui";
+import { swsCard } from "@/lib/economist-ui";
 export type DisclosureRow = {
   id: number;
   stockId: number;
@@ -126,7 +126,7 @@ function DisclosureCard({ disclosure: d }: { disclosure: DisclosureRow }) {
   const filedLabel = d.filedAt ? d.filedAt.slice(0, 10) : "—";
 
   return (
-    <div className={`${economistCard} overflow-hidden hover:border-brand-green/30 transition-colors`}>
+    <div className={`${swsCard} overflow-hidden hover:border-brand-green/30 transition-colors`}>
       <div className="px-5 py-4">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">

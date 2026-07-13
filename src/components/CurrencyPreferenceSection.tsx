@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { btnPrimary, economistCard } from "@/lib/economist-ui";
+import { btnPrimary, swsCard } from "@/lib/economist-ui";
 
 const CURRENCIES = ["KRW", "USD", "JPY"] as const;
 
@@ -55,7 +55,7 @@ export default function CurrencyPreferenceSection() {
   };
 
   return (
-    <div className={`${economistCard} p-6`}>
+    <div className={`${swsCard} p-6`}>
       <h2 className="text-base font-semibold text-text-primary mb-1">기준 통화</h2>
       <p className="text-xs text-text-muted mb-4">
         히어로·P&L·전체 자산 표시에 사용합니다. (차트 축은 추후 확장)

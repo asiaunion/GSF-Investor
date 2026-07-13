@@ -1,6 +1,6 @@
 import Link from "next/link";
 import StockIdentity from "@/components/StockIdentity";
-import { economistCard } from "@/lib/economist-ui";
+import { swsCard } from "@/lib/economist-ui";
 
 export type ActivityItem = {
   kind: "trade" | "disclosure";
@@ -19,7 +19,7 @@ const KIND_ICON: Record<ActivityItem["kind"], string> = {
 
 export default function ActivityTimeline({ items }: { items: ActivityItem[] }) {
   return (
-    <div className={`${economistCard} overflow-hidden`}>
+    <div className={`${swsCard} overflow-hidden`}>
       <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
         <h2 className="text-sm font-semibold text-text-primary">최근 활동</h2>
         <Link href="/journal" className="text-xs text-brand-green hover:underline">

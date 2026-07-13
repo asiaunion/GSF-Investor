@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { economistCard } from "@/lib/economist-ui";
+import { swsCard } from "@/lib/economist-ui";
 import { ChartPeriodTabs, type ChartPeriod } from "@/components/ChartPeriodTabs";
 
 const BENCHMARK_TICKER = "069500";
@@ -113,7 +113,7 @@ export default function PortfolioPerformanceChart() {
   const hasEnough = chartData.length >= 2;
 
   return (
-    <div className={`${economistCard} px-3 pt-3 pb-2 min-h-[260px] flex flex-col`}>
+    <div className={`${swsCard} px-3 pt-3 pb-2 min-h-[260px] flex flex-col`}>
       <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
         <div>
           <h2 className="text-sm font-semibold text-text-primary">포트폴리오 수익률</h2>

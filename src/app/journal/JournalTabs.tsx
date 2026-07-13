@@ -10,7 +10,7 @@ import {
   EconomistStatGrid,
   EconomistTabBar,
 } from "@/components/EconomistPage";
-import { economistStatCard } from "@/lib/economist-ui";
+import { swsStatCard } from "@/lib/economist-ui";
 
 const JournalAnalytics = dynamic(
   () => import("@/components/JournalAnalytics"),
@@ -21,7 +21,7 @@ function AnalyticsLoading() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className={`${economistStatCard} animate-pulse h-28`} />
+        <div key={i} className={`${swsStatCard} animate-pulse h-28`} />
       ))}
     </div>
   );

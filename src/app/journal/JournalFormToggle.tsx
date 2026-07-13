@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import JournalForm from "./JournalForm";
-import { btnNeutral, btnPrimary, economistCard } from "@/lib/economist-ui";
+import { btnNeutral, btnPrimary, swsCard } from "@/lib/economist-ui";
 
 /**
  * C-4: 모바일 Bottom Sheet + 데스크탑 인라인 패널 반응형 폼 토글
@@ -44,7 +44,7 @@ export default function JournalFormToggle() {
       </button>
 
       {open && !isMobile && (
-        <div className={`mt-4 ${economistCard} overflow-hidden`}>
+        <div className={`mt-4 ${swsCard} overflow-hidden`}>
           <div className="px-6 py-4 border-b border-border-default">
             <h2 className="text-base font-semibold text-text-primary">새 매매 일지</h2>
             <p className="text-xs text-text-muted mt-0.5">거래 내역을 기록하세요</p>

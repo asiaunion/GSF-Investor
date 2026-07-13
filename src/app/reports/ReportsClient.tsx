@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import StockIdentity from "@/components/StockIdentity";
 import {
   btnPrimary,
-  economistCard,
+  swsCard,
   inputClass,
   linkMuted,
 } from "@/lib/economist-ui";
@@ -171,7 +171,7 @@ function ReportAccordion({ report }: { report: ReportRow & { fullContent?: strin
       {/* 전문 패널 */}
       {open && (
         <div className="px-6 pb-5 pt-0">
-          <div className={`${economistCard} p-4 max-h-[600px] overflow-y-auto`}>
+          <div className={`${swsCard} p-4 max-h-[600px] overflow-y-auto`}>
             <pre
               className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed"
               
@@ -337,7 +337,7 @@ export default function ReportsClient({ reports: initialReports, stocks }: Props
             </div>
             <div
               ref={streamRef}
-              className={`${economistCard} p-4 max-h-[520px] overflow-y-auto`}
+              className={`${swsCard} p-4 max-h-[520px] overflow-y-auto`}
             >
               <pre
                 className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap leading-relaxed"

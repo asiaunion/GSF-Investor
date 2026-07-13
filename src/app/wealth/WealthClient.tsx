@@ -6,8 +6,8 @@ import type { NetWorthSummary, WealthPositionRow } from "@/lib/net-worth";
 import {
   btnNeutral,
   btnPrimary,
-  economistCard,
-  economistStatCard,
+  swsCard,
+  swsStatCard,
   inputClass,
 } from "@/lib/economist-ui";
 import { WEALTH_CATEGORY_OPTIONS } from "@/lib/wealth-categories";
@@ -114,7 +114,7 @@ export default function WealthClient({ initial, baseCurrency, fxRates }: Props) 
 
   return (
     <div className="space-y-6">
-      <section className={`${economistStatCard} grid grid-cols-1 sm:grid-cols-3 gap-4`}>
+      <section className={`${swsStatCard} grid grid-cols-1 sm:grid-cols-3 gap-4`}>
         <div>
           <p className="text-xs text-text-muted uppercase tracking-wide">순자산</p>
           <p className="text-2xl font-bold text-text-primary mt-1">
@@ -142,7 +142,7 @@ export default function WealthClient({ initial, baseCurrency, fxRates }: Props) 
       </section>
 
       {chartData.length > 0 && (
-        <section className={`${economistCard} p-4`}>
+        <section className={`${swsCard} p-4`}>
           <h2 className="text-sm font-bold text-text-primary mb-3">자산 구성</h2>
           <div className="space-y-2">
             {chartData.map((d) => (
@@ -175,7 +175,7 @@ export default function WealthClient({ initial, baseCurrency, fxRates }: Props) 
           0
         );
         return (
-          <section key={big} className={economistCard}>
+          <section key={big} className={swsCard}>
             <button
               type="button"
               className="w-full flex items-center justify-between p-4 text-left"

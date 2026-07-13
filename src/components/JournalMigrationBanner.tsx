@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { economistCard } from "@/lib/economist-ui";
+import { swsCard } from "@/lib/economist-ui";
 
 type Props = {
   journalCount: number;
@@ -14,7 +14,7 @@ export default function JournalMigrationBanner({
   if (!needsInit) return null;
 
   return (
-    <div className={`${economistCard} p-4 border-l-4 border-l-brand-green`}>
+    <div className={`${swsCard} p-4 border-l-4 border-l-brand-green`}>
       <h2 className="text-sm font-bold text-text-primary mb-2">
         Portfolio 통합 — 주식 포지션 재입력
       </h2>

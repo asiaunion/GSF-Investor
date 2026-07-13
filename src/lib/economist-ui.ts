@@ -1,12 +1,11 @@
-/** Economist editorial UI tokens — design-baseline §2–3 */
+/** SWS UI tokens — design-refresh */
 
-export const economistCard =
-  "bg-bg-surface border border-border-default rounded-lg shadow-sm";
+export const swsCard = "card-sws";
 
-export const economistStatCard =
-  "bg-bg-surface border border-border-default rounded-lg shadow-sm p-4";
+export const swsStatCard =
+  "bg-bg-surface border border-border-default rounded-xl shadow-sm p-4";
 
-export const economistSection = "border-t-4 border-brand-green pt-6";
+export const swsSection = "pt-6";
 
 /** 설정 탭과 동일한 페이지 본문 간격 */
 export const pageContentSpace = "space-y-6";
@@ -105,7 +104,7 @@ export const selectClass = inputClass;
 export const btnPrimarySm =
   "px-4 py-2 rounded-md text-xs font-medium text-white bg-brand-green border border-brand-green hover:bg-brand-green/85 disabled:bg-bg-elevated disabled:text-text-muted disabled:border-border-default transition-colors";
 
-export const economistPanelBody = "p-5";
+export const swsPanelBody = "p-5";
 
 /** P&amp;L positive / negative text (no neon emerald/red) */
 export function pnlTextClass(value: number | null | undefined): string {

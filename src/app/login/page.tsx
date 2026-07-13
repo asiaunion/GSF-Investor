@@ -6,7 +6,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import { DEV_PREVIEW_PROVIDER_ID } from "@/lib/dev-preview";
-import { economistCard } from "@/lib/economist-ui";
+import { swsCard } from "@/lib/economist-ui";
 
 const showDevPreview = process.env.NEXT_PUBLIC_DEV_PREVIEW_AUTH === "true";
 
@@ -42,7 +42,7 @@ function LoginContent() {
             <p className="text-text-secondary text-sm mt-2">개인 투자 시스템</p>
           </div>
 
-          <div className={`${economistCard} p-8`}>
+          <div className={`${swsCard} p-8`}>
             <h2 className="text-lg font-semibold text-text-primary mb-1">로그인</h2>
             <p className="text-text-muted text-sm mb-6">
               Google 계정으로 안전하게 접속하세요.

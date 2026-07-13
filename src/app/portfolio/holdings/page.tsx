@@ -325,13 +325,13 @@ export default async function HomePage() {
 function DashboardSkeleton() {
   return (
     <div className="animate-pulse space-y-3">
-      <div className="h-16 card-economist" />
+      <div className="h-16 card-sws" />
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-28 card-economist" />
+          <div key={i} className="h-28 card-sws" />
         ))}
       </div>
-      <div className="h-44 card-economist" />
+      <div className="h-44 card-sws" />
     </div>
   );
 }

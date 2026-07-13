@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
 import {
   btnPrimarySm,
-  economistCard,
+  swsCard,
   linkMuted,
   marketBadge,
   pnlTextClass,
@@ -134,7 +134,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
   return (
     <div className="space-y-6">
       {/* Price hero */}
-      <div className={`${economistCard} p-5`}>
+      <div className={`${swsCard} p-5`}>
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-text-muted text-xs mb-1">현재가 · {overview.priceDate ?? "—"}</div>
@@ -182,7 +182,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
           { label: "배당수익률", value: dividendYield != null ? `${dividendYield.toFixed(2)}%` : "—" },
           { label: "ROE", value: roe != null ? `${roe.toFixed(2)}%` : "—" },
         ].map((m) => (
-          <div key={m.label} className={`${economistCard} p-4`}>
+          <div key={m.label} className={`${swsCard} p-4`}>
             <div className="text-text-muted text-[10px] uppercase tracking-wider">{m.label}</div>
             <div className="text-text-primary text-lg font-semibold mt-1">{m.value}</div>
             {metricsPeriod && (
@@ -194,7 +194,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
 
       {/* Thesis */}
       {stock.thesis && (
-        <div className={`${economistCard} p-5`}>
+        <div className={`${swsCard} p-5`}>
           <div className="text-text-muted text-xs uppercase tracking-wider mb-2">투자 테제</div>
           <p className="text-text-secondary text-sm leading-relaxed">{stock.thesis}</p>
         </div>
@@ -207,7 +207,7 @@ function OverviewTab({ overview, stock, priceChart }: { overview: Overview; stoc
 function FinancialTable({ title, rows, currency }: { title: string; rows: Financial[]; currency: string }) {
   if (rows.length === 0) return null;
   return (
-    <div className={`${economistCard} overflow-hidden`}>
+    <div className={`${swsCard} overflow-hidden`}>
       <div className="px-4 py-3 border-b border-border-default text-text-secondary text-sm font-medium">{title}</div>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -246,7 +246,7 @@ function FinancialTable({ title, rows, currency }: { title: string; rows: Financ
 function FinancialTab({ quarterlyFinancials, annualFinancials, currency }: { quarterlyFinancials: Financial[]; annualFinancials: Financial[]; currency: string }) {
   return (
     <div className="space-y-6">
-      <div className={`${economistCard} p-5`}>
+      <div className={`${swsCard} p-5`}>
         <div className="text-text-secondary text-sm font-medium mb-1">재무 추이 (연간)</div>
         <p className="text-text-disabled text-[10px] mb-4">
           겹침 막대(순·영업 동일 폭) · 나란한 막대 · 영업현금흐름 · 점선 · 매출 · 부채비율 %
@@ -267,7 +267,7 @@ function DisclosuresTab({ disclosures }: { disclosures: Disclosure[] }) {
   return (
     <div className="space-y-3">
       {disclosures.map((d) => (
-        <div key={d.id} className={`${economistCard} p-4 hover:border-border-strong transition-colors`}>
+        <div key={d.id} className={`${swsCard} p-4 hover:border-border-strong transition-colors`}>
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm border ${
               d.source === "DART" ? marketBadge.KR : "bg-warn-bg text-warn-400 border-warn-border"
@@ -304,7 +304,7 @@ function SignalsTab({ signals }: { signals: Signal[] }) {
   return (
     <div className="space-y-3">
       {signals.map((s) => (
-        <div key={s.id} className={`${economistCard} p-4 transition-colors ${s.isResolved ? "opacity-60" : ""}`}>
+        <div key={s.id} className={`${swsCard} p-4 transition-colors ${s.isResolved ? "opacity-60" : ""}`}>
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <SeverityDot severity={s.severity} />
@@ -359,7 +359,7 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
   return (
     <div className="space-y-4">
       {/* Input form */}
-      <form onSubmit={handleSubmit} className={`${economistCard} p-4`}>
+      <form onSubmit={handleSubmit} className={`${swsCard} p-4`}>
         <div className="text-text-secondary text-xs font-medium mb-2">새 메모 작성</div>
         <textarea
           value={text}
@@ -385,7 +385,7 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
         <EmptyState label="메모 없음" sub="첫 번째 투자 메모를 작성해보세요" />
       ) : (
         notes.map((note) => (
-          <div key={note.id} className={`${economistCard} p-4`}>
+          <div key={note.id} className={`${swsCard} p-4`}>
             <div className="text-text-muted text-[10px] mb-2">{note.createdAt.slice(0, 16)}</div>
             <div className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">{note.contentMd}</div>
           </div>
@@ -398,7 +398,7 @@ function NotesTab({ notes, ticker, onAdded }: { notes: Note[]; ticker: string; o
 function EmptyState({ label, sub }: { label: string; sub?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-2">
-      <div className={`w-12 h-12 rounded-sm ${economistCard} flex items-center justify-center`}>
+      <div className={`w-12 h-12 rounded-sm ${swsCard} flex items-center justify-center`}>
         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" className="text-text-muted">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
         </svg>

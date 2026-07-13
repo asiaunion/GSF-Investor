@@ -4,7 +4,7 @@ import { useState, useMemo, useTransition } from "react";
 import {
   btnNeutral,
   btnPrimary,
-  economistCard,
+  swsCard,
   inputClass,
   severityConfig,
   tabActive,
@@ -177,7 +177,7 @@ function SignalCard({
 
   return (
     <div
-      className={`${economistCard} transition-colors ${
+      className={`${swsCard} transition-colors ${
         s.isResolved === 1 ? "opacity-60" : "hover:border-brand-green/30"
       }`}
     >
