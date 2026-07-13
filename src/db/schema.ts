@@ -276,3 +276,21 @@ export type DividendEvent = typeof dividendEvents.$inferSelect;
 export type NewDividendEvent = typeof dividendEvents.$inferInsert;
 
 
+
+// ── 종목 투자 논거 (Research → Holdings 연결) ─────────────────────────────
+export const stockThesis = sqliteTable("stock_thesis", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  stockId: integer("stock_id").references(() => stocks.id).notNull(),
+  action: text("action").notNull().default("관찰"), // '보유' | '매수' | '매도' | '관찰'
+  conviction: text("conviction").default("Low"),    // 'High' | 'Mid' | 'Low'
+  fairValueLocal: real("fair_value_local"),          // 목표 주가 (현지 통화 기준)
+  expectedReturnPct: real("expected_return_pct"),    // 기대 수익률 %
+  nextCatalyst: text("next_catalyst"),               // 다음 이벤트/카탈리스트
+  thesisSummary: text("thesis_summary"),             // 투자 논거 요약 (선택)
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`),
+}, (t) => [
+  uniqueIndex("uq_stock_thesis").on(t.stockId),     // 종목당 1개
+]);
+
+export type StockThesis = typeof stockThesis.$inferSelect;
+export type NewStockThesis = typeof stockThesis.$inferInsert;

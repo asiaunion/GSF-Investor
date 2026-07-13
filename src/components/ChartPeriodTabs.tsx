@@ -2,7 +2,7 @@
 
 import { tabActive, tabInactive } from "@/lib/economist-ui";
 
-export const CHART_PERIODS = ["1M", "3M", "6M", "1Y", "ALL"] as const;
+export const CHART_PERIODS = ["7D", "1M", "3M", "YTD", "1Y", "ALL"] as const;
 export type ChartPeriod = (typeof CHART_PERIODS)[number];
 
 export function ChartPeriodTabs({

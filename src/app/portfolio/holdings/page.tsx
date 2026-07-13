@@ -31,6 +31,26 @@ async function fetchDashboardData() {
     JOIN stocks s ON s.ticker = vp.ticker
   `);
 
+  // stock_thesis 테이블이 없을 수 있음 (마이그레이션 미실행 시) — graceful fallback
+  const thesisRows = await db.run(sql`
+    SELECT
+      stock_id, action, conviction, fair_value_local, expected_return_pct, next_catalyst
+    FROM stock_thesis
+  `).catch(() => ({ rows: [] as unknown[][] }));
+
+  const thesisMap = new Map(
+    thesisRows.rows.map((r) => [
+      Number(r[0]),
+      {
+        action: String(r[1]),
+        conviction: r[2] ? String(r[2]) : null,
+        fairValueLocal: r[3] != null ? Number(r[3]) : null,
+        expectedReturnPct: r[4] != null ? Number(r[4]) : null,
+        nextCatalyst: r[5] ? String(r[5]) : null,
+      },
+    ])
+  );
+
   const latestPricesRows = await db.run(sql`
     SELECT p.stock_id, p.close_price, p.currency, p.date
     FROM prices p
@@ -108,7 +128,9 @@ async function fetchDashboardData() {
     const returnRate =
       costAmountLocal > 0 ? ((currentPrice - avgPrice) / avgPrice) * 100 : 0;
 
-    return {
+      const thesis = thesisMap.get(stockId) ?? null;
+
+return {
       stockId,
       ticker,
       name,
@@ -124,6 +146,7 @@ async function fetchDashboardData() {
       costAmountKRW,
       returnRate,
       priceDate,
+      thesis,
     };
   });
 

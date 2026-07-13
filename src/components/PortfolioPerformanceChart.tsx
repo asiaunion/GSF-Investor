@@ -33,10 +33,14 @@ type ChartRow = {
 
 function filterByPeriod(rows: HoldingPoint[], range: ChartPeriod): HoldingPoint[] {
   if (range === "ALL" || rows.length === 0) return rows;
-  const days =
-    range === "1M" ? 30 : range === "3M" ? 90 : range === "6M" ? 180 : range === "1Y" ? 365 : 90;
   const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
+  if (range === "YTD") {
+    cutoff.setMonth(0, 1);
+  } else {
+    const days =
+      range === "7D" ? 7 : range === "1M" ? 30 : range === "3M" ? 90 : range === "1Y" ? 365 : 90;
+    cutoff.setDate(cutoff.getDate() - days);
+  }
   const cutoffStr = cutoff.toISOString().slice(0, 10);
   return rows.filter((r) => r.date >= cutoffStr);
 }

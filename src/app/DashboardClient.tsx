@@ -16,6 +16,14 @@ import { severityConfig } from "@/lib/economist-ui";
 
 // ── 타입 ─────────────────────────────────────────────────────────────────────
 
+interface ThesisData {
+  action: string;
+  conviction: string | null;
+  fairValueLocal: number | null;
+  expectedReturnPct: number | null;
+  nextCatalyst: string | null;
+}
+
 interface Holding {
   stockId: number;
   ticker: string;
@@ -32,6 +40,8 @@ interface Holding {
   costAmountKRW: number;
   returnRate: number;
   priceDate: string | null;
+  weightPct?: number;
+  thesis: ThesisData | null;
 }
 
 interface Summary {
@@ -111,6 +121,11 @@ export default function DashboardClient({
   const { holdings, summary } = data;
   const fmt = (n: number) => formatMoney(n, baseCurrency, fxRates);
 
+  const weightMap = new Map(contribData.map((c) => [c.ticker, c.weightPct]));
+  const holdingsSorted = [...holdings]
+    .map((h) => ({ ...h, weightPct: weightMap.get(h.ticker) ?? 0 }))
+    .sort((a, b) => b.evalAmountKRW - a.evalAmountKRW);
+
   const barData = holdings.map((h) => ({
     ticker: h.ticker,
     name: h.name,
@@ -126,70 +141,38 @@ export default function DashboardClient({
   const ltvPct = summary.totalEvalKRW > 0 ? (totalLoan / summary.totalEvalKRW) * 100 : 0;
 
   return (
-    <div className="space-y-4">
-      {/* 1. Hero Strip */}
-      <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm px-6 py-5">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 lg:divide-x divide-border-default">
-          <div className="lg:pr-6">
-            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">총 평가</p>
-            <p className="text-3xl sm:text-4xl font-bold tabular-nums text-text-primary leading-none">
-              {fmt(summary.totalEvalKRW)}
-            </p>
-            <p className="text-xs text-text-muted mt-1">원가 {fmt(summary.totalCostKRW)}</p>
-          </div>
-          <div className="lg:px-6">
-            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide flex items-center gap-1">
-              총 수익률 <PnlMethodHint method="weighted_avg" />
-            </p>
-            <p className={`text-2xl font-bold tabular-nums leading-none ${isPositive ? "text-profit-400" : "text-loss-400"}`}>
-              {isPositive ? "+" : ""}{summary.totalReturnRate.toFixed(2)}%
-            </p>
-          </div>
-          <div className="lg:px-6">
-            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">PnL</p>
-            <p className={`text-xl font-semibold tabular-nums leading-none ${pnl >= 0 ? "text-profit-400" : "text-loss-400"}`}>
-              {pnl >= 0 ? "+" : ""}{fmt(pnl)}
-            </p>
-          </div>
-          <div className="lg:px-6">
-            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">Alpha</p>
-            <p className={`text-xl font-bold tabular-nums leading-none ${summary.alpha !== null ? (isAlphaPositive ? "text-profit-400" : "text-warn-400") : "text-text-disabled"}`}>
-              {summary.alpha !== null ? `${isAlphaPositive ? "+" : ""}${summary.alpha.toFixed(2)}%` : "—"}
-            </p>
-            <p className="text-xs text-text-muted mt-1">
-              {summary.benchmarkReturn !== null
-                ? `벤치 ${summary.benchmarkReturn >= 0 ? "+" : ""}${summary.benchmarkReturn.toFixed(2)}%`
-                : "069500"}
-            </p>
-          </div>
-          <div className="lg:px-6">
-            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">USD/KRW</p>
-            <p className="text-base font-semibold text-text-secondary tabular-nums leading-none">
-              {summary.usdKrw > 0 ? summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) : "—"}
-            </p>
-            <p className="text-xs text-text-muted mt-1">{summary.fxDate ? summary.fxDate.slice(5) : "—"}</p>
-          </div>
+        <div className="space-y-4">
+      {/* 1. 2단 차트 섹션 */}
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4 items-start">
+        {/* 왼쪽: 차트 2개 세로 */}
+        <div className="space-y-4">
+          <PortfolioPerformanceChart />
+          <NetWorthHistoryChart baseCurrency={baseCurrency} fxRates={fxRates} />
         </div>
+        {/* 오른쪽: 요약 패널 */}
+        <SummaryPanel summary={summary} baseCurrency={baseCurrency} fxRates={fxRates} />
       </div>
 
-      {/* 2. Decision Panel */}
-      <DecisionPanel holdings={holdings} />
+      {/* 2. 수평 메트릭 스트립 */}
+      <MetricsStrip summary={summary} />
 
-      {/* 3. NetWorthHistoryChart */}
-      <NetWorthHistoryChart baseCurrency={baseCurrency} fxRates={fxRates} />
+      {/* 3. 판단 패널 */}
+      <DecisionPanel holdings={holdingsSorted} />
 
-      {/* 4. PortfolioPerformanceChart */}
-      <PortfolioPerformanceChart />
-
-      {/* 5. 보유 종목 테이블 */}
+      {/* 4. 보유 종목 테이블 */}
       <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm overflow-hidden">
         <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-text-primary">보유 종목</h2>
-          <Link href="/journal" className="text-xs text-brand-green hover:text-brand-green/80">
-            매매 일지 →
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-text-primary">보유 종목</h2>
+            <span className="text-xs text-text-muted bg-bg-elevated px-2 py-0.5 rounded-full">
+              {holdingsSorted.length}
+            </span>
+          </div>
+          <Link href="/portfolio/returns" className="text-xs text-brand-green hover:underline">
+            수익률 분석 →
           </Link>
         </div>
-        {holdings.length === 0 ? (
+        {holdingsSorted.length === 0 ? (
           <div className="px-3 py-6 text-center">
             <p className="text-text-muted text-xs mb-2">보유 종목 없음</p>
             <Link href="/journal" className="text-[10px] text-brand-green underline">
@@ -201,17 +184,20 @@ export default function DashboardClient({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-default bg-bg-elevated/30">
-                  <th className="text-left px-3 py-1 font-medium text-text-muted">종목</th>
-                  <th className="text-right px-2 py-1 font-medium text-text-muted hidden sm:table-cell">수량</th>
-                  <th className="text-right px-2 py-1 font-medium text-text-muted hidden md:table-cell">단가</th>
-                  <th className="text-right px-2 py-1 font-medium text-text-muted">현재</th>
-                  <th className="text-right px-2 py-1 font-medium text-text-muted">평가</th>
-                  <th className="text-right px-2 py-1 font-medium text-text-muted">수익</th>
-                  <th className="text-right px-3 py-1 font-medium text-text-muted">수익률</th>
+                  <th className="text-left px-3 py-2 font-medium text-text-muted text-xs uppercase">종목</th>
+                  <th className="text-right px-2 py-2 font-medium text-text-muted text-xs uppercase hidden sm:table-cell">비중%</th>
+                  <th className="text-right px-2 py-2 font-medium text-text-muted text-xs uppercase hidden sm:table-cell">수량</th>
+                  <th className="text-right px-2 py-2 font-medium text-text-muted text-xs uppercase">현재가</th>
+                  <th className="text-right px-2 py-2 font-medium text-text-muted text-xs uppercase">평가금액</th>
+                  <th className="text-right px-2 py-2 font-medium text-text-muted text-xs uppercase hidden md:table-cell">수익</th>
+                  <th className="text-right px-3 py-2 font-medium text-text-muted text-xs uppercase">수익률</th>
+                  <th className="text-right px-2 py-2 font-medium text-text-muted text-xs uppercase hidden lg:table-cell">목표가</th>
+                  <th className="text-center px-2 py-2 font-medium text-text-muted text-xs uppercase hidden lg:table-cell">Conviction</th>
+                  <th className="text-left px-2 py-2 font-medium text-text-muted text-xs uppercase hidden xl:table-cell">Next</th>
                 </tr>
               </thead>
               <tbody>
-                {holdings.map((h, i) => {
+                {holdingsSorted.map((h, i) => {
                   const pos = h.returnRate >= 0;
                   const pnlKRW = h.evalAmountKRW - h.costAmountKRW;
                   const pnlPos = pnlKRW >= 0;
@@ -221,9 +207,9 @@ export default function DashboardClient({
                   return (
                     <tr
                       key={h.stockId}
-                      className={`border-b border-border-default/30 hover:bg-bg-elevated/25 ${i === holdings.length - 1 ? "border-0" : ""}`}
+                      className={`border-b border-border-default/30 hover:bg-bg-elevated/25 transition-colors ${i === holdingsSorted.length - 1 ? "border-0" : ""}`}
                     >
-                      <td className="px-3 py-1.5">
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className={`w-0.5 h-8 shrink-0 rounded-sm ${h.category === "Core" ? "bg-brand-green" : "bg-brand-blue"}`} />
                           <StockIdentity
@@ -239,30 +225,70 @@ export default function DashboardClient({
                           />
                         </div>
                       </td>
-                      <td className="text-right px-2 py-1.5 text-text-secondary tabular-nums hidden sm:table-cell">
-                        {h.quantity.toLocaleString()}주
+                      <td className="px-2 py-3 text-right hidden sm:table-cell">
+                        <span className="text-sm text-text-secondary">{h.weightPct.toFixed(1)}%</span>
                       </td>
-                      <td className="text-right px-2 py-1 text-text-muted tabular-nums hidden md:table-cell">
-                        {fmtPrice(h.avgPrice)}
+                      <td className="px-2 py-3 text-right hidden sm:table-cell">
+                        <span className="text-sm text-text-secondary">{h.quantity.toLocaleString()}</span>
                       </td>
-                      <td className="text-right px-2 py-1 text-text-secondary tabular-nums">
-                        {fmtPrice(h.currentPrice)}
+                      <td className="px-2 py-3 text-right">
+                        <span className="text-sm text-text-primary font-medium">{fmtPrice(h.currentPrice)}</span>
                       </td>
-                      <td className="text-right px-2 py-1.5 text-text-secondary tabular-nums font-medium">
-                        {formatKRW(h.evalAmountKRW)}
+                      <td className="px-2 py-3 text-right">
+                        <span className="text-sm text-text-primary font-medium">{formatKRW(h.evalAmountKRW)}</span>
                       </td>
-                      <td className={`text-right px-2 py-1.5 tabular-nums font-medium ${pnlPos ? "text-profit-400" : "text-loss-400"}`}>
-                        {pnlPos ? "+" : ""}
-                        {formatKRW(pnlKRW)}
+                      <td className="px-2 py-3 text-right hidden md:table-cell">
+                        <span className={`text-sm font-medium ${pnlPos ? "text-profit-400" : "text-loss-400"}`}>
+                          {pnlPos ? "+" : ""}
+                          {formatKRW(pnlKRW)}
+                        </span>
                       </td>
-                      <td className="text-right px-3 py-1.5 tabular-nums">
+                      <td className="px-3 py-3 text-right">
                         <span
-                          className={`inline-block px-1.5 py-0.5 rounded-md text-xs font-bold ${
+                          className={`inline-block px-2 py-1 rounded-md text-xs font-bold ${
                             pos ? "text-profit-400 bg-profit-bg border border-profit-border" : "text-loss-400 bg-loss-bg border border-loss-border"
                           }`}
                         >
                           {pos ? "+" : ""}
                           {h.returnRate.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="px-2 py-3 text-right hidden lg:table-cell">
+                        {h.thesis?.fairValueLocal ? (
+                          <div>
+                            <p className="text-sm text-text-primary">
+                              {h.currency === "USD"
+                                ? `${h.thesis.fairValueLocal.toLocaleString()}`
+                                : `₩${h.thesis.fairValueLocal.toLocaleString()}`}
+                            </p>
+                            {h.thesis.expectedReturnPct != null && (
+                              <p className={`text-xs font-medium mt-0.5 ${h.thesis.expectedReturnPct >= 0 ? "text-profit-400" : "text-loss-400"}`}>
+                                {h.thesis.expectedReturnPct >= 0 ? "+" : ""}{h.thesis.expectedReturnPct.toFixed(1)}%
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-3 text-center hidden lg:table-cell">
+                        {h.thesis?.conviction ? (
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            h.thesis.conviction === "High"
+                              ? "bg-profit-bg text-profit-400"
+                              : h.thesis.conviction === "Mid"
+                                ? "bg-brand-green/10 text-brand-green"
+                                : "bg-bg-elevated text-text-muted"
+                          }`}>
+                            {h.thesis.conviction}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-text-muted">—</span>
+                        )}
+                      </td>
+                      <td className="px-2 py-3 hidden xl:table-cell">
+                        <span className="text-xs text-text-secondary line-clamp-1">
+                          {h.thesis?.nextCatalyst ?? "—"}
                         </span>
                       </td>
                     </tr>
@@ -274,7 +300,7 @@ export default function DashboardClient({
         )}
       </div>
 
-      {/* 6. 수익률 막대 + 대출 */}
+      {/* 5. 수익률 막대 + 대출 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm px-4 pt-4 pb-3 min-h-[240px] flex flex-col">
           <div className="flex items-baseline justify-between mb-3">
@@ -344,47 +370,156 @@ export default function DashboardClient({
 
 // ── 서브 컴포넌트 ─────────────────────────────────────────────────────────────
 
-function DecisionPanel({ holdings }: { holdings: Holding[] }) {
-  // 현재는 하드코딩 — 향후 research/DECISIONS.md 또는 DB 연동
-  const decisions: Record<string, { action: string; conviction: string; note: string }> = {
-    "026960": {
-      action: "보유",
-      conviction: "Mid",
-      note: "기대수익 +29.7% · 8월 반기보고서 대기 · S8 이격 +7%",
-    },
-  };
+function SummaryPanel({
+  summary,
+  baseCurrency,
+  fxRates,
+}: {
+  summary: Summary;
+  baseCurrency: BaseCurrency;
+  fxRates: FxRates;
+}) {
+  const isPos = summary.totalReturnRate >= 0;
+  const pnlKRW = summary.totalEvalKRW - summary.totalCostKRW;
 
-  if (holdings.length === 0) return null;
+  const rows = [
+    {
+      label: "총 평가",
+      value: formatMoney(summary.totalEvalKRW, baseCurrency, fxRates),
+      cls: "text-text-primary text-xl font-bold tabular-nums",
+    },
+    {
+      label: "총 수익",
+      value: `${pnlKRW >= 0 ? "+" : ""}${formatMoney(Math.abs(pnlKRW), baseCurrency, fxRates)}`,
+      cls: pnlKRW >= 0 ? "text-profit-400 text-lg font-semibold tabular-nums" : "text-loss-400 text-lg font-semibold tabular-nums",
+    },
+    {
+      label: "수익률",
+      value: `${isPos ? "+" : ""}${summary.totalReturnRate.toFixed(2)}%`,
+      cls: isPos ? "text-profit-400 text-base font-semibold tabular-nums" : "text-loss-400 text-base font-semibold tabular-nums",
+    },
+  ];
 
   return (
-    <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-border-default flex items-center justify-between">
+    <div className="bg-bg-surface border border-border-default rounded-xl p-5 space-y-5 shadow-sm">
+      {rows.map((r) => (
+        <div key={r.label}>
+          <p className="text-xs text-text-muted uppercase tracking-wider mb-1">{r.label}</p>
+          <p className={r.cls}>{r.value}</p>
+        </div>
+      ))}
+      <div className="border-t border-border-default pt-4 space-y-3">
+        {summary.alpha !== null && (
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-text-muted">Alpha (vs KODEX 200)</span>
+            <span className={`text-sm font-semibold tabular-nums ${summary.alpha >= 0 ? "text-profit-400" : "text-loss-400"}`}>
+              {summary.alpha >= 0 ? "+" : ""}{summary.alpha.toFixed(2)}%
+            </span>
+          </div>
+        )}
+        {summary.benchmarkReturn !== null && (
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-text-muted">벤치 (KODEX 200)</span>
+            <span className="text-sm text-text-secondary tabular-nums">
+              {summary.benchmarkReturn >= 0 ? "+" : ""}{summary.benchmarkReturn.toFixed(2)}%
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-text-muted">USD/KRW</span>
+          <span className="text-sm text-text-secondary tabular-nums">
+            {summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 0 })}
+            {summary.fxDate && <span className="text-text-muted ml-1 text-xs">{summary.fxDate.slice(5)}</span>}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricsStrip({ summary }: { summary: Summary }) {
+  const pnlKRW = summary.totalEvalKRW - summary.totalCostKRW;
+  const isPos = summary.totalReturnRate >= 0;
+
+  const metrics = [
+    {
+      label: "총 평가",
+      value: formatKRW(summary.totalEvalKRW),
+      cls: "text-text-primary",
+    },
+    {
+      label: "수익/손실",
+      value: `${pnlKRW >= 0 ? "+" : ""}${formatKRW(pnlKRW)}`,
+      cls: pnlKRW >= 0 ? "text-profit-400" : "text-loss-400",
+    },
+    {
+      label: "수익률",
+      value: `${isPos ? "+" : ""}${summary.totalReturnRate.toFixed(2)}%`,
+      cls: isPos ? "text-profit-400" : "text-loss-400",
+    },
+    ...(summary.alpha !== null ? [{
+      label: "Alpha",
+      value: `${summary.alpha >= 0 ? "+" : ""}${summary.alpha.toFixed(2)}%`,
+      cls: summary.alpha >= 0 ? "text-profit-400" : "text-loss-400",
+    }] : []),
+    {
+      label: "Core / Satellite",
+      value: `${summary.totalEvalKRW > 0 ? ((summary.coreKRW / summary.totalEvalKRW) * 100).toFixed(0) : 0}% / ${summary.totalEvalKRW > 0 ? ((summary.satelliteKRW / summary.totalEvalKRW) * 100).toFixed(0) : 0}%`,
+      cls: "text-text-secondary",
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {metrics.map((m) => (
+        <div key={m.label} className="bg-bg-surface border border-border-default rounded-xl p-4 shadow-sm">
+          <p className="text-xs text-text-muted mb-1">{m.label}</p>
+          <p className={`text-sm font-semibold tabular-nums ${m.cls}`}>{m.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DecisionPanel({ holdings }: { holdings: Holding[] }) {
+  const withThesis = holdings.filter(
+    (h) => h.thesis && h.thesis.action && h.thesis.action !== "관찰"
+  );
+
+  if (withThesis.length === 0) return null;
+
+  return (
+    <div className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-2 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-brand-green inline-block" />
+          <span className="h-2 w-2 rounded-full bg-brand-green animate-pulse" />
           오늘의 판단
         </h2>
         <span className="text-xs text-text-muted">리서치 프레임워크 연동</span>
       </div>
-      <div className="divide-y divide-border-default/50">
-        {holdings.map((h) => {
-          const d = decisions[h.ticker] ?? { action: "관찰", conviction: "—", note: "판단 미등록" };
+      <div className="divide-y divide-border-default/40">
+        {withThesis.map((h) => {
           const actionColor =
-            d.action === "매수" ? "text-profit-400 bg-profit-bg border border-profit-border"
-            : d.action === "매도" ? "text-loss-400 bg-loss-bg border border-loss-border"
+            h.thesis!.action === "매수" ? "text-profit-400 bg-profit-bg border border-profit-border"
+            : h.thesis!.action === "매도" ? "text-loss-400 bg-loss-bg border border-loss-border"
             : "text-brand-green bg-brand-green/8 border border-brand-green/25";
           return (
-            <div key={h.stockId} className="px-5 py-3 flex items-center gap-4">
-              <div className="shrink-0">
-                <p className="text-sm font-semibold text-text-primary">{h.name}</p>
+            <div key={h.stockId} className="py-2 flex items-center gap-3 last:pb-0">
+              <div className="w-20 shrink-0">
+                <p className="text-sm font-medium text-text-primary truncate">{h.name}</p>
                 <p className="text-xs text-text-muted">{h.ticker}</p>
               </div>
-              <span className={`px-2.5 py-1 rounded-md text-xs font-bold shrink-0 ${actionColor}`}>
-                {d.action}
+              <span className={`px-2 py-0.5 rounded text-xs font-semibold shrink-0 ${actionColor}`}>
+                {h.thesis!.action}
               </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-text-secondary truncate">{d.note}</p>
-              </div>
-              <span className="text-xs text-text-muted shrink-0">Conviction: {d.conviction}</span>
+              <p className="text-xs text-text-secondary flex-1 min-w-0 line-clamp-1">
+                {h.thesis?.nextCatalyst ?? ""}
+              </p>
+              {h.thesis?.conviction && (
+                <span className="text-xs text-text-muted shrink-0">
+                  Conviction: {h.thesis.conviction}
+                </span>
+              )}
             </div>
           );
         })}

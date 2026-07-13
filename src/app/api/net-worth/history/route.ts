@@ -17,6 +17,8 @@ export type NetWorthHistoryPoint = {
 
 function rangeToDays(range: string): number | null {
   switch (range) {
+    case "7D":
+      return 7;
     case "1M":
       return 30;
     case "3M":
@@ -30,6 +32,11 @@ function rangeToDays(range: string): number | null {
     default:
       return 90;
   }
+}
+
+function rangeToYTDCutoff(range: string): string | null {
+  if (range !== "YTD") return null;
+  return `${new Date().getFullYear()}-01-01`;
 }
 
 export async function GET(req: NextRequest) {
@@ -46,6 +53,7 @@ export async function GET(req: NextRequest) {
 
   const range = req.nextUrl.searchParams.get("range") ?? "3M";
   const days = rangeToDays(range);
+  const ytdCutoff = rangeToYTDCutoff(range);
 
   try {
     const rows = await db.run(sql`
@@ -74,7 +82,9 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    if (days != null && points.length > 0) {
+    if (ytdCutoff != null) {
+      points = points.filter((p) => p.date >= ytdCutoff);
+    } else if (days != null && points.length > 0) {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
       const cutoffStr = cutoff.toISOString().slice(0, 10);
