@@ -19,7 +19,18 @@ import {
   EconomistStatGrid,
 } from "@/components/EconomistPage";
 import StockIdentity from "@/components/StockIdentity";
-import type { SignalRow } from "./page";
+export type SignalRow = {
+  id: number;
+  stockId: number;
+  ticker: string;
+  stockName: string;
+  detectedAt: string;
+  type: string;
+  severity: string;
+  description: string;
+  isResolved: number;
+  resolvedNote: string | null;
+};
 
 interface Props {
   signals: SignalRow[];

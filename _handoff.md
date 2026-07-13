@@ -77,3 +77,10 @@
 | B.6 smoke | ⏸ 보류 — Vercel Sensitive, 재발급 번거로움 |
 | Telegram | SEC/DART 과거 수신 OK · 순자산 smoke 미실행 |
 
+
+## [2026-07-13 15:02] AG 배포 완료
+- 작업 내용: UI design refresh — warm ivory palette, Decision Panel, layout restructure
+- 커밋 해시: 014d0be
+- 배포 URL: https://gsf-investor.vercel.app (자동 배포 트리거)
+- Claude 부재 여부: 아니오 (Claude 검증 완료 후 AG 배포)
+- 특이사항: UI 리프레시 명세 100% 적용, 도넛 차트 3종 삭제, Decision/Loan 패널 신설

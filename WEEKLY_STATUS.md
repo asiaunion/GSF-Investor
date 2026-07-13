@@ -6,13 +6,13 @@
 
 | 필드 | 값 |
 |------|-----|
-| 최종 업데이트 | 2026-06-23 (세션 Q — prod 완료 현황 반영) |
+| 최종 업데이트 | 2026-07-02 (세션 AD — v3 방향 확정: 개인 자산 의사결정 OS) |
 | 프로젝트명 | GSF-Investor |
-| 상태 | 🟢 Active — prod 안정화 완료, v2 잔여 항목 대기 |
-| 목표 + 기한 | v2 잔여 항목 우선순위 확정 후 실사용 전환 (2026 Q3) |
-| 이번 주 최우선 액션 | KODEX 200 INIT 단가 확인 + v2 잔여 항목 우선순위 확정 |
-| 다음 체크포인트 | Joseph 의사결정 후 |
-| 블로커 | 없음 (prod migrate ✅, 커밋✅ 확인됨) |
+| 상태 | 🟢 Active — prod 안정화 완료, **v3 설계 확정** (Phase 0 착수 대기) |
+| 목표 + 기한 | v3 Phase 0(데이터 신뢰) 완료 → Phase 1(리스크 대시보드) 진행 (2026 Q3) |
+| 이번 주 최우선 액션 | Phase 0 준비: 벤치마크 069500 무결성 확인 · REAL_DATA_RUN_ACK Secrets 이관 · DART L1 100% |
+| 다음 체크포인트 | Cursor BRIEF 검토 후 |
+| 블로커 | 없음 |
 
 ---
 
@@ -37,9 +37,9 @@
 | **운영 안정성** | B+ | prod migrate·B.5 UI 8/8 검증 완료. CRON_SECRET smoke 클로즈 |
 | **코드 품질** | B+ | N+1 제거, `db-utils` 추출, vitest 25건. API 테스트·E2E는 부족 |
 | **AI 파이프라인** | A | Gemini Search Grounding + Claude Sonnet 4.6 fallback 이중화 |
-| **배포 준비** | A- | main 76fe367 prod 안정화. v2 잔여(net-worth chart·/discover) 우선순위 미결 |
+| **배포 준비** | A- | main 76fe367 prod 안정화. v3 방향 확정(2026-07-02) |
 
-**한 줄 결론:** **prod 전환 완료**. v2 잔여 항목·KODEX 200 INIT 단가 확인은 Joseph 의사결정 대기.
+**한 줄 결론:** **prod 전환 완료**. v3 설계 확정, Phase 0 착수 준비 중.
 
 ---
 
@@ -63,52 +63,66 @@
 | GitHub Actions Telegram 알림 (5개 wf) | ✅ | 크론 실패 즉시 알림 |
 | `ai-provider.ts` + Claude fallback | ✅ | Gemini 장애 시 Sonnet 4.6 |
 
-### prod·운영 (잔여)
+### v3 Phase 0 (데이터 신뢰) — 착수 대기
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| prod `holding_snapshots` migrate | ✅ | 86 rows, 4종목 (6/21) |
-| holding_snapshot 첫 데이터 적재 | ✅ | migrate 후 workflow_dispatch 완료 |
-| `/journal` INIT 재입력 | ⬜ | 사용자 데이터 ([wealth-migration-report](docs/operations/wealth-migration-report.md)) |
-| REAL_DATA_RUN_ACK → GitHub Secrets | ⬜ | yml 하드코딩 → Secrets 이관 권장 |
-| CRON_SECRET smoke | ❌ 클로즈 | Vercel Sensitive 재열람 안 함 — Joseph 2026-06-23 확정 |
-| KODEX 200 INIT 단가 | ⬜ | +634% 오류 가능 — Joseph 직접 확인 |
+| **벤치마크 069500 무결성 확인** | 🔄 Cursor | KODEX 200 종목 삭제 후 alpha 파이프라인 영향 검증 |
+| REAL_DATA_RUN_ACK → GitHub Secrets | ⬜ | yml 하드코딩 5개 워크플로우 제거 |
+| **재무 L1 DART 100%** | ⬜ | 동서·미코 2종목 재시딩 (대상 축소) |
+| **데이터 검증 배지** (신규) | ⬜ | 주요 지표에 "최종 갱신일·소스" 표시 |
+| `/journal` INIT 재입력 | ⬜ | Joseph: 동서·미코 (P0-2, 유일한 데이터 작업) |
+
+### 비용 및 기술부채 (정정)
+
+| 항목 | 상태 | 비고 |
+|------|------|------|
+| KODEX 200 INIT 단가 | ❌ 해소 | KODEX 삭제 (2026-07-02) — 미결 소멸, 단가 확인 불필요 |
+| v2 잔여 우선순위 | ✅ 해소 | v3 방향 확정 (2026-07-02) — Phase 0~1 로드맵 결정 |
 
 ---
 
-## 🗓️ 안정화 로드맵
+## 🗓️ v3 로드맵 (2026-07-02 확정)
 
-| 단계 | 조건 | 내용 | 상태 |
+| 단계 | 범위 | 상태 | 기한 |
 |------|------|------|------|
-| 0 | 6/21 | Claude Code 6-Phase 개선 (로컬) | ✅ |
-| 0.5 | 6/21~22 | git commit + push + Vercel redeploy | ✅ (76fe367) |
-| 1 | 6/28 | prod migrate + holding_snapshot 1회 | ✅ (86 rows) |
-| 2 | 1 완료 후 | prod 수동 검증 (대시보드·차트·AI 보고서) | ✅ (B.5 8/8) |
-| 3 | 2 완료 후 | v2 잔여 우선순위 확정 + 실사용 전환 | ⬜ Joseph 대기 |
+| **Phase 0** | 데이터 신뢰 회복 (4항목) | 🔄 착수 준비 | ~7월 말 |
+| **Phase 1** | 리스크 대시보드 (자산배분·통화·부채·집중도) | ⬜ 미착수 | ~8월 |
+| Phase 2 | 일본 자산 축 (NISA·TYO·부동산 평가) | 📋 설계 논점만 | 2026 Q3+ |
+| Phase 3 | 의사결정 지원 (리밸런싱·AI 월간 리뷰·시나리오) | 📋 설계 사항 | Phase 1~2 안착 후 |
+
+**v3 핵심 변경:**
+- 목표: "스크리너·발굴" → **"자산 리스크·배분 관리"** (개인 의사결정 OS)
+- 범위: 1인 실사용 전용 (멀티테넌트·공개 서비스화 영구 배제)
+- 일본: NISA 계좌 관리 추가 (Phase 2)
 
 ---
 
-## 🔧 추가 개선사항 (우선순위)
+## 🔧 추가 개선사항 (우선순위 갱신)
 
-### P0 — Joseph 의사결정
+### P0 — Phase 0 착수 필수
 
-1. **KODEX 200 INIT 단가 확인** — +634% 오류 가능.
-2. **v2 잔여 우선순위** — net-worth Stacked Area chart vs `/discover` 스크리너.
+1. **벤치마크 069500 무결성 확인** — Cursor (KODEX 종목 삭제 후 alpha 계산 영향 검증)
+2. **REAL_DATA_RUN_ACK Secrets 이관** — yml 5개 하드코딩 제거 (기존 P1 승격)
+3. **재무 L1 DART 100%** — 동서·미코 2종목 (대상 축소로 부담 경감)
+4. **데이터 검증 배지** — 주요 지표에 갱신일·소스 표시 (stale 데이터 오판 방지)
 
-### P1 — 2주 내
+### P1 — Phase 1 진행 중
 
-3. **REAL_DATA_RUN_ACK Secrets 이관** — 5개 workflow yml 하드코딩 제거.
-4. **포트폴리오·Compare 차트 `formatMoney` 통화 확장** — Settings base_currency와 불일치 잔존.
-5. **배당 `pay_date` 보정** — SEIBRO 또는 수동 보정 + 월뷰 UI (yfinance 한계).
-6. **재무 L1 DART 100%** — `validate_financials_dart.py` 기준 파서·재시딩.
+5. **통화 노출 대시보드** — JPYKRW pair 추가 (Joseph 생활통화=JPY vs 자산 KRW)
+6. **자산배분 뷰** — 클래스·통화·지역 비중 (기존 `v_portfolio` 확장)
+7. **부채·LTV 뷰** — `stock_loans` 안전마진 모니터링
+8. **집중도 경고** — 임계치 초과 시 Telegram (기존 알림 확장)
 
-### P2 — Phase 3 (합의 후)
+### P2 — Phase 2 (설계 중)
 
-8. **종목 상세 인라인 레이더** — Discover 레이더를 ticker 페이지로 이동.
-9. **TYO·업종 레이더** — 섹터 벤치마크 DB 필요 (v2 비목표).
-10. **벤치마크 정책 B/C** — 현재 A(069500) 고정. 사용자·AG 합의 전 구현 금지.
-11. **API·E2E 테스트 확대** — vitest 25건 → discover/wealth cron route 커버리지.
-12. **v2 spec DoD 체크박스 갱신** — [investor-upgrade-design-v2.md](docs/specs/2026-05-21-investor-upgrade-design-v2.md) §3.3·§12 미체크.
+9. **계좌 차원 스키마** — KR vs JP NISA vs JP 課税 구분 (NISA 제도 반영 필수)
+10. **NISA 枠 트래킹** — 新NISA 생애 1,800만·연간 枠 관리
+11. **TYO 시세** — yfinance `.T` 티커 확장 (기존 파이프라인 활용)
+
+### 비목표 (계속 유지)
+
+- 멀티테넌트 · KRX/TYO 전체 스크리너 확장 · 자동매매 · 실시간 시세
 
 ---
 
@@ -116,9 +130,10 @@
 
 | 문서 | 용도 |
 |------|------|
-| [gsf-investor.vercel.app](https://gsf-investor.vercel.app) | 라이브 URL (6/8 빌드 기준) |
+| [gsf-investor.vercel.app](https://gsf-investor.vercel.app) | 라이브 URL |
 | [github.com/asiaunion/GSF-Investor](https://github.com/asiaunion) | 소스 코드 |
-| [investor-upgrade-design-v2.md](docs/specs/2026-05-21-investor-upgrade-design-v2.md) | 구현 정본 |
+| `CURSOR_BRIEF_investor-v3-phase0-1-20260702.md` | **v3 Phase 0~1 구현 브리핑** (2026-07-02) |
+| [investor-upgrade-design-v2.md](docs/specs/2026-05-21-investor-upgrade-design-v2.md) | v2 구현 정본 |
 | [_handoff.md](_handoff.md) | Claude Code 6-Phase 작업 기록 |
 | [remaining-work.md](docs/operations/remaining-work.md) | Phase 3 백로그 |
 | [phase-2b-backlog.md](docs/operations/phase-2b-backlog.md) | Week 2 완료 항목 |
@@ -126,6 +141,12 @@
 ---
 
 ## 📝 작업 로그
+
+### 2026-07-02 (Claude — v3 방향 확정)
+- Joseph 결정 5건 확인: KODEX 삭제·방향 A 승인·범위 1인 전용·일본 자산 축 포함·v2 미결 해소
+- v3 로드맵 재작성: Phase 0(데이터 신뢰) → Phase 1(리스크 대시보드) → Phase 2(일본 축)
+- CURSOR_BRIEF_investor-v3-phase0-1-20260702.md 작성 (Phase 0 5항목·Phase 1 4기능·Phase 2 설계 논점)
+- SESSION_LOG 미결 2건 해소 대상: "KODEX 200 INIT 단가 확인" · "v2 잔여 우선순위 확정"
 
 ### 2026-06-21 (Cursor — 현황 검증·재평가)
 - `npm run build` / `lint` / `test`(25건) 전부 통과 확인

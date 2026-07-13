@@ -15,7 +15,21 @@ import {
   EconomistPanelHeader,
   EconomistStatGrid,
 } from "@/components/EconomistPage";
-import type { ReportRow, StockOption } from "./page";
+export type ReportRow = {
+  id: number;
+  stockId: number;
+  ticker: string;
+  stockName: string;
+  trigger: string;
+  generatedAt: string;
+  preview: string;
+};
+
+export type StockOption = {
+  id: number;
+  ticker: string;
+  name: string;
+};
 
 /**
  * 보고서 마크다운에서 "## 1. 요약" 섹션을 추출하여 줄 배열로 반환.

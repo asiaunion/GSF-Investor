@@ -15,7 +15,7 @@ import {
   panelInlineForm,
 } from "@/lib/economist-ui";
 import { EconomistAlert, EconomistPanel } from "@/components/EconomistPage";
-import type { StockWithChecklist } from "./page";
+import type { StockWithChecklist } from "@/app/research/screening/page";
 
 type ChecklistItem = {
   no: number;

@@ -12,7 +12,20 @@ import {
 } from "@/components/EconomistPage";
 import StockIdentity from "@/components/StockIdentity";
 import { economistCard } from "@/lib/economist-ui";
-import type { DisclosureRow } from "./page";
+export type DisclosureRow = {
+  id: number;
+  stockId: number;
+  ticker: string;
+  stockName: string;
+  market: string;
+  source: string;
+  filedAt: string;
+  title: string;
+  summaryAi: string | null;
+  rawUrl: string | null;
+  rcpNo: string | null;
+  fetchedAt: string;
+};
 
 interface Props {
   disclosures: DisclosureRow[];

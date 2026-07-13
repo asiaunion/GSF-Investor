@@ -7,7 +7,7 @@ import DiscoverScoreboard from "@/components/DiscoverScoreboard";
 import DiscoverScreener from "@/components/DiscoverScreener";
 import DiscoverCompare from "@/components/DiscoverCompare";
 import { EconomistStatGrid, EconomistTabBar } from "@/components/EconomistPage";
-import type { StockWithChecklist } from "./page";
+import type { StockWithChecklist } from "@/app/research/screening/page";
 
 const TABS = [
   { id: "list", label: "관심종목 목록" },

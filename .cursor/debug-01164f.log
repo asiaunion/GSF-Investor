@@ -1,0 +1,1 @@
+{"sessionId":"01164f","runId":"post-fix-verify","hypothesisId":"H6","location":"ci:lockfile-npm-version","message":"npm ci version matrix","data":{"npm10_ci_exit":1,"npm10_error":"EUSAGE Missing esbuild@0.28.0 and @esbuild platform packages from lock file","npm11_ci_exit":0,"fix":"CI installs npm@11.12.1 before npm ci; packageManager pinned"},"timestamp":1779335700000}
