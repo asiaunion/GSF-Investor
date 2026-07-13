@@ -245,25 +245,28 @@ export default function JournalForm({ onSuccess }: Props) {
       <div className="space-y-2">
         <label className="text-xs font-medium text-text-secondary uppercase tracking-wider">감정 태그</label>
         <div className="flex flex-wrap gap-2">
-          {EMOTIONS.map((e) => (
-            <button
-              key={e.value}
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  emotionTag: prev.emotionTag === e.value ? "" : e.value,
-                }))
-              }
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                  form.emotionTag === e.value
-                    ? emotionBadge[e.value]
-                  : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600"
-              }`}
-            >
-              {e.label}
-            </button>
-          ))}
+          {EMOTIONS.map((e) => {
+            const selected = form.emotionTag === e.value;
+            return (
+              <button
+                key={e.value}
+                type="button"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    emotionTag: prev.emotionTag === e.value ? "" : e.value,
+                  }))
+                }
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${
+                  selected
+                    ? `${emotionBadge[e.value]} shadow-sm scale-105`
+                    : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600 font-medium"
+                }`}
+              >
+                {selected ? `✓ ${e.label}` : e.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -275,13 +278,20 @@ export default function JournalForm({ onSuccess }: Props) {
         </label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((score) => {
-            const isActive = form.confidenceScore >= score;
-            const color =
-              score <= 1 ? "text-loss-400 border-loss-border/50 bg-loss-bg"
-              : score <= 2 ? "text-warn-400 border-warn-border/50 bg-warn-bg"
-              : score <= 3 ? "text-yellow-400 border-yellow-500/50 bg-yellow-500/10"
-              : score <= 4 ? "text-brand-blue border-brand-blue/50 bg-brand-blue/10"
-              : "text-brand-green border-brand-green/50 bg-brand-green/10";
+            const isSelected = form.confidenceScore === score;
+            const isFilled = form.confidenceScore > score;
+            const selectedColor =
+              score <= 1 ? "text-loss-400 border-loss-400 bg-loss-bg shadow-sm scale-105"
+              : score <= 2 ? "text-warn-400 border-warn-400 bg-warn-bg shadow-sm scale-105"
+              : score <= 3 ? "text-yellow-400 border-yellow-400 bg-yellow-500/10 shadow-sm scale-105"
+              : score <= 4 ? "text-brand-blue border-brand-blue bg-brand-blue/10 shadow-sm scale-105"
+              : "text-brand-green border-brand-green bg-brand-green/10 shadow-sm scale-105";
+            const filledColor =
+              score <= 1 ? "text-loss-400/50 border-loss-border/30 bg-loss-bg/50"
+              : score <= 2 ? "text-warn-400/50 border-warn-border/30 bg-warn-bg/50"
+              : score <= 3 ? "text-yellow-400/50 border-yellow-500/30 bg-yellow-500/5"
+              : score <= 4 ? "text-brand-blue/50 border-brand-blue/30 bg-brand-blue/5"
+              : "text-brand-green/50 border-brand-green/30 bg-brand-green/5";
             return (
               <button
                 key={score}
@@ -292,9 +302,11 @@ export default function JournalForm({ onSuccess }: Props) {
                     confidenceScore: prev.confidenceScore === score ? 0 : score,
                   }))
                 }
-                className={`flex-1 py-2 rounded-sm text-sm font-bold border transition-all ${
-                  isActive
-                    ? color
+                className={`flex-1 py-2 rounded-sm text-sm font-bold border-2 transition-all ${
+                  isSelected
+                    ? selectedColor
+                    : isFilled
+                    ? filledColor
                     : "bg-bg-elevated border-border-default text-text-muted hover:border-zinc-600"
                 }`}
               >
