@@ -1,5 +1,5 @@
-import ResearchSubNav from "@/components/ResearchSubNav";
 "use client";
+import ResearchSubNav from "@/components/ResearchSubNav";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
