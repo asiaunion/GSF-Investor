@@ -89,3 +89,8 @@
 - 작업 내용: UI/IA Refactor 완료 (feature/ia-refactor -> main 병합 완료). SWS 스타일 다크모드 적용, 네비게이션 분리 (Portfolio, Research), 레거시 페이지 리디렉트 적용. TypeScript 빌드(noEmit) 에러 수정 완료.
 - 브랜치: main (from feature/ia-refactor)
 - 배포 상태: Vercel Production 배포 중 (https://gsf-investor-i6qlrxf35-asiaunions-projects.vercel.app)
+## [2026-07-13 17:25] AG 배포 완료
+- 작업 내용: Layout stacking 수정 및 Returns 페이지 에러 복구
+- 커밋 해시: 524da34
+- 배포 URL: https://gsf-investor.vercel.app/
+- 특이사항: feature/ui-design-refresh 브랜치를 main으로 병합 (사용자 라이브 Vercel 확인)
