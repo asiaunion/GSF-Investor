@@ -26,19 +26,21 @@ export default function AppPageLayout({
     <div className="min-h-screen bg-bg-base">
       <Navbar email={email} />
       <main className={container}>
-        <div
-          className={
-            headerExtra
-              ? "flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
-              : undefined
-          }
-        >
-          <div>
-            <h1 className={pageTitle}>{title}</h1>
-            {subtitle != null && subtitle !== "" && <p className={pageSubtitle}>{subtitle}</p>}
+        {title || headerExtra ? (
+          <div
+            className={
+              headerExtra
+                ? "flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"
+                : undefined
+            }
+          >
+            <div>
+              {title && <h1 className={pageTitle}>{title}</h1>}
+              {subtitle != null && subtitle !== "" && <p className={pageSubtitle}>{subtitle}</p>}
+            </div>
+            {headerExtra}
           </div>
-          {headerExtra}
-        </div>
+        ) : null}
         {children}
       </main>
     </div>

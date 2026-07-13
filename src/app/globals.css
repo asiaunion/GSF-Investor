@@ -68,11 +68,11 @@
   --space-12:  3rem;
 
   /* ── 반경 스케일 (더 각진 형태) ─────────────────────────────────────────────── */
-  --radius-sm:  0px;
-  --radius-md:  0px;
-  --radius-lg:  2px;
-  --radius-xl:  4px;
-  --radius-2xl: 4px;
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  10px;
+  --radius-2xl: 12px;
   --radius-full: 9999px;
 
   /* ── 그림자 ──────────────────────────────────────────────────── */
@@ -94,35 +94,35 @@
 @layer base {
   :root {
     /* ── Light Mode (Minimalist Tonal Warmth) ── */
-    --bg-base:        #F9F8F6;
-    --bg-surface:     #F2EFEA;
-    --bg-elevated:    #EBE7E0;
-    --bg-overlay:     #F2EFEA;
+    --bg-base:        #F7F4EE;
+    --bg-surface:     #FFFFFF;
+    --bg-elevated:    #F2EFE9;
+    --bg-overlay:     #FFFFFF;
 
-    --border-default: #D4CFC5;
-    --border-subtle:  #E3DDD3;
-    --border-strong:  #A39E96;
+    --border-default: #E7E3DA;
+    --border-subtle:  #EDE9E2;
+    --border-strong:  #C5BFB3;
 
-    --text-primary:   #1F1E1D;
-    --text-secondary: #54524F;
-    --text-muted:     #85827E;
+    --text-primary:   #1C1C1C;
+    --text-secondary: #555555;
+    --text-muted:     #888888;
     --text-disabled:  #B8B4AE;
 
     --brand-red:      #8C3A35;
     --brand-blue:     #3B4B52;
-    --brand-green:    #2E633F; /* Noticeable Forest Green */
+    --brand-green:    #355E4B; /* Noticeable Forest Green */
 
     /* Profit: Elegant Muted Olive */
-    --profit-500:     #3A4D39;
-    --profit-400:     #4A6149;
-    --profit-bg:      rgba(58, 77, 57, 0.06);
-    --profit-border:  rgba(58, 77, 57, 0.15);
+    --profit-500:     #1F6B3B;
+    --profit-400:     #2E8B57;
+    --profit-bg:      rgba(46, 139, 87, 0.08);
+    --profit-border:  rgba(46, 139, 87, 0.20);
 
     /* Loss: Elegant Terracotta */
-    --loss-500:       #8C3A35;
-    --loss-400:       #A64842;
-    --loss-bg:        rgba(140, 58, 53, 0.06);
-    --loss-border:    rgba(140, 58, 53, 0.15);
+    --loss-500:       #B33A2A;
+    --loss-400:       #C24D3A;
+    --loss-bg:        rgba(194, 77, 58, 0.08);
+    --loss-border:    rgba(194, 77, 58, 0.20);
 
     /* Alpha: Neutral Slate Gray */
     --alpha-500:      #78828A;
@@ -151,28 +151,28 @@
   }
 
   :root[data-theme="light"] {
-    --bg-base:        #F9F8F6;
-    --bg-surface:     #F2EFEA;
-    --bg-elevated:    #EBE7E0;
-    --bg-overlay:     #F2EFEA;
-    --border-default: #D4CFC5;
-    --border-subtle:  #E3DDD3;
-    --border-strong:  #A39E96;
-    --text-primary:   #1F1E1D;
-    --text-secondary: #54524F;
-    --text-muted:     #85827E;
+    --bg-base:        #F7F4EE;
+    --bg-surface:     #FFFFFF;
+    --bg-elevated:    #F2EFE9;
+    --bg-overlay:     #FFFFFF;
+    --border-default: #E7E3DA;
+    --border-subtle:  #EDE9E2;
+    --border-strong:  #C5BFB3;
+    --text-primary:   #1C1C1C;
+    --text-secondary: #555555;
+    --text-muted:     #888888;
     --text-disabled:  #B8B4AE;
     --brand-red:      #8C3A35;
     --brand-blue:     #3B4B52;
-    --brand-green:    #2E633F;
-    --profit-500:     #3A4D39;
-    --profit-400:     #4A6149;
-    --profit-bg:      rgba(58, 77, 57, 0.06);
-    --profit-border:  rgba(58, 77, 57, 0.15);
-    --loss-500:       #8C3A35;
-    --loss-400:       #A64842;
-    --loss-bg:        rgba(140, 58, 53, 0.06);
-    --loss-border:    rgba(140, 58, 53, 0.15);
+    --brand-green:    #355E4B;
+    --profit-500:     #1F6B3B;
+    --profit-400:     #2E8B57;
+    --profit-bg:      rgba(46, 139, 87, 0.08);
+    --profit-border:  rgba(46, 139, 87, 0.20);
+    --loss-500:       #B33A2A;
+    --loss-400:       #C24D3A;
+    --loss-bg:        rgba(194, 77, 58, 0.08);
+    --loss-border:    rgba(194, 77, 58, 0.20);
     --alpha-500:      #78828A;
     --alpha-400:      #919BA3;
     --alpha-bg:       rgba(120, 130, 138, 0.08);

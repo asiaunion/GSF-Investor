@@ -8,9 +8,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-  PieChart,
-  Pie,
-  type PieLabelRenderProps,
 } from "recharts";
 
 const STOCK_BAR_COLORS = [
@@ -24,21 +21,6 @@ const STOCK_BAR_COLORS = [
   "#4a7c8c",
 ];
 
-const SECTOR_COLORS = [
-  "var(--color-brand-green)",
-  "var(--color-brand-blue)",
-  "var(--color-warn-500)",
-  "var(--color-brand-blue)",
-  "var(--color-loss-500)",
-  "var(--color-brand-green)",
-  "var(--color-warn-400)",
-  "var(--color-brand-blue)",
-];
-
-const DONUT_CORE_COLORS = ["var(--color-brand-green)", "var(--color-brand-blue)"];
-
-/** 도넛 범례와 수익률 % 축 하단 라인 정렬 */
-const CHART_FOOTER_H = 32;
 const CHART_PLOT_TOP_PT = "pt-0.5";
 
 /** 수익률 막대: 0번(현대차) 상단 고정, 마지막 종목 하단까지 균등 간격 */
@@ -64,45 +46,6 @@ function estimateYAxisWidth(names: string[], compact: boolean): number {
   return Math.min(220, Math.max(72, maxW + 24));
 }
 
-/** 도넛이 잘리지 않도록 픽셀 기준 cy·height 계산 (범례는 차트 밖) */
-function donutLayout(compact: boolean) {
-  const outerR = compact ? 82 : 94;
-  const innerR = compact ? 51 : 59;
-  const margin = { top: 2, right: 4, bottom: 2, left: 4 };
-  const height = margin.top + outerR * 2 + margin.bottom;
-  const cy = margin.top + outerR;
-  return { outerR, innerR, margin, height, cy };
-}
-
-function ChartFooter({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="shrink-0 flex items-end justify-center px-1 pb-1 mt-auto w-full"
-      style={{ height: CHART_FOOTER_H }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function DonutLegend({ items, colors }: { items: { name: string }[]; colors: string[] }) {
-  return (
-    <ChartFooter>
-    <ul className="flex flex-wrap justify-center items-end gap-x-2.5 gap-y-1 w-full">
-      {items.map((item, i) => (
-        <li key={item.name} className="flex items-center gap-1 min-w-0 max-w-[46%]">
-          <span
-            className="w-1.5 h-1.5 rounded-full shrink-0"
-            style={{ backgroundColor: colors[i % colors.length] }}
-          />
-          <span className="text-[11px] text-text-secondary truncate leading-tight">{item.name}</span>
-        </li>
-      ))}
-    </ul>
-    </ChartFooter>
-  );
-}
-
 function returnAxisTicks(values: number[]): number[] {
   const max = Math.max(0, ...values);
   const step = max <= 25 ? 5 : 10;
@@ -114,7 +57,10 @@ function returnAxisTicks(values: number[]): number[] {
 
 function ReturnBarFooter({ ticks, plotInsetLeft }: { ticks: number[]; plotInsetLeft: number }) {
   return (
-    <ChartFooter>
+    <div
+      className="shrink-0 flex items-end justify-center px-1 pb-1 mt-auto w-full"
+      style={{ height: 32 }}
+    >
       <div
         className="flex w-full justify-between text-[10px] tabular-nums leading-none"
         style={{ marginLeft: plotInsetLeft, marginRight: 10, color: "var(--color-alpha-500)" }}
@@ -126,96 +72,6 @@ function ReturnBarFooter({ ticks, plotInsetLeft }: { ticks: number[]; plotInsetL
           </span>
         ))}
       </div>
-    </ChartFooter>
-  );
-}
-
-function DonutPercentLabel(compact: boolean, minPercent = 0.05) {
-  return function Label(props: PieLabelRenderProps) {
-    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
-    if (!cx || !cy || !midAngle || !innerRadius || !outerRadius || !percent) return null;
-    if (percent < minPercent) return null;
-    const RADIAN = Math.PI / 180;
-    const radius = Number(innerRadius) + (Number(outerRadius) - Number(innerRadius)) * 0.5;
-    const x = Number(cx) + radius * Math.cos(-Number(midAngle) * RADIAN);
-    const y = Number(cy) + radius * Math.sin(-Number(midAngle) * RADIAN);
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={compact ? 11 : 12}
-        fontWeight={600}
-      >
-        {(percent * 100).toFixed(0)}%
-      </text>
-    );
-  };
-}
-
-interface DonutSlice {
-  name: string;
-  valueKRW: number;
-  pct?: number;
-}
-
-function GenericDonut({
-  data,
-  colors,
-  compact = true,
-  labelMinPercent = 0.05,
-  tooltip,
-}: {
-  data: DonutSlice[];
-  colors: string[];
-  compact?: boolean;
-  labelMinPercent?: number;
-  tooltip: (d: DonutSlice) => React.ReactNode;
-}) {
-  const { outerR, innerR, margin, height, cy } = donutLayout(compact);
-
-  return (
-    <div className="w-full overflow-visible flex flex-col flex-1 min-h-[152px]">
-      <div
-        className={`flex-1 min-h-0 w-full flex items-start justify-center ${CHART_PLOT_TOP_PT}`}
-        style={{ minHeight: height }}
-      >
-        <ResponsiveContainer width="100%" height={height}>
-          <PieChart margin={margin}>
-            <Pie
-              data={data}
-              cx="50%"
-              cy={cy}
-              innerRadius={innerR}
-              outerRadius={outerR}
-              dataKey="valueKRW"
-              nameKey="name"
-              labelLine={false}
-              label={DonutPercentLabel(compact, labelMinPercent)}
-              strokeWidth={2}
-              stroke="var(--color-bg-surface)"
-            >
-              {data.map((entry, index) => (
-                <Cell key={entry.name} fill={colors[index % colors.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              content={({ active, payload }) => {
-                if (!active || !payload?.length) return null;
-                const d = payload[0].payload as DonutSlice;
-                return (
-                  <div className="bg-bg-elevated border border-border-default rounded-sm px-3 py-2 text-sm shadow-lg">
-                    {tooltip(d)}
-                  </div>
-                );
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-      <DonutLegend items={data} colors={colors} />
     </div>
   );
 }
@@ -305,115 +161,6 @@ export function ReturnBarChart({ data, compact = true }: { data: ReturnBarData[]
       </div>
       <ReturnBarFooter ticks={xTicks} plotInsetLeft={yWidth + 2} />
     </div>
-  );
-}
-
-// ── Core vs Satellite ─────────────────────────────────────────────────────────
-interface DonutData {
-  name: string;
-  valueKRW: number;
-  pct: number;
-}
-
-export function CoreSatelliteDonut({ data, compact = true }: { data: DonutData[]; compact?: boolean }) {
-  return (
-    <GenericDonut
-      data={data}
-      colors={DONUT_CORE_COLORS}
-      compact={compact}
-      tooltip={(d) => (
-        <>
-          <p className="text-text-primary font-semibold">{d.name}</p>
-          <p className="text-text-secondary">{formatKRW(d.valueKRW)}</p>
-          <p className="text-text-secondary">{(d.pct ?? 0).toFixed(1)}%</p>
-        </>
-      )}
-    />
-  );
-}
-
-// ── 종목 비중 도넛 ────────────────────────────────────────────────────────────
-interface ContribData {
-  ticker: string;
-  name: string;
-  weightPct: number;
-  pnlKRW: number;
-  category: string;
-}
-
-export function WeightDonut({ data, compact = true }: { data: ContribData[]; compact?: boolean }) {
-  const chartData: DonutSlice[] = [...data]
-    .sort((a, b) => b.weightPct - a.weightPct)
-    .map((d) => ({
-      name: d.name,
-      valueKRW: d.weightPct,
-      pct: d.weightPct,
-    }));
-
-  const meta = new Map(data.map((d) => [d.name, d]));
-
-  return (
-    <GenericDonut
-      data={chartData}
-      colors={chartData.map((_, i) => stockColor(i))}
-      compact={compact}
-      labelMinPercent={0.06}
-      tooltip={(d) => {
-        const row = meta.get(d.name);
-        const pnlPos = (row?.pnlKRW ?? 0) >= 0;
-        return (
-          <>
-            <p className="text-text-primary font-semibold">
-              {d.name}
-              {row?.ticker && <span className="text-text-muted font-normal ml-1">({row.ticker})</span>}
-            </p>
-            <p className="text-text-secondary">비중 {(d.pct ?? 0).toFixed(1)}%</p>
-            {row && (
-              <p className={pnlPos ? "text-profit-400" : "text-loss-400"}>
-                평가손익 {pnlPos ? "+" : ""}
-                {formatKRW(row.pnlKRW)}
-              </p>
-            )}
-          </>
-        );
-      }}
-    />
-  );
-}
-
-/** @deprecated WeightDonut 사용 */
-export function WeightedContributionChart(props: { data: ContribData[]; compact?: boolean }) {
-  return <WeightDonut {...props} />;
-}
-
-// ── Sector 집중도 ─────────────────────────────────────────────────────────────
-interface SectorData {
-  sector: string;
-  valueKRW: number;
-  pct: number;
-}
-
-export function SectorDonut({ data, compact = true }: { data: SectorData[]; compact?: boolean }) {
-  const chartData: DonutSlice[] = data.map((d) => ({
-    name: d.sector,
-    valueKRW: d.valueKRW,
-    pct: d.pct,
-  }));
-
-  return (
-    <GenericDonut
-      data={chartData}
-      colors={SECTOR_COLORS}
-      compact={compact}
-      labelMinPercent={0.07}
-      tooltip={(d) => (
-        <>
-          <p className="text-text-primary font-semibold">{d.name}</p>
-          <p className="text-text-secondary">{formatKRW(d.valueKRW)}</p>
-          <p className="text-text-secondary">{(d.pct ?? 0).toFixed(1)}%</p>
-        </>
-      )}
-    />
   );
 }
 

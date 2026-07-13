@@ -1,10 +1,10 @@
 /** Economist editorial UI tokens — design-baseline §2–3 */
 
 export const economistCard =
-  "bg-bg-surface border-t-4 border-t-brand-green border border-border-default rounded-sm shadow-sm";
+  "bg-bg-surface border border-border-default rounded-lg shadow-sm";
 
 export const economistStatCard =
-  "bg-bg-surface border-t-4 border-t-brand-green border border-border-default rounded-sm shadow-sm p-4";
+  "bg-bg-surface border border-border-default rounded-lg shadow-sm p-4";
 
 export const economistSection = "border-t-4 border-brand-green pt-6";
 
@@ -34,7 +34,7 @@ export const btnDanger =
 export const inputFocus =
   "focus:outline-none focus:ring-1 focus:ring-brand-green/40 focus:border-brand-green";
 
-export const inputClass = `w-full bg-bg-elevated border border-border-strong text-text-primary rounded-sm px-3 py-2 text-sm ${inputFocus}`;
+export const inputClass = `w-full bg-bg-elevated border border-border-strong text-text-primary rounded-md px-3 py-2 text-sm ${inputFocus}`;
 
 export const tabActive =
   "font-bold text-brand-green bg-brand-green/10 border border-brand-green/25";
@@ -103,7 +103,7 @@ export const textareaClass = `${inputClass} resize-none`;
 export const selectClass = inputClass;
 
 export const btnPrimarySm =
-  "px-4 py-2 rounded-sm text-xs font-medium text-white bg-brand-green border border-brand-green hover:bg-brand-green/85 disabled:bg-bg-elevated disabled:text-text-muted disabled:border-border-default transition-colors";
+  "px-4 py-2 rounded-md text-xs font-medium text-white bg-brand-green border border-brand-green hover:bg-brand-green/85 disabled:bg-bg-elevated disabled:text-text-muted disabled:border-border-default transition-colors";
 
 export const economistPanelBody = "p-5";
 

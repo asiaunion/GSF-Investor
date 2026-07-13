@@ -3,9 +3,6 @@
 import type { ReactNode } from "react";
 import {
   ReturnBarChart,
-  CoreSatelliteDonut,
-  WeightDonut,
-  SectorDonut,
   formatKRW,
 } from "@/components/DashboardCharts";
 import { formatMoney, type BaseCurrency, type FxRates } from "@/lib/format-money";
@@ -15,7 +12,7 @@ import ActivityTimeline, { type ActivityItem } from "@/components/ActivityTimeli
 import Link from "next/link";
 import StockIdentity from "@/components/StockIdentity";
 import { PnlMethodHint } from "@/components/PnlMethodHint";
-import { economistCard, severityConfig } from "@/lib/economist-ui";
+import { severityConfig } from "@/lib/economist-ui";
 
 // ── 타입 ─────────────────────────────────────────────────────────────────────
 
@@ -114,11 +111,6 @@ export default function DashboardClient({
   const { holdings, summary } = data;
   const fmt = (n: number) => formatMoney(n, baseCurrency, fxRates);
 
-  const donutData = [
-    { name: "Core", valueKRW: summary.coreKRW, pct: summary.totalEvalKRW > 0 ? (summary.coreKRW / summary.totalEvalKRW) * 100 : 0 },
-    { name: "Satellite", valueKRW: summary.satelliteKRW, pct: summary.totalEvalKRW > 0 ? (summary.satelliteKRW / summary.totalEvalKRW) * 100 : 0 },
-  ].filter((d) => d.valueKRW > 0);
-
   const barData = holdings.map((h) => ({
     ticker: h.ticker,
     name: h.name,
@@ -128,79 +120,69 @@ export default function DashboardClient({
   const isPositive = summary.totalReturnRate >= 0;
   const isAlphaPositive = (summary.alpha ?? 0) >= 0;
   const pnl = summary.totalEvalKRW - summary.totalCostKRW;
-  const coreCount = holdings.filter((h) => h.category === "Core").length;
-  const satCount = holdings.filter((h) => h.category === "Satellite").length;
-  const corePct = summary.totalEvalKRW > 0 ? (summary.coreKRW / summary.totalEvalKRW) * 100 : 0;
-  const satPct = summary.totalEvalKRW > 0 ? (summary.satelliteKRW / summary.totalEvalKRW) * 100 : 0;
 
   const totalLoan = loans.reduce((s, l) => s + l.loanAmount, 0);
   const totalAnnual = loans.reduce((s, l) => s + l.annualInterest, 0);
   const ltvPct = summary.totalEvalKRW > 0 ? (totalLoan / summary.totalEvalKRW) * 100 : 0;
 
   return (
-    <div className="space-y-3">
-
-      {/* KPI 스트립 */}
-      <div className={`${economistCard} px-4 py-3 relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-green/4 via-transparent to-brand-green/4 pointer-events-none" />
-        <div className="relative grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-x-3 gap-y-2 lg:divide-x divide-border-default">
-          <HeroMetric emphasis label="총 평가" value={fmt(summary.totalEvalKRW)} sub={`원가 ${fmt(summary.totalCostKRW)}`} />
-          <HeroMetric
-            emphasis
-            label="총 수익률"
-            labelExtra={<PnlMethodHint method="weighted_avg" />}
-            value={`${isPositive ? "+" : ""}${summary.totalReturnRate.toFixed(2)}%`}
-            sub={`수익 ${isPositive ? "+" : ""}${fmt(pnl)}`}
-            valueClass={isPositive ? "text-profit-400" : "text-loss-400"}
-          />
-          <HeroMetric
-            emphasis
-            label="Alpha"
-            value={summary.alpha !== null ? `${isAlphaPositive ? "+" : ""}${summary.alpha.toFixed(2)}%` : "—"}
-            sub={
-              summary.benchmarkReturn !== null
+    <div className="space-y-4">
+      {/* 1. Hero Strip */}
+      <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm px-6 py-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 lg:divide-x divide-border-default">
+          <div className="lg:pr-6">
+            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">총 평가</p>
+            <p className="text-3xl sm:text-4xl font-bold tabular-nums text-text-primary leading-none">
+              {fmt(summary.totalEvalKRW)}
+            </p>
+            <p className="text-xs text-text-muted mt-1">원가 {fmt(summary.totalCostKRW)}</p>
+          </div>
+          <div className="lg:px-6">
+            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide flex items-center gap-1">
+              총 수익률 <PnlMethodHint method="weighted_avg" />
+            </p>
+            <p className={`text-2xl font-bold tabular-nums leading-none ${isPositive ? "text-profit-400" : "text-loss-400"}`}>
+              {isPositive ? "+" : ""}{summary.totalReturnRate.toFixed(2)}%
+            </p>
+          </div>
+          <div className="lg:px-6">
+            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">PnL</p>
+            <p className={`text-xl font-semibold tabular-nums leading-none ${pnl >= 0 ? "text-profit-400" : "text-loss-400"}`}>
+              {pnl >= 0 ? "+" : ""}{fmt(pnl)}
+            </p>
+          </div>
+          <div className="lg:px-6">
+            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">Alpha</p>
+            <p className={`text-xl font-bold tabular-nums leading-none ${summary.alpha !== null ? (isAlphaPositive ? "text-profit-400" : "text-warn-400") : "text-text-disabled"}`}>
+              {summary.alpha !== null ? `${isAlphaPositive ? "+" : ""}${summary.alpha.toFixed(2)}%` : "—"}
+            </p>
+            <p className="text-xs text-text-muted mt-1">
+              {summary.benchmarkReturn !== null
                 ? `벤치 ${summary.benchmarkReturn >= 0 ? "+" : ""}${summary.benchmarkReturn.toFixed(2)}%`
-                : "069500"
-            }
-            valueClass={summary.alpha !== null ? (isAlphaPositive ? "text-profit-400" : "text-warn-400") : "text-text-disabled"}
-          />
-          <MiniStat label="종목" value={`${holdings.length}`} sub={`Core ${coreCount} · Sat ${satCount}`} />
-          <MiniStat
-            label="USD/KRW"
-            value={summary.usdKrw > 0 ? summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) : "—"}
-            sub={summary.fxDate ? summary.fxDate.slice(5) : "—"}
-          />
-          <MiniStat label="Core" value={`${corePct.toFixed(0)}%`} sub={fmt(summary.coreKRW)} accent="green" />
-          <MiniStat label="Sat" value={`${satPct.toFixed(0)}%`} sub={fmt(summary.satelliteKRW)} accent="blue" />
+                : "069500"}
+            </p>
+          </div>
+          <div className="lg:px-6">
+            <p className="text-xs text-text-muted mb-1 uppercase tracking-wide">USD/KRW</p>
+            <p className="text-base font-semibold text-text-secondary tabular-nums leading-none">
+              {summary.usdKrw > 0 ? summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 0 }) : "—"}
+            </p>
+            <p className="text-xs text-text-muted mt-1">{summary.fxDate ? summary.fxDate.slice(5) : "—"}</p>
+          </div>
         </div>
       </div>
 
+      {/* 2. Decision Panel */}
+      <DecisionPanel holdings={holdings} />
+
+      {/* 3. NetWorthHistoryChart */}
       <NetWorthHistoryChart baseCurrency={baseCurrency} fxRates={fxRates} />
 
+      {/* 4. PortfolioPerformanceChart */}
       <PortfolioPerformanceChart />
 
-      {/* 차트 4종 */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 overflow-visible">
-        <ChartPanel title="수익률" hint="매입가" variant="bar">
-          {barData.length > 0 ? <ReturnBarChart data={barData} /> : <EmptyState message="보유 없음" cta={{ label: "일지", href: "/journal" }} />}
-        </ChartPanel>
-        <ChartPanel title="Core/Sat" hint="평가" variant="donut">
-          {donutData.length > 0 ? <CoreSatelliteDonut data={donutData} /> : <EmptyState message="보유 없음" />}
-        </ChartPanel>
-        {contribData.length > 0 && (
-          <>
-            <ChartPanel title="비중" hint="%" variant="donut">
-              <WeightDonut data={contribData} />
-            </ChartPanel>
-            <ChartPanel title="섹터" hint="평가" variant="donut">
-              {sectorData.length > 0 ? <SectorDonut data={sectorData} /> : <EmptyState message="섹터 미입력" cta={{ label: "설정", href: "/settings" }} />}
-            </ChartPanel>
-          </>
-        )}
-      </div>
-
-      {/* 보유 종목 */}
-      <div className={`${economistCard} overflow-hidden`}>
+      {/* 5. 보유 종목 테이블 */}
+      <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm overflow-hidden">
         <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
           <h2 className="text-sm font-semibold text-text-primary">보유 종목</h2>
           <Link href="/journal" className="text-xs text-brand-green hover:text-brand-green/80">
@@ -218,7 +200,7 @@ export default function DashboardClient({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border-default bg-bg-elevated/40">
+                <tr className="border-b border-border-default bg-bg-elevated/30">
                   <th className="text-left px-3 py-1 font-medium text-text-muted">종목</th>
                   <th className="text-right px-2 py-1 font-medium text-text-muted hidden sm:table-cell">수량</th>
                   <th className="text-right px-2 py-1 font-medium text-text-muted hidden md:table-cell">단가</th>
@@ -239,7 +221,7 @@ export default function DashboardClient({
                   return (
                     <tr
                       key={h.stockId}
-                      className={`border-b border-border-default/40 hover:bg-bg-elevated/25 ${i === holdings.length - 1 ? "border-0" : ""}`}
+                      className={`border-b border-border-default/30 hover:bg-bg-elevated/25 ${i === holdings.length - 1 ? "border-0" : ""}`}
                     >
                       <td className="px-3 py-1.5">
                         <div className="flex items-center gap-2 min-w-0">
@@ -275,8 +257,8 @@ export default function DashboardClient({
                       </td>
                       <td className="text-right px-3 py-1.5 tabular-nums">
                         <span
-                          className={`inline-block px-1.5 py-0.5 rounded text-xs font-semibold ${
-                            pos ? "text-profit-400 bg-profit-bg" : "text-loss-400 bg-loss-bg"
+                          className={`inline-block px-1.5 py-0.5 rounded-md text-xs font-bold ${
+                            pos ? "text-profit-400 bg-profit-bg border border-profit-border" : "text-loss-400 bg-loss-bg border border-loss-border"
                           }`}
                         >
                           {pos ? "+" : ""}
@@ -292,47 +274,28 @@ export default function DashboardClient({
         )}
       </div>
 
-      {/* 활동 + 대출 + 시그널 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <ActivityTimeline items={activityItems} />
-        <div className={`${economistCard} overflow-hidden`}>
-          <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">대출 현황</h2>
-            <Link href="/settings" className="text-xs text-brand-green">관리 →</Link>
+      {/* 6. 수익률 막대 + 대출 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm px-4 pt-4 pb-3 min-h-[240px] flex flex-col">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-sm font-semibold text-text-primary">종목별 수익률</h2>
+            <span className="text-xs text-text-muted">매입가 기준</span>
           </div>
-          {loans.length === 0 ? (
-            <p className="px-4 py-4 text-sm text-text-muted">등록된 대출 없음</p>
+          {barData.length > 0 ? (
+            <ReturnBarChart data={barData} />
           ) : (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border-default border-b border-border-default">
-                {[
-                  { label: "대출원금", value: formatKRW(totalLoan), cls: "text-warn-400" },
-                  { label: "연간 이자", value: formatKRW(Math.round(totalAnnual)), cls: "text-loss-400" },
-                  { label: "월평균 이자", value: formatKRW(Math.round(totalAnnual / 12)), cls: "text-warn-500" },
-                  { label: "LTV", value: `${ltvPct.toFixed(1)}%`, cls: ltvPct > 60 ? "text-loss-400" : "text-text-secondary" },
-                ].map((item) => (
-                  <div key={item.label} className="px-3 py-2.5">
-                    <p className="text-xs text-text-muted mb-0.5">{item.label}</p>
-                    <p className={`text-sm font-bold tabular-nums ${item.cls}`}>{item.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="divide-y divide-border-default/50">
-                {loans.map((loan) => (
-                  <div key={loan.id} className="px-4 py-2.5 flex justify-between gap-3 text-sm">
-                    <span className="text-text-primary truncate">
-                      {loan.label}
-                      {loan.ticker && <span className="text-text-muted ml-1">{loan.ticker}</span>}
-                    </span>
-                    <span className="text-warn-400 tabular-nums shrink-0">{formatKRW(loan.loanAmount)}</span>
-                  </div>
-                ))}
-              </div>
-            </>
+            <EmptyState message="보유 없음" cta={{ label: "일지", href: "/journal" }} />
           )}
         </div>
+        <LoanPanel loans={loans} totalLoan={totalLoan} totalAnnual={totalAnnual} ltvPct={ltvPct} />
+      </div>
 
-        <div className={`${economistCard} overflow-hidden`}>
+      {/* 7. 시그널 + 타임라인 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <ActivityTimeline items={activityItems} />
+        
+        {/* 시그널 패널 */}
+        <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm overflow-hidden">
           <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
             <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
               최근 시그널
@@ -381,82 +344,92 @@ export default function DashboardClient({
 
 // ── 서브 컴포넌트 ─────────────────────────────────────────────────────────────
 
-function HeroMetric({
-  label,
-  labelExtra,
-  value,
-  sub,
-  valueClass = "text-text-primary",
-  emphasis = false,
-}: {
-  label: string;
-  labelExtra?: ReactNode;
-  value: string;
-  sub: string;
-  valueClass?: string;
-  emphasis?: boolean;
-}) {
-  return (
-    <div className="lg:px-2 min-w-0">
-      <p className={`${emphasis ? "text-xs" : "text-[11px]"} text-text-muted leading-none mb-0.5 flex items-center gap-1 flex-wrap`}>
-        {label}
-        {labelExtra}
-      </p>
-      <p
-        className={`${emphasis ? "text-lg sm:text-xl" : "text-base"} font-bold tabular-nums leading-tight truncate ${valueClass}`}
-      >
-        {value}
-      </p>
-      <p className={`${emphasis ? "text-xs" : "text-[11px]"} text-text-muted truncate leading-tight`}>{sub}</p>
-    </div>
-  );
-}
+function DecisionPanel({ holdings }: { holdings: Holding[] }) {
+  // 현재는 하드코딩 — 향후 research/DECISIONS.md 또는 DB 연동
+  const decisions: Record<string, { action: string; conviction: string; note: string }> = {
+    "026960": {
+      action: "보유",
+      conviction: "Mid",
+      note: "기대수익 +29.7% · 8월 반기보고서 대기 · S8 이격 +7%",
+    },
+  };
 
-function MiniStat({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  accent?: "green" | "blue";
-}) {
-  const valueCls =
-    accent === "green" ? "text-brand-green" : accent === "blue" ? "text-brand-blue" : "text-text-primary";
-  return (
-    <div className="lg:px-2 min-w-0">
-      <p className="text-xs text-text-muted leading-none mb-0.5">{label}</p>
-      <p className={`text-base font-bold tabular-nums leading-tight ${valueCls}`}>{value}</p>
-      <p className="text-xs text-text-muted truncate leading-tight">{sub}</p>
-    </div>
-  );
-}
+  if (holdings.length === 0) return null;
 
-function ChartPanel({
-  title,
-  hint,
-  children,
-  variant,
-}: {
-  title: string;
-  hint: string;
-  children: ReactNode;
-  variant?: "bar" | "donut";
-}) {
-  const isChart = variant === "bar" || variant === "donut";
   return (
-    <div
-      className={`${economistCard} px-2.5 pt-2 ${
-        isChart ? "pb-2 overflow-visible" : "pb-1"
-      } ${isChart ? "min-h-[220px] flex flex-col" : ""}`}
-    >
-      <div className="flex items-baseline justify-between gap-1 mb-1.5 px-0.5 shrink-0">
-        <h2 className="text-xs font-semibold text-text-primary">{title}</h2>
-        <span className="text-[11px] text-text-muted">{hint}</span>
+    <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm overflow-hidden">
+      <div className="px-5 py-3 border-b border-border-default flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-brand-green inline-block" />
+          오늘의 판단
+        </h2>
+        <span className="text-xs text-text-muted">리서치 프레임워크 연동</span>
       </div>
-      <div className={isChart ? "overflow-visible flex flex-col flex-1 min-h-0" : undefined}>{children}</div>
+      <div className="divide-y divide-border-default/50">
+        {holdings.map((h) => {
+          const d = decisions[h.ticker] ?? { action: "관찰", conviction: "—", note: "판단 미등록" };
+          const actionColor =
+            d.action === "매수" ? "text-profit-400 bg-profit-bg border border-profit-border"
+            : d.action === "매도" ? "text-loss-400 bg-loss-bg border border-loss-border"
+            : "text-brand-green bg-brand-green/8 border border-brand-green/25";
+          return (
+            <div key={h.stockId} className="px-5 py-3 flex items-center gap-4">
+              <div className="shrink-0">
+                <p className="text-sm font-semibold text-text-primary">{h.name}</p>
+                <p className="text-xs text-text-muted">{h.ticker}</p>
+              </div>
+              <span className={`px-2.5 py-1 rounded-md text-xs font-bold shrink-0 ${actionColor}`}>
+                {d.action}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-text-secondary truncate">{d.note}</p>
+              </div>
+              <span className="text-xs text-text-muted shrink-0">Conviction: {d.conviction}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LoanPanel({ loans, totalLoan, totalAnnual, ltvPct }: { loans: LoanItem[], totalLoan: number, totalAnnual: number, ltvPct: number }) {
+  return (
+    <div className="bg-bg-surface border border-border-default rounded-lg shadow-sm overflow-hidden">
+      <div className="px-4 py-2 border-b border-border-default flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-text-primary">대출 현황</h2>
+        <Link href="/settings" className="text-xs text-brand-green">관리 →</Link>
+      </div>
+      {loans.length === 0 ? (
+        <p className="px-4 py-4 text-sm text-text-muted">등록된 대출 없음</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border-default border-b border-border-default">
+            {[
+              { label: "대출원금", value: formatKRW(totalLoan), cls: "text-warn-400" },
+              { label: "연간 이자", value: formatKRW(Math.round(totalAnnual)), cls: "text-loss-400" },
+              { label: "월평균 이자", value: formatKRW(Math.round(totalAnnual / 12)), cls: "text-warn-500" },
+              { label: "LTV", value: `${ltvPct.toFixed(1)}%`, cls: ltvPct > 60 ? "text-loss-400" : "text-text-secondary" },
+            ].map((item) => (
+              <div key={item.label} className="px-3 py-2.5">
+                <p className="text-xs text-text-muted mb-0.5">{item.label}</p>
+                <p className={`text-sm font-bold tabular-nums ${item.cls}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="divide-y divide-border-default/50">
+            {loans.map((loan) => (
+              <div key={loan.id} className="px-4 py-2.5 flex justify-between gap-3 text-sm">
+                <span className="text-text-primary truncate">
+                  {loan.label}
+                  {loan.ticker && <span className="text-text-muted ml-1">{loan.ticker}</span>}
+                </span>
+                <span className="text-warn-400 tabular-nums shrink-0">{formatKRW(loan.loanAmount)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -466,9 +439,9 @@ function EmptyState({ message, cta }: { message: string; cta?: { label: string; 
     <div className="h-20 flex flex-col items-center justify-center gap-1 text-text-muted text-xs">
       <span>{message}</span>
       {cta && (
-        <a href={cta.href} className="text-brand-green/80 hover:text-brand-green underline">
+        <Link href={cta.href} className="text-brand-green/80 hover:text-brand-green underline">
           {cta.label}
-        </a>
+        </Link>
       )}
     </div>
   );

@@ -303,33 +303,8 @@ export default async function HomePage() {
     <AppPageLayout
       wide
       email={session.user?.email}
-      title={
-        <span className="flex items-center gap-2 flex-wrap">
-          포트폴리오 대시보드
-          {unresolvedCount > 0 && (
-            <Link
-              href="/signals"
-              className="inline-flex items-center gap-1.5 bg-loss-bg border border-loss-border text-loss-400 text-xs font-semibold px-2.5 py-1 rounded-sm hover:bg-loss-bg/80 transition-colors"
-            >
-              미확인 시그널 {unresolvedCount}건
-            </Link>
-          )}
-        </span>
-      }
-      subtitle={
-        <>
-          기준일: {data.summary.fxDate ?? "—"} · USD/KRW{" "}
-          {data.summary.usdKrw.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}
-          {netWorth != null && (
-            <>
-              {" · "}
-              <Link href="/wealth" className="text-brand-green hover:underline">
-                순자산 {formatKrw(netWorth.netWorthKrw)}
-              </Link>
-            </>
-          )}
-        </>
-      }
+      title=""
+      subtitle=""
     >
       <Suspense fallback={<DashboardSkeleton />}>
         <DashboardClient
