@@ -10,6 +10,7 @@ type Props = {
   /** 대시보드·4열 차트 등 넓은 레이아웃 */
   wide?: boolean;
   headerExtra?: ReactNode;
+  subNav?: ReactNode;
 };
 
 export default function AppPageLayout({
@@ -19,13 +20,15 @@ export default function AppPageLayout({
   children,
   wide = false,
   headerExtra,
+  subNav,
 }: Props) {
   const container = wide ? pageContainerWide : pageContainer;
 
   return (
-    <div className="min-h-screen bg-bg-base">
+    <div className="min-h-screen bg-bg-base flex flex-col">
       <Navbar email={email} />
-      <main className={container}>
+      {subNav}
+      <main className={`${container} flex-1`}>
         {title || headerExtra ? (
           <div
             className={

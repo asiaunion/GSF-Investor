@@ -1,3 +1,4 @@
+import PortfolioSubNav from "@/components/PortfolioSubNav";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -301,6 +302,7 @@ export default async function HomePage() {
 
   return (
     <AppPageLayout
+      subNav={<PortfolioSubNav />}
       wide
       email={session.user?.email}
       title=""

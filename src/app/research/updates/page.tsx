@@ -1,3 +1,4 @@
+import ResearchSubNav from "@/components/ResearchSubNav";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -66,6 +67,7 @@ export default async function UpdatesPage() {
 
   return (
     <AppPageLayout
+      subNav={<ResearchSubNav />}
       email={session.user?.email}
       title="Updates"
       subtitle="시그널 알림과 공시 업데이트"

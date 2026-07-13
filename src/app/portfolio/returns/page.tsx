@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import AppPageLayout from "@/components/AppPageLayout";
 import { Suspense } from "react";
 import ReturnsClient from "./ReturnsClient";
+import PortfolioSubNav from "@/components/PortfolioSubNav";
 
 export const dynamic = "force-dynamic";
 
@@ -12,22 +13,18 @@ export default async function ReturnsPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  // stocks + holdings 기본 쿼리 (DashboardClient와 동일한 패턴 참고)
+  // stocks + holdings 기본 쿼리
   const rows = await db.run(sql`
     SELECT
-      s.ticker,
-      s.name,
-      s.market,
-      COALESCE(SUM(tj.quantity * CASE WHEN tj.action = 'BUY' THEN 1 ELSE -1 END), 0) AS quantity,
-      AVG(CASE WHEN tj.action = 'BUY' THEN tj.price END) AS avg_price,
-      s.current_price,
-      s.currency
-    FROM stocks s
-    LEFT JOIN trade_journal tj ON tj.stock_id = s.id
-    WHERE s.is_active = 1
-    GROUP BY s.id
-    HAVING quantity > 0
-    ORDER BY s.ticker
+      vp.ticker,
+      vp.name,
+      vp.market,
+      vp.quantity,
+      vp.avg_price,
+      (SELECT p.close_price FROM prices p WHERE p.stock_id = s.id ORDER BY p.date DESC LIMIT 1) AS current_price,
+      vp.currency
+    FROM v_portfolio vp
+    JOIN stocks s ON s.ticker = vp.ticker
   `);
 
   const holdings = rows.rows.map((r) => ({
@@ -46,6 +43,7 @@ export default async function ReturnsPage() {
       title="Returns"
       subtitle="보유 종목 수익률 분석"
       wide
+      subNav={<PortfolioSubNav />}
     >
       <Suspense fallback={<p className="text-sm text-text-muted">불러오는 중…</p>}>
         <ReturnsClient holdings={holdings} />

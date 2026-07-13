@@ -1,3 +1,4 @@
+import PortfolioSubNav from "@/components/PortfolioSubNav";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -59,6 +60,7 @@ export default async function DividendsPage() {
 
   return (
     <AppPageLayout
+      subNav={<PortfolioSubNav />}
       email={session.user?.email}
       title="Dividends"
       subtitle={

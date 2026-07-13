@@ -1,3 +1,4 @@
+import PortfolioSubNav from "@/components/PortfolioSubNav";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AppPageLayout from "@/components/AppPageLayout";
@@ -18,6 +19,7 @@ export default async function WealthPage() {
 
   return (
     <AppPageLayout
+      subNav={<PortfolioSubNav />}
       email={session.user?.email}
       title="Overview"
       subtitle="전체 순자산·비주식 자산 현황"

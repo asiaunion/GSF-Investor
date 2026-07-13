@@ -1,3 +1,4 @@
+import ResearchSubNav from "@/components/ResearchSubNav";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -43,6 +44,7 @@ export default async function DiscoverPage() {
 
   return (
     <AppPageLayout
+      subNav={<ResearchSubNav />}
       email={session.user?.email}
       title="Screening"
       subtitle="체크리스트·AI 스코어보드로 투자 기회를 발굴하세요"

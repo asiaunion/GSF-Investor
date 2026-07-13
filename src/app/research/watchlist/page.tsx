@@ -1,3 +1,4 @@
+import ResearchSubNav from "@/components/ResearchSubNav";
 "use client";
 
 import { useEffect, useState } from "react";
@@ -99,6 +100,7 @@ export default function StocksPage() {
 
   return (
     <AppPageLayout
+      subNav={<ResearchSubNav />}
       wide
       email={session?.user?.email}
       title="Watchlist"
