@@ -10,7 +10,7 @@
 | 프로젝트명 | GSF-Investor |
 | 상태 | 🟢 Active — prod 안정화 완료, **v3 설계 확정** (Phase 0 착수 대기) |
 | 목표 + 기한 | v3 Phase 0(데이터 신뢰) 완료 → Phase 1(리스크 대시보드) 진행 (2026 Q3) |
-| 이번 주 최우선 액션 | UI/IA 리프레시 |
+| 이번 주 최우선 액션 | Phase 1 & 2 UI 개편 완료 |
 | 다음 체크포인트 | Cursor BRIEF 검토 후 |
 | 블로커 | 없음 |
 
@@ -143,6 +143,10 @@
 ## 📝 작업 로그
 
 ### 2026-07-13
+- SWS-Style 대시보드 및 리서치 연동 배포 완료
+- Portfolio UI SWS 스타일 2-column 개편 완료
+- stock_thesis 리서치 컬럼 추가 및 Turso DB 연동
+- Research Ticker 편집 폼 및 UPSERT API 작성
 - IA Refactor (Phase 4-6) 및 배포 완료
 
 ### 2026-07-02 (Claude — v3 방향 확정)

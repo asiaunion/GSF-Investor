@@ -104,3 +104,9 @@
   2. 수익률 페이지(Returns)의 바 차트에서 마이너스(-) 수익률 렌더링 버그 픽스
 - 커밋 해시: 1f91554
 - 특이사항: Vercel 배포 대기중
+
+## [2026-07-13 23:20] AG 배포 완료
+- 작업 내용: Portfolio SWS 스타일 2-column UI 전면 개편 및 리서치 (stock_thesis) 연동 완료
+- 커밋 해시: 601c8f7
+- 배포 URL: https://gsf-investor.vercel.app
+- 특이사항: Turso 마이그레이션 적용 및 Vercel 배포 진행
